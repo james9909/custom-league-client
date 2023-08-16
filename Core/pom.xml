@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>Client</artifactId>
+        <groupId>com.hawolt</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>Core</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.hawolt.league-client-api</groupId>
+            <artifactId>VirtualClient</artifactId>
+            <version>main-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.hawolt</groupId>
+            <artifactId>riot-xmpp</artifactId>
+            <version>main-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.hawolt</groupId>
+            <artifactId>league-of-legends-rtmp</artifactId>
+            <version>main-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.hawolt</groupId>
+            <artifactId>league-of-legends-rms</artifactId>
+            <version>main-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>

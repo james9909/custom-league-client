@@ -1,0 +1,58 @@
+package com.hawolt.ui.chat;
+
+import com.hawolt.ui.chat.friendlist.ChatSidebarEssentials;
+import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
+import com.hawolt.ui.chat.profile.ChatSidebarProfile;
+import com.hawolt.ui.chat.window.IChatWindow;
+import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
+
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ * Created: 08/08/2023 17:08
+ * Author: Twitter @hawolt
+ **/
+
+public class ChatSidebar extends ChildUIComponent {
+    private final ChatSidebarProfile profile;
+    private final ChatSidebarFriendlist list;
+    private final ChatSidebarEssentials essentials;
+
+    public ChatSidebar(UserInformation information, IChatWindow chatWindow) {
+        super(new BorderLayout());
+        this.setPreferredSize(new Dimension(300, 0));
+        this.setBackground(Color.RED);
+        this.add(profile = new ChatSidebarProfile(information, new BorderLayout()), BorderLayout.NORTH);
+        ChildUIComponent component = new ChildUIComponent(new BorderLayout());
+        this.list = new ChatSidebarFriendlist(chatWindow);
+        component.add(list, BorderLayout.NORTH);
+        JScrollPane scrollPane = new JScrollPane(component);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(15);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        ChildUIComponent bundle = new ChildUIComponent(new BorderLayout());
+        bundle.add(essentials = new ChatSidebarEssentials(chatWindow.getXMPPClient(), list), BorderLayout.NORTH);
+        bundle.add(scrollPane, BorderLayout.CENTER);
+        this.add(bundle, BorderLayout.CENTER);
+    }
+
+    public void configure(UserInformation userInformation) {
+        String name = userInformation.getUserInformationLeagueAccount().getSummonerName();
+        getProfile().getSummoner().getChatSidebarName().setSummonerName(name);
+        long iconId = userInformation.getUserInformationLeagueAccount().getProfileIcon();
+        getProfile().getIcon().setIconId(iconId);
+    }
+
+    public ChatSidebarProfile getProfile() {
+        return profile;
+    }
+
+    public ChatSidebarFriendlist getChatSidebarFriendlist() {
+        return list;
+    }
+
+    public ChatSidebarEssentials getEssentials() {
+        return essentials;
+    }
+}

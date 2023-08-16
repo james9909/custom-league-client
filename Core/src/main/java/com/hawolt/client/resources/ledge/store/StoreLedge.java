@@ -1,0 +1,123 @@
+package com.hawolt.client.resources.ledge.store;
+
+import com.hawolt.client.LeagueClient;
+import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
+import com.hawolt.client.resources.ledge.store.objects.InventoryType;
+import com.hawolt.client.resources.ledge.store.objects.StoreItem;
+import com.hawolt.client.resources.ledge.store.objects.Wallet;
+import com.hawolt.generic.Constant;
+import com.hawolt.http.OkHttp3Client;
+import okhttp3.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created: 28/07/2023 00:21
+ * Author: Twitter @hawolt
+ **/
+
+public class StoreLedge extends AbstractLedgeEndpoint {
+    public StoreLedge(LeagueClient client, String base) {
+        super(client, base);
+    }
+
+    public List<StoreItem> catalogV1() throws IOException {
+        String uri = String.format("%s/%s/v%s/catalog?region=%s&language=en_GB",
+                base,
+                name(),
+                "1",
+                client.getVirtualLeagueClientInstance().getPlatform()
+        );
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                String plain = body.string();
+                JSONArray array = new JSONArray(plain);
+                List<StoreItem> list = new ArrayList<>();
+                for (int i = 0; i < array.length(); i++) {
+                    list.add(new StoreItem(new JSONArray().put(array.getJSONObject(i))));
+                }
+                return list;
+            }
+        }
+    }
+
+    public StoreItem lookupV1(InventoryType type, long itemId) throws IOException {
+        String uri = String.format("%s/%s/v%s/catalog/itemlookup?language=en_GB",
+                base,
+                name(),
+                "1"
+        );
+        JSONArray array = new JSONArray();
+        JSONObject object = new JSONObject();
+        object.put("inventoryType", type.name());
+        object.put("itemId", itemId);
+        array.put(object);
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .post(RequestBody.create(array.toString(), Constant.APPLICATION_JSON))
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                return new StoreItem(new JSONArray(body.string()));
+            }
+        }
+    }
+
+    public Wallet getBalanceV2() throws IOException {
+        String uri = String.format("%s/%s/v%s/wallet",
+                base,
+                name(),
+                "2"
+        );
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                String plain = body.string();
+                return new Wallet(new JSONObject(plain));
+            }
+        }
+    }
+
+    @Override
+    public int version() {
+        return 0;
+    }
+
+    @Override
+    public String name() {
+        return "storefront";
+    }
+
+    @Override
+    public String rcp() {
+        return "rcp-be-lol-store";
+    }
+
+    @Override
+    public String auth() {
+        return String.join(" ", "Bearer", client.getVirtualLeagueClientInstance().getLeagueClientSupplier().get("lol.access_token", true));
+    }
+}

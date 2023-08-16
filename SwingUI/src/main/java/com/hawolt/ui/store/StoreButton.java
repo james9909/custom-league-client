@@ -1,0 +1,126 @@
+package com.hawolt.ui.store;
+
+import com.hawolt.async.loader.tmp.ResourceConsumer;
+import com.hawolt.async.loader.tmp.ResourceLoader;
+import com.hawolt.client.resources.purchasewidget.CurrencyType;
+import com.hawolt.logger.Logger;
+import org.imgscalr.Scalr;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+
+/**
+ * Created: 09/08/2023 20:13
+ * Author: Twitter @hawolt
+ **/
+
+public class StoreButton extends JPanel implements MouseListener, MouseMotionListener, ResourceConsumer<BufferedImage, byte[]> {
+    private final static String BASE = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images";
+    private final IStoreElement element;
+    private final CurrencyType currency;
+    private final int price;
+    private BufferedImage image;
+
+    public StoreButton(IStoreElement element, CurrencyType currency, int price) {
+        this.setPreferredSize(new Dimension(0, 30));
+        this.setBackground(Color.DARK_GRAY);
+        this.addMouseMotionListener(this);
+        this.addMouseListener(this);
+        this.currency = currency;
+        this.element = element;
+        this.price = price;
+        ResourceLoader.load(String.join("/", BASE, currency == CurrencyType.IP ? "icon-be-150.png" : "icon-rp-72.png"), this);
+    }
+
+    @Override
+    public void onException(Object o, Exception e) {
+        Logger.fatal("Failed to load image {}", o);
+        Logger.error(e);
+    }
+
+    @Override
+    public void consume(BufferedImage bufferedImage) {
+        this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 16, 16);
+        this.repaint();
+    }
+
+    @Override
+    public BufferedImage transform(byte[] bytes) throws Exception {
+        return ImageIO.read(new ByteArrayInputStream(bytes));
+    }
+
+    public CurrencyType getCurrency() {
+        return currency;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    private final Font font = new Font("Arial", Font.PLAIN, 18);
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Dimension dimension = getSize();
+        Graphics2D graphics2D = (Graphics2D) g;
+        FontMetrics metrics = g.getFontMetrics();
+        graphics2D.setFont(font);
+        int width = metrics.stringWidth(String.valueOf(price));
+        graphics2D.setColor(Color.WHITE);
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        int offset = 21;
+        int x = ((dimension.width - offset) >> 1) - (width >> 1);
+        graphics2D.drawString(String.valueOf(price), offset + x, (dimension.height >> 1) + (metrics.getAscent() >> 1));
+        if (image == null) return;
+        g.drawImage(image, 5, (dimension.height >> 1) - (image.getHeight() >> 1), null);
+    }
+
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        this.setBackground(Color.DARK_GRAY.brighter());
+        this.repaint();
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        this.setBackground(Color.LIGHT_GRAY);
+        this.element.purchase(currency, price);
+        this.repaint();
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setBackground(Color.DARK_GRAY.brighter());
+        repaint();
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        setBackground(Color.DARK_GRAY);
+        repaint();
+    }
+}

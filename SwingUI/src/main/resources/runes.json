@@ -1,0 +1,94 @@
+[
+  {
+    "id": -1,
+    "key": "Custom",
+    "icon": "",
+    "name": "Custom",
+    "slots": [
+      {
+        "runes": [
+          {
+            "id": 5008,
+            "key": "Adaptive Force",
+            "icon": "perk-images/StatMods/StatModsAdaptiveForceIcon.png",
+            "name": "Adaptive Force",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5005,
+            "key": "Attack Speed",
+            "icon": "perk-images/StatMods/StatModsAttackSpeedIcon.png",
+            "name": "Attack Speed",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5007,
+            "key": "Cooldown Reduction",
+            "icon": "perk-images/StatMods/StatModsCDRScalingIcon.png",
+            "name": "Cooldown Reduction",
+            "shortDesc": "",
+            "longDesc": ""
+          }
+        ]
+      },
+      {
+        "runes": [
+          {
+            "id": 5008,
+            "key": "Adaptive Force",
+            "icon": "perk-images/StatMods/StatModsAdaptiveForceIcon.png",
+            "name": "Adaptive Force",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5002,
+            "key": "Armor",
+            "icon": "perk-images/StatMods/StatModsArmorIcon.png",
+            "name": "Armor",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5003,
+            "key": "Magic Resistance",
+            "icon": "perk-images/StatMods/StatModsMagicResIcon.png",
+            "name": "Magic Resistance",
+            "shortDesc": "",
+            "longDesc": ""
+          }
+        ]
+      },
+      {
+        "runes": [
+          {
+            "id": 5001,
+            "key": "Health",
+            "icon": "perk-images/StatMods/StatModsHealthScalingIcon.png",
+            "name": "Health",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5002,
+            "key": "Armor",
+            "icon": "perk-images/StatMods/StatModsArmorIcon.png",
+            "name": "Armor",
+            "shortDesc": "",
+            "longDesc": ""
+          },
+          {
+            "id": 5003,
+            "key": "Magic Resistance",
+            "icon": "perk-images/StatMods/StatModsMagicResIcon.png",
+            "name": "Magic Resistance",
+            "shortDesc": "",
+            "longDesc": ""
+          }
+        ]
+      }
+    ]
+  }
+]
