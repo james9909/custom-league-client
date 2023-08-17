@@ -38,10 +38,15 @@ public class ChatSidebar extends ChildUIComponent {
     }
 
     public void configure(UserInformation userInformation) {
-        String name = userInformation.getUserInformationLeagueAccount().getSummonerName();
-        getProfile().getSummoner().getChatSidebarName().setSummonerName(name);
-        long iconId = userInformation.getUserInformationLeagueAccount().getProfileIcon();
-        getProfile().getIcon().setIconId(iconId);
+        if (userInformation.isLeagueAccountAssociated()) {
+            String name = userInformation.getUserInformationLeagueAccount().getSummonerName();
+            getProfile().getSummoner().getChatSidebarName().setSummonerName(name);
+            long iconId = userInformation.getUserInformationLeagueAccount().getProfileIcon();
+            getProfile().getIcon().setIconId(iconId);
+        } else {
+            getProfile().getSummoner().getChatSidebarName().setSummonerName("");
+            getProfile().getIcon().setIconId(29);
+        }
     }
 
     public ChatSidebarProfile getProfile() {

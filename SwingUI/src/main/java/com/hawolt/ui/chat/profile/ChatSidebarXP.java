@@ -20,9 +20,13 @@ public class ChatSidebarXP extends JComponent {
     private int current, total, level;
 
     public ChatSidebarXP(UserInformation information) {
-        current = 419;
-        total = 2193;
-        this.level = (int) information.getUserInformationLeagueAccount().getSummonerLevel();
+        if (information.isLeagueAccountAssociated()) {
+            this.current = 419;
+            this.total = 2193;
+            this.level = (int) information.getUserInformationLeagueAccount().getSummonerLevel();
+        } else {
+
+        }
     }
 
     @Override
