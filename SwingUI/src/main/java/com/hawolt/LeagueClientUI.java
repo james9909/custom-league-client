@@ -18,6 +18,7 @@ import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
+import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.EventListener;
 import com.hawolt.xmpp.event.EventType;
@@ -58,38 +59,33 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     private void buildUI(LeagueClient client) {
-        try {
-            VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
-            mainUI = new MainUI(this);
-            ChildUIComponent temporary = new ChildUIComponent(new BorderLayout());
-            ChatWindow chatWindow = new ChatWindow();
-            chatWindow.setSupplier(xmppClient);
-            chatWindow.setVisible(false);
-            mainUI.addChatComponent(chatWindow);
-            UserInformation userInformation = client.getVirtualLeagueClient()
-                    .getVirtualLeagueClientInstance()
-                    .getUserInformation();
-            chatSidebar = new ChatSidebar(userInformation, chatWindow);
-            LayoutManager manager = new LayoutManager(this);
-            manager.setBackground(Color.MAGENTA);
-            temporary.add(manager, BorderLayout.CENTER);
-            temporary.add(chatSidebar, BorderLayout.EAST);
-            chatSidebar.configure(userInformation);
-            xmppClient.addHandler(EventType.FRIEND_LIST, chatSidebar.getChatSidebarFriendlist());
-            xmppClient.addHandler(EventType.ON_READY, (EventListener<PlainData>) event -> {
-                chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
-                ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
-                xmppClient.addPresenceListener(friendlist);
-                xmppClient.addFriendListener(friendlist);
-                xmppClient.addMessageListener(chatWindow);
-                friendlist.revalidate();
-            });
-            mainUI.setMainComponent(temporary);
-            mainUI.revalidate();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
+        mainUI = new MainUI(this);
+        ChildUIComponent temporary = new ChildUIComponent(new BorderLayout());
+        ChatWindow chatWindow = new ChatWindow();
+        chatWindow.setSupplier(xmppClient);
+        chatWindow.setVisible(false);
+        mainUI.addChatComponent(chatWindow);
+        UserInformation userInformation = client.getVirtualLeagueClient()
+                .getVirtualLeagueClientInstance()
+                .getUserInformation();
+        chatSidebar = new ChatSidebar(userInformation, chatWindow);
+        LayoutManager manager = new LayoutManager(this);
+        manager.setBackground(Color.MAGENTA);
+        temporary.add(manager, BorderLayout.CENTER);
+        temporary.add(chatSidebar, BorderLayout.EAST);
+        chatSidebar.configure(userInformation);
+        xmppClient.addHandler(EventType.FRIEND_LIST, chatSidebar.getChatSidebarFriendlist());
+        xmppClient.addHandler(EventType.ON_READY, (EventListener<PlainData>) event -> {
+            chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
+            ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
+            xmppClient.addPresenceListener(friendlist);
+            xmppClient.addFriendListener(friendlist);
+            xmppClient.addMessageListener(chatWindow);
+            friendlist.revalidate();
+        });
+        mainUI.setMainComponent(temporary);
+        mainUI.revalidate();
     }
 
     public ChatSidebar getChatSidebar() {
@@ -106,8 +102,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     @Override
     public void onError(Throwable throwable) {
-        Logger.error("Failed to initialize Client");
         Logger.fatal(throwable);
+        Logger.error("Failed to initialize Client");
     }
 
     public static void main(String[] args) {
@@ -119,7 +115,20 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     @Override
     public void onLogin(String username, String password) {
-        ClientConfiguration configuration = ClientConfiguration.getDefault(username, password);
+        JFrame parent = this;
+        ClientConfiguration configuration = ClientConfiguration.getDefault(username, password, new MultiFactorSupplier() {
+            @Override
+            public String get() {
+                return (String) JOptionPane.showInputDialog(
+                        parent,
+                        "Enter 2FA Code",
+                        "Multifactor",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        "");
+            }
+        });
         this.riotClient = new RiotClient(configuration, this);
     }
 

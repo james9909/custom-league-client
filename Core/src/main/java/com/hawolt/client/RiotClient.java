@@ -3,7 +3,6 @@ package com.hawolt.client;
 import com.hawolt.client.handler.RMSHandler;
 import com.hawolt.client.handler.RTMPHandler;
 import com.hawolt.client.handler.XMPPHandler;
-import com.hawolt.manifest.RMANCache;
 import com.hawolt.virtual.leagueclient.client.VirtualLeagueClient;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.instance.VirtualLeagueClientInstance;
@@ -56,7 +55,6 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
     }
 
     private void loginAndCreate() {
-        RMANCache.active = configuration.isRMANCacheActive();
         VirtualRiotClientInstance virtualRiotClientInstance = VirtualRiotClientInstance.create(
                 configuration.getGateway(),
                 configuration.getCookieSupplier(),
@@ -72,7 +70,7 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
     private void login(ClientConfiguration configuration, VirtualRiotClientInstance virtualRiotClientInstance) throws IOException, LeagueException {
         String username = configuration.getUsername();
         String password = configuration.getPassword();
-        VirtualRiotClient virtualRiotClient = virtualRiotClientInstance.login(username, password);
+        VirtualRiotClient virtualRiotClient = virtualRiotClientInstance.login(username, password, configuration.getMultifactorSupplier());
         VirtualLeagueClientInstance virtualLeagueClientInstance = virtualRiotClient.createVirtualLeagueClientInstance();
         CompletableFuture<VirtualLeagueClient> virtualLeagueClientFuture = virtualLeagueClientInstance.login(
                 configuration.getIgnoreSummoner(),

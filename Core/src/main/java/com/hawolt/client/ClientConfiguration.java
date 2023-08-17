@@ -3,6 +3,7 @@ package com.hawolt.client;
 import com.hawolt.authentication.ICookieSupplier;
 import com.hawolt.authentication.LocalCookieSupplier;
 import com.hawolt.http.Gateway;
+import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 
 /**
  * Created: 27/07/2023 21:31
@@ -16,16 +17,16 @@ public class ClientConfiguration {
         this.builder = builder;
     }
 
+    public MultiFactorSupplier getMultifactorSupplier() {
+        return builder.multifactor;
+    }
+
     public String getUsername() {
         return builder.username;
     }
 
     public String getPassword() {
         return builder.password;
-    }
-
-    public boolean isRMANCacheActive() {
-        return builder.useRMANCache;
     }
 
     public boolean getIgnoreSummoner() {
@@ -53,13 +54,19 @@ public class ClientConfiguration {
     }
 
     public static class Builder {
-        private Boolean ignoreSummoner, selfRefresh, complete, minimal, useRMANCache;
+        private Boolean ignoreSummoner, selfRefresh, complete, minimal;
         private String username, password;
+        private MultiFactorSupplier multifactor;
         private ICookieSupplier supplier;
         private Gateway gateway;
 
         public Builder setGateway(Gateway gateway) {
             this.gateway = gateway;
+            return this;
+        }
+
+        public Builder setMultifactorSupplier(MultiFactorSupplier multifactor) {
+            this.multifactor = multifactor;
             return this;
         }
 
@@ -98,11 +105,6 @@ public class ClientConfiguration {
             return this;
         }
 
-        public Builder setRMANCache(boolean useRMANCache) {
-            this.useRMANCache = useRMANCache;
-            return this;
-        }
-
         public ClientConfiguration build() throws IncompleteConfigurationException {
             if (ignoreSummoner == null || selfRefresh == null || complete == null || minimal == null) {
                 throw new IncompleteConfigurationException();
@@ -111,15 +113,15 @@ public class ClientConfiguration {
         }
     }
 
-    public static ClientConfiguration getDefault(String username, String password) {
+    public static ClientConfiguration getDefault(String username, String password, MultiFactorSupplier multifactor) {
         try {
             return new Builder()
                     .setSupplier(new LocalCookieSupplier())
-                    .setIgnoreSummoner(false)
+                    .setMultifactorSupplier(multifactor)
+                    .setIgnoreSummoner(true)
                     .setUsername(username)
                     .setPassword(password)
                     .setSelfRefresh(true)
-                    .setRMANCache(true)
                     .setMinimal(false)
                     .setComplete(true)
                     .setGateway(null)
