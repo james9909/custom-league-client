@@ -49,11 +49,11 @@ public class QueueState extends ChildUIComponent {
                 TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(elapsed));
         long seconds = TimeUnit.MILLISECONDS.toSeconds(elapsed) -
                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsed));
-        String secondsAsText = minutes > 0 ? String.format("%02d", seconds) : String.valueOf(seconds);
+        String secondsAsText = String.format("%02d", seconds);
         String minutesAsText = hours > 0 ? String.format("%02d", minutes) : String.valueOf(minutes);
         StringBuilder duration = new StringBuilder();
         if (hours > 0) duration.append(hours).append(":");
-        if (minutes > 0) duration.append(minutesAsText).append(":");
+        duration.append(minutesAsText).append(":");
         duration.append(secondsAsText);
         return duration.toString();
     }
