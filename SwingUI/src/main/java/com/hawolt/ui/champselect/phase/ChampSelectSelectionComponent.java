@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect.phase;
 
+import com.hawolt.async.loader.impl.ChampionLoader;
 import com.hawolt.async.loader.impl.ImageLoader;
 import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
@@ -23,13 +24,13 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
     private BufferedImage image;
     private boolean selected;
     private int componentId;
-    private long championId;
+    private int championId;
 
     public ChampSelectSelectionComponent(ChampSelectSelectionCallback callback, int componentId) {
         this.componentId = componentId;
         this.callback = callback;
         this.setBackground(Color.BLACK);
-        this.setPreferredSize(new Dimension(70, 70));
+        this.setPreferredSize(new Dimension(70, 90));
         this.addMouseListener(this);
     }
 
@@ -44,6 +45,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
             int y = 5;
             this.rectangle = new Rectangle(x, y, 64, 64);
             g.drawImage(image, x, y, null);
+            g.drawString(ChampionLoader.instance.getCache().get(championId).getName(), x, y+80);
             if (!selected) return;
             Graphics2D graphics2D = (Graphics2D) g;
 
@@ -59,7 +61,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
 
     }
 
-    public void update(long championId) {
+    public void update(int championId) {
         if (this.championId != 0) return;
         this.championId = championId;
         ImageLoader.instance.load(String.format(preset, this.championId)).whenComplete((image, e) -> {
