@@ -115,7 +115,6 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
             switch (info.getString("backwardsTransitionReason")) {
                 case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {
                     leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
-                    Logger.info("make us able to que again by indicating we are ready");
                     try {
                         leagueClientUI.getLeagueClient().getLedge().getParties().ready();
                     } catch (IOException e) {
