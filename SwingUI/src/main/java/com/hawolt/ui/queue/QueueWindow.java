@@ -9,7 +9,6 @@ import com.hawolt.client.resources.ledge.parties.objects.data.PartyType;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.logger.Logger;
-import com.hawolt.rms.data.impl.payload.RiotMessageMessagePayload;
 import com.hawolt.rms.data.subject.service.IServiceMessageListener;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
@@ -113,8 +112,17 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
             if (!info.has("backwardsTransitionReason")) return;
-            if (!"PLAYER_LEFT_MATCHMAKING".equalsIgnoreCase(info.getString("backwardsTransitionReason"))) return;
-            leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+            switch (info.getString("backwardsTransitionReason")) {
+                case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {
+                    leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+                    Logger.info("make us able to que again by indicating we are ready");
+                    try {
+                        leagueClientUI.getLeagueClient().getLedge().getParties().ready();
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
+                }
+            }
         } else if (payload.has("phaseName")) {
             String phaseName = payload.getString("phaseName");
             ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
@@ -149,26 +157,19 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         JSONObject json = new JSONObject(e.getActionCommand());
         long queueId = json.getLong("id");
         long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
-        Logger.error(json);
-
         PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
         try {
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             if (registration == null) registration = partiesLedge.register();
             registration = partiesLedge.leave(registration.getFirstPartyId(), PartyRole.DECLINED);
-
-            String gamemode = partiesLedge.gamemode(
+            partiesLedge.gamemode(
                     registration.getFirstPartyId(),
                     maximumParticipantListSize,
                     0,
                     queueId
             );
-
-            Logger.error(gamemode);
-            String type = partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
-            Logger.error(type);
-            PartiesRegistration tmp = partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
-            Logger.error(tmp);
+            partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
+            partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
             layout.show(parent, "lobby");
         } catch (IOException ex) {
             Logger.error(ex);
