@@ -75,17 +75,26 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
         chatSidebar.configure(userInformation);
-        xmppClient.addHandler(EventType.ON_READY, (EventListener<PlainData>) event -> {
-            chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
-            ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
-            friendlist.onEvent(xmppClient.getFriendList());
-            xmppClient.addPresenceListener(friendlist);
-            xmppClient.addFriendListener(friendlist);
-            xmppClient.addMessageListener(chatWindow);
-            friendlist.revalidate();
-        });
+        if (leagueClient.getXMPP().getTimestamp() > 0) {
+            buildSidebarUI(xmppClient, chatWindow);
+        } else {
+            xmppClient.addHandler(
+                    EventType.ON_READY,
+                    (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatWindow)
+            );
+        }
         mainUI.setMainComponent(temporary);
         mainUI.revalidate();
+    }
+
+    private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatWindow chatWindow) {
+        chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
+        ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
+        friendlist.onEvent(xmppClient.getFriendList());
+        xmppClient.addPresenceListener(friendlist);
+        xmppClient.addFriendListener(friendlist);
+        xmppClient.addMessageListener(chatWindow);
+        friendlist.revalidate();
     }
 
     public ChatSidebar getChatSidebar() {
