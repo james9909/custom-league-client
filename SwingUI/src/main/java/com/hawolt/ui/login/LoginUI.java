@@ -28,16 +28,32 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         super(clientUI);
         this.setLayout(new GridLayout(0, 1, 0, 5));
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
-        this.add(username = new JHintTextField("Username"));
+
+        JLabel usernameLabel = new JLabel("Username");
+        this.add(usernameLabel);
+
+        this.add(username = new JHintTextField(""));
+
+        JLabel passwordLabel = new JLabel("Password");
+        this.add(passwordLabel);
+
         this.add(password = new JPasswordField());
+
         JButton login = new JButton("Login");
         login.addActionListener(this);
         this.add(login);
-        this.setPreferredSize(new Dimension(300, 125));
+
+        this.setPreferredSize(new Dimension(300, 150));
         this.container.add(this);
+
+        // Using .setLabelFor() to bind labels to corresponding input fields
+        usernameLabel.setLabelFor(username);
+        passwordLabel.setLabelFor(password);
+
         this.callback = clientUI;
         this.init();
     }
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
