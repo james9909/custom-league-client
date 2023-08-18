@@ -68,6 +68,10 @@ public class ChatSidebarFriend extends JPanel implements MouseListener, MouseMot
         this.runnable = runnable;
     }
 
+    public ConnectionStatus getConnectionStatus() {
+        return connectionStatus == null ? ConnectionStatus.OFFLINE : connectionStatus;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

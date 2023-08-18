@@ -1,7 +1,7 @@
 package com.hawolt.ui.layout.wallet;
 
-import com.hawolt.async.loader.tmp.ResourceConsumer;
-import com.hawolt.async.loader.tmp.ResourceLoader;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
 
@@ -68,7 +68,7 @@ public class HeaderWalletCurrency extends JComponent implements ResourceConsumer
     }
 
     @Override
-    public void consume(BufferedImage bufferedImage) {
+    public void consume(Object o, BufferedImage bufferedImage) {
         this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 32, 32);
         this.repaint();
     }

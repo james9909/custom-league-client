@@ -1,8 +1,8 @@
 package com.hawolt.ui.runes;
 
 import com.hawolt.LeagueClientUI;
-import com.hawolt.async.loader.tmp.ResourceConsumer;
-import com.hawolt.async.loader.tmp.ResourceLoader;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -95,7 +95,7 @@ public class RuneSelectionPanel extends ChildUIComponent implements ActionListen
     }
 
     @Override
-    public void consume(JSONArray array) {
+    public void consume(Object o, JSONArray array) {
         if (array.length() == 1) {
             extra = new RunePanel(new DDRuneType(array.getJSONObject(0)), false, false);
             extra.setPreferredSize(new Dimension(0, 300));

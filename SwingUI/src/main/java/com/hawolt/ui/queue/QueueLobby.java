@@ -65,6 +65,7 @@ public class QueueLobby extends ChildUIComponent {
 
         add(component, BorderLayout.CENTER);
 
+        ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         JButton start = new JButton("START QUEUE");
         start.addActionListener(listener -> {
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
@@ -79,6 +80,19 @@ public class QueueLobby extends ChildUIComponent {
                 Logger.error(e);
             }
         });
-        add(start, BorderLayout.SOUTH);
+        bottom.add(start);
+        JButton stop = new JButton("STOP QUEUE");
+        stop.addActionListener(listener -> {
+            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+            PartiesRegistration registration = partiesLedge.getCurrentRegistration();
+            try {
+                if (registration == null) return;
+                partiesLedge.setQueueAction(registration.getFirstPartyId(), PartyAction.STOP);
+            } catch (IOException e) {
+                Logger.error(e);
+            }
+        });
+        bottom.add(stop);
+        add(bottom, BorderLayout.SOUTH);
     }
 }

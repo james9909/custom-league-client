@@ -109,35 +109,47 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
-        Logger.error(riotMessageServiceMessage);
-        if (!payload.has("phaseName")) return;
-        Logger.error("QUEUE POP");
-        String phaseName = payload.getString("phaseName");
-        ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
-        if (phaseName.equals("MATCHMAKING")) {
-            JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
-            long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
-            essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
-            revalidate();
-        } else if (phaseName.equals("AFK_CHECK")) {
-            AudioEngine.play("matchmakingqueued.wav");
-            JSONObject afkCheckState = payload.getJSONObject("afkCheckState");
-            long maxAfkMillis = afkCheckState.getLong("maxAfkMillis");
-            QueueDialog dialog = new QueueDialog(Frame.getFrames()[0], "Queue Notification", maxAfkMillis);
-            if (dialog.showQueueDialog().getSelection() != 1) {
-                essentials.disableQueueState();
-            } else {
-                try {
-                    MatchContext context = leagueClientUI.getLeagueClient().getLedge().getTeamBuilder().indicateAfkReadiness();
-                    Logger.info("Queue Accept: {}", context.getStatus());
-                } catch (IOException e) {
-                    Logger.error(e);
+        if (payload.has("backwardsTransitionInfo")) {
+            JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
+            if (!info.has("backwardsTransitionReason")) return;
+            switch (info.getString("backwardsTransitionReason")) {
+                case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {
+                    leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+                    Logger.info("make us able to que again by indicating we are ready");
+                    try {
+                        leagueClientUI.getLeagueClient().getLedge().getParties().ready();
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
                 }
             }
-        } else {
-            Logger.info("Ignored RMS Packet {}", riotMessageServiceMessage);
+        } else if (payload.has("phaseName")) {
+            String phaseName = payload.getString("phaseName");
+            ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
+            if (phaseName.equals("MATCHMAKING")) {
+                JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
+                long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
+                essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
+                revalidate();
+            } else if (phaseName.equals("AFK_CHECK")) {
+                AudioEngine.play("matchmakingqueued.wav");
+                JSONObject afkCheckState = payload.getJSONObject("afkCheckState");
+                long maxAfkMillis = afkCheckState.getLong("maxAfkMillis");
+                QueueDialog dialog = new QueueDialog(Frame.getFrames()[0], "Queue Notification", maxAfkMillis);
+                if (dialog.showQueueDialog().getSelection() != 1) {
+                    essentials.disableQueueState();
+                } else {
+                    try {
+                        MatchContext context = leagueClientUI.getLeagueClient().getLedge().getTeamBuilder().indicateAfkReadiness();
+                        Logger.info("Queue Accept: {}", context.getStatus());
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
+                }
+            } else {
+                Logger.info("Ignored RMS Packet {}", riotMessageServiceMessage);
+            }
         }
-
     }
 
     @Override
@@ -145,26 +157,19 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         JSONObject json = new JSONObject(e.getActionCommand());
         long queueId = json.getLong("id");
         long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
-        Logger.error(json);
-
         PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
         try {
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             if (registration == null) registration = partiesLedge.register();
             registration = partiesLedge.leave(registration.getFirstPartyId(), PartyRole.DECLINED);
-
-            String gamemode = partiesLedge.gamemode(
+            partiesLedge.gamemode(
                     registration.getFirstPartyId(),
                     maximumParticipantListSize,
                     0,
                     queueId
             );
-
-            Logger.error(gamemode);
-            String type = partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
-            Logger.error(type);
-            PartiesRegistration tmp = partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
-            Logger.error(tmp);
+            partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
+            partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
             layout.show(parent, "lobby");
         } catch (IOException ex) {
             Logger.error(ex);

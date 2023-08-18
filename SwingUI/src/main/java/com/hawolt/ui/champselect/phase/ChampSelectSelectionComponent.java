@@ -1,22 +1,25 @@
 package com.hawolt.ui.champselect.phase;
 
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.async.loader.impl.ChampionLoader;
-import com.hawolt.async.loader.impl.ImageLoader;
 import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 
 /**
  * Created: 06/08/2023 15:19
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectSelectionComponent extends JPanel implements MouseListener {
+public class ChampSelectSelectionComponent extends JPanel implements MouseListener, ResourceConsumer<BufferedImage, byte[]> {
     private final static String preset = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/%s.png";
     private final static Color opaque = new Color(255, 255, 255, 100);
     private ChampSelectSelectionCallback callback;
@@ -45,7 +48,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
             int y = 5;
             this.rectangle = new Rectangle(x, y, 64, 64);
             g.drawImage(image, x, y, null);
-            g.drawString(ChampionLoader.instance.getCache().get(championId).getName(), x, y+80);
+            g.drawString(ChampionLoader.instance.getCache().get(championId).getName(), x, y + 80);
             if (!selected) return;
             Graphics2D graphics2D = (Graphics2D) g;
 
@@ -64,13 +67,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
     public void update(int championId) {
         if (this.championId != 0) return;
         this.championId = championId;
-        ImageLoader.instance.load(String.format(preset, this.championId)).whenComplete((image, e) -> {
-            if (e != null) Logger.error(e);
-            else {
-                this.image = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 64, 64);
-                this.repaint();
-            }
-        });
+        ResourceLoader.load(String.format(preset, this.championId), this);
     }
 
     @Override
@@ -105,5 +102,23 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
     public void unselect() {
         this.selected = false;
         this.repaint();
+    }
+
+
+    @Override
+    public void onException(Object o, Exception e) {
+        Logger.fatal("Failed to load {}", o);
+        Logger.error(e);
+    }
+
+    @Override
+    public void consume(Object o, BufferedImage bufferedImage) {
+        this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 64, 64);
+        this.repaint();
+    }
+
+    @Override
+    public BufferedImage transform(byte[] bytes) throws Exception {
+        return ImageIO.read(new ByteArrayInputStream(bytes));
     }
 }

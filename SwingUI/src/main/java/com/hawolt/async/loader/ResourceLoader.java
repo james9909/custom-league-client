@@ -1,4 +1,4 @@
-package com.hawolt.async.loader.tmp;
+package com.hawolt.async.loader;
 
 import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
  **/
 
 public class ResourceLoader {
-
     private static final ExecutorService service = ExecutorManager.registerService(
             "resource-loader-jobs",
             Executors.newFixedThreadPool(8)
@@ -56,7 +55,7 @@ public class ResourceLoader {
     public static void load(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
         if (cache.containsKey(uri)) {
             try {
-                consumer.consume(Unsafe.cast(consumer.transform(cache.get(uri))));
+                consumer.consume(uri, Unsafe.cast(consumer.transform(cache.get(uri))));
             } catch (Exception e) {
                 consumer.onException(uri, e);
             }
@@ -91,7 +90,7 @@ public class ResourceLoader {
     public static void loadLocalResource(String name, boolean priority, ResourceConsumer<?, byte[]> consumer) {
         if (cache.containsKey(name)) {
             try {
-                consumer.consume(Unsafe.cast(consumer.transform(cache.get(name))));
+                consumer.consume(name, Unsafe.cast(consumer.transform(cache.get(name))));
             } catch (Exception e) {
                 consumer.onException(name, e);
             }
@@ -116,7 +115,7 @@ public class ResourceLoader {
         List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(o));
         for (ResourceConsumer<?, byte[]> consumer : list) {
             try {
-                consumer.consume(convert(consumer.transform(b)));
+                consumer.consume(o, convert(consumer.transform(b)));
             } catch (Exception e) {
                 Logger.error(e);
             }

@@ -1,19 +1,22 @@
 package com.hawolt.ui.champselect.header;
 
-import com.hawolt.async.loader.impl.ImageLoader;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 
 /**
  * Created: 06/08/2023 15:19
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectBanComponent extends JPanel {
+public class ChampSelectBanComponent extends JPanel implements ResourceConsumer<BufferedImage, byte[]> {
     private final static String preset = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/%s.png";
     private BufferedImage image;
     private int championId;
@@ -41,12 +44,23 @@ public class ChampSelectBanComponent extends JPanel {
     public void update(int championId) {
         if (this.championId == championId) return;
         this.championId = championId;
-        ImageLoader.instance.load(String.format(preset, this.championId)).whenComplete((image, e) -> {
-            if (e != null) Logger.error(e);
-            else {
-                this.image = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 48, 48);
-                this.repaint();
-            }
-        });
+        ResourceLoader.load(String.format(preset, this.championId), this);
+    }
+
+    @Override
+    public void onException(Object o, Exception e) {
+        Logger.fatal("Failed to load {}", o);
+        Logger.error(e);
+    }
+
+    @Override
+    public void consume(Object o, BufferedImage bufferedImage) {
+        this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 48, 48);
+        this.repaint();
+    }
+
+    @Override
+    public BufferedImage transform(byte[] bytes) throws Exception {
+        return ImageIO.read(new ByteArrayInputStream(bytes));
     }
 }
