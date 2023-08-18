@@ -14,12 +14,12 @@ import java.util.List;
 public class Champion {
     private final List<String> roles = new ArrayList<>();
     private final String name, alias;
-    private final long id;
+    private final int id;
 
     public Champion(JSONObject o) {
         this.name = o.getString("name");
         this.alias = o.getString("alias");
-        this.id = o.getLong("id");
+        this.id = o.getInt("id");
         JSONArray roles = o.getJSONArray("roles");
         for (int i = 0; i < roles.length(); i++) {
             this.roles.add(roles.getString(i));
@@ -38,7 +38,7 @@ public class Champion {
         return alias;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 }
