@@ -16,10 +16,8 @@ import com.hawolt.xmpp.event.objects.presence.impl.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created: 08/08/2023 18:11
@@ -98,6 +96,18 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     private void handle(AbstractPresence presence) {
         if (!map.containsKey(presence.getFrom())) return;
         getComponent(presence.getFrom()).setLastKnownPresence(presence);
+        List<ChatSidebarFriend> collection = new ArrayList<>(map.values());
+        collection.sort(Comparator.comparingInt(o -> o.getConnectionStatus().ordinal()));
+        Collections.reverse(collection);
+        Component[] components = getComponents();
+        for (Component component : components) {
+            if (component instanceof ChatSidebarFriend) {
+                remove(component);
+            }
+        }
+        for (ChatSidebarFriend friend : collection) {
+            add(friend);
+        }
         revalidate();
     }
 
