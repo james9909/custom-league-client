@@ -9,6 +9,7 @@ import com.hawolt.client.resources.ledge.parties.objects.data.PartyType;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.logger.Logger;
+import com.hawolt.rms.data.impl.payload.RiotMessageMessagePayload;
 import com.hawolt.rms.data.subject.service.IServiceMessageListener;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
@@ -109,35 +110,38 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
-        Logger.error(riotMessageServiceMessage);
-        if (!payload.has("phaseName")) return;
-        Logger.error("QUEUE POP");
-        String phaseName = payload.getString("phaseName");
-        ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
-        if (phaseName.equals("MATCHMAKING")) {
-            JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
-            long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
-            essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
-            revalidate();
-        } else if (phaseName.equals("AFK_CHECK")) {
-            AudioEngine.play("matchmakingqueued.wav");
-            JSONObject afkCheckState = payload.getJSONObject("afkCheckState");
-            long maxAfkMillis = afkCheckState.getLong("maxAfkMillis");
-            QueueDialog dialog = new QueueDialog(Frame.getFrames()[0], "Queue Notification", maxAfkMillis);
-            if (dialog.showQueueDialog().getSelection() != 1) {
-                essentials.disableQueueState();
-            } else {
-                try {
-                    MatchContext context = leagueClientUI.getLeagueClient().getLedge().getTeamBuilder().indicateAfkReadiness();
-                    Logger.info("Queue Accept: {}", context.getStatus());
-                } catch (IOException e) {
-                    Logger.error(e);
+        if (payload.has("backwardsTransitionInfo")) {
+            JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
+            if (!info.has("backwardsTransitionReason")) return;
+            if (!"PLAYER_LEFT_MATCHMAKING".equalsIgnoreCase(info.getString("backwardsTransitionReason"))) return;
+            leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+        } else if (payload.has("phaseName")) {
+            String phaseName = payload.getString("phaseName");
+            ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
+            if (phaseName.equals("MATCHMAKING")) {
+                JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
+                long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
+                essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
+                revalidate();
+            } else if (phaseName.equals("AFK_CHECK")) {
+                AudioEngine.play("matchmakingqueued.wav");
+                JSONObject afkCheckState = payload.getJSONObject("afkCheckState");
+                long maxAfkMillis = afkCheckState.getLong("maxAfkMillis");
+                QueueDialog dialog = new QueueDialog(Frame.getFrames()[0], "Queue Notification", maxAfkMillis);
+                if (dialog.showQueueDialog().getSelection() != 1) {
+                    essentials.disableQueueState();
+                } else {
+                    try {
+                        MatchContext context = leagueClientUI.getLeagueClient().getLedge().getTeamBuilder().indicateAfkReadiness();
+                        Logger.info("Queue Accept: {}", context.getStatus());
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
                 }
+            } else {
+                Logger.info("Ignored RMS Packet {}", riotMessageServiceMessage);
             }
-        } else {
-            Logger.info("Ignored RMS Packet {}", riotMessageServiceMessage);
         }
-
     }
 
     @Override
