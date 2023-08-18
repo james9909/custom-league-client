@@ -18,7 +18,7 @@ import java.net.URISyntaxException;
  * Author: Twitter @hawolt
  **/
 
-public class ChampionLoader extends AbstractLoader<Long, Champion> {
+public class ChampionLoader extends AbstractLoader<Integer, Champion> {
 
     public static ChampionLoader instance = new ChampionLoader();
 

@@ -181,9 +181,9 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         JSONObject b = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
         JSONObject items = b.getJSONObject("items");
         JSONArray champions = items.getJSONArray("CHAMPION");
-        Long[] ids = new Long[champions.length()];
+        Integer[] ids = new Integer[champions.length()];
         for (int i = 0; i < champions.length(); i++) {
-            ids[i] = champions.getLong(i);
+            ids[i] = champions.getInt(i);
         }
         phaseUI.getPickPhaseUI().getSelectionUI().update(ids);
     }
