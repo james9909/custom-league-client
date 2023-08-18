@@ -1,5 +1,6 @@
 package com.hawolt.client.resources.ledge.parties.objects;
 
+import com.hawolt.logger.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,6 +19,7 @@ public class PartiesRegistration {
 
     public PartiesRegistration(JSONObject o) {
         this.source = o;
+        if (!o.has("parties")) return;
         JSONArray parties = o.getJSONArray("parties");
         for (int i = 0; i < parties.length(); i++) {
             this.parties.add(new PartiesParty(parties.getJSONObject(i)));
@@ -26,6 +28,10 @@ public class PartiesRegistration {
 
     public JSONObject getSource() {
         return source;
+    }
+
+    public boolean isPartyAvailable() {
+        return !parties.isEmpty();
     }
 
     public String getFirstPartyId() {
