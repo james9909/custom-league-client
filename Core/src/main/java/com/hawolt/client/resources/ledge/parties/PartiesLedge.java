@@ -145,7 +145,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         }
     }
 
-    public String gamemode(String partyId, long maxPartySize, long maxTeamSize, long queueId) throws IOException {
+    public PartiesRegistration gamemode(String partyId, long maxPartySize, long maxTeamSize, long queueId) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/gamemode",
                 base,
                 name(),
@@ -174,12 +174,13 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         try (Response response = call.execute()) {
             try (ResponseBody body = response.body()) {
                 String plain = body.string();
-                return plain;
+                JSONObject o = new JSONObject(plain);
+                return (current = new PartiesRegistration(o));
             }
         }
     }
 
-    public String partytype(String partyId, PartyType type) throws IOException {
+    public PartiesRegistration partytype(String partyId, PartyType type) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/partytype",
                 base,
                 name(),
@@ -197,7 +198,8 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         try (Response response = call.execute()) {
             try (ResponseBody body = response.body()) {
                 String plain = body.string();
-                return plain;
+                JSONObject o = new JSONObject(plain);
+                return (current = new PartiesRegistration(o));
             }
         }
     }
@@ -227,7 +229,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         }
     }
 
-    public void setQueueAction(String partyId, PartyAction action) throws IOException {
+    public PartiesRegistration setQueueAction(String partyId, PartyAction action) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/%s",
                 base,
                 name(),
@@ -248,6 +250,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
             try (ResponseBody body = response.body()) {
                 String plain = body.string();
                 JSONObject o = new JSONObject(plain);
+                return (current = new PartiesRegistration(o));
             }
         }
     }
@@ -285,33 +288,31 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         }
     }
 
-    /*
-        public void indicateReadyStatus() throws IOException {
-            String uri = String.format("%s/%s/v%s/parties/%s/members/%s/ready",
-                    base,
-                    name(),
-                    version(),
-                    current.getFirstPartyId(),
-                    userInformation.getSub()
-            );
-            Request request = new Request.Builder()
-                    .url(uri)
-                    .addHeader("Authorization", auth())
-                    .addHeader("User-Agent", agent())
-                    .addHeader("Accept", "application/json")
-                    .put(RequestBody.create("true", Constant.APPLICATION_JSON))
-                    .build();
-            Call call = OkHttp3Client.perform(request, gateway);
-            try (Response response = call.execute()) {
-                try (ResponseBody body = response.body()) {
-                    String plain = body.string();
-                    System.err.println(uri + ": " + plain);
-                    //   JSONObject o = new JSONObject(plain);
-                    //   return (current = new PartiesRegistration(o));
-                }
+    public PartiesRegistration ready() throws IOException {
+        String uri = String.format("%s/%s/v%s/parties/%s/members/%s/ready",
+                base,
+                name(),
+                version(),
+                current.getFirstPartyId(),
+                userInformation.getSub()
+        );
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .put(RequestBody.create("true", Constant.APPLICATION_JSON))
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                String plain = body.string();
+                JSONObject o = new JSONObject(plain);
+                return (current = new PartiesRegistration(o));
             }
         }
-    */
+    }
+
     public PartiesRegistration getCurrentRegistration() {
         return current;
     }
