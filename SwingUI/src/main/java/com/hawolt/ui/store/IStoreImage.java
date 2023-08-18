@@ -12,6 +12,4 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IStoreImage {
     String getImageURL(InventoryType type, long itemId);
-
-    CompletableFuture<BufferedImage> getStoreImage();
 }

@@ -1,44 +1,34 @@
 package com.hawolt.ui.store;
 
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
-import com.hawolt.async.loader.impl.ImageLoader;
+import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 
 /**
  * Created: 09/08/2023 20:09
  * Author: Twitter @hawolt
  **/
 
-public class StoreImage extends JComponent implements IStoreImage, BiConsumer<BufferedImage, Throwable> {
+public class StoreImage extends JComponent implements IStoreImage, ResourceConsumer<BufferedImage, byte[]> {
     private final StoreItem item;
     private BufferedImage image;
 
     public StoreImage(StoreItem item) {
         this.item = item;
-        this.getStoreImage().whenComplete(this);
-    }
-
-    @Override
-    public void accept(BufferedImage image, Throwable throwable) {
-        if (throwable != null) return;
-        this.image = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 200, 260);
-        repaint();
-    }
-
-    @Override
-    public CompletableFuture<BufferedImage> getStoreImage() {
-        return ImageLoader.instance.load(getImageURL(item.getInventoryType(), item.getItemId()));
+        ResourceLoader.load(getImageURL(item.getInventoryType(), item.getItemId()), this);
     }
 
     @Override
@@ -80,4 +70,19 @@ public class StoreImage extends JComponent implements IStoreImage, BiConsumer<Bu
         g.drawImage(image, x, y, null);
     }
 
+    @Override
+    public void onException(Object o, Exception e) {
+        Logger.fatal("Failed to load resource {}", o);
+        Logger.error(e);
+    }
+
+    @Override
+    public void consume(Object o, BufferedImage image) {
+        this.image = Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 200, 260);
+    }
+
+    @Override
+    public BufferedImage transform(byte[] bytes) throws Exception {
+        return ImageIO.read(new ByteArrayInputStream(bytes));
+    }
 }

@@ -1,7 +1,7 @@
 package com.hawolt.ui.store;
 
-import com.hawolt.async.loader.tmp.ResourceConsumer;
-import com.hawolt.async.loader.tmp.ResourceLoader;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.purchasewidget.CurrencyType;
 import com.hawolt.logger.Logger;
 import org.imgscalr.Scalr;
@@ -45,7 +45,7 @@ public class StoreButton extends JPanel implements MouseListener, MouseMotionLis
     }
 
     @Override
-    public void consume(BufferedImage bufferedImage) {
+    public void consume(Object o, BufferedImage bufferedImage) {
         this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 16, 16);
         this.repaint();
     }

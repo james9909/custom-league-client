@@ -1,4 +1,4 @@
-package com.hawolt.async.loader.tmp;
+package com.hawolt.async.loader;
 
 /**
  * Created: 16/08/2023 18:24
@@ -8,7 +8,7 @@ package com.hawolt.async.loader.tmp;
 public interface ResourceConsumer<T, V> {
     void onException(Object o, Exception e);
 
-    void consume(T t);
+    void consume(Object o, T t);
 
     T transform(V v) throws Exception;
 }
