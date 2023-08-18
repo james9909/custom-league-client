@@ -11,7 +11,6 @@ import com.hawolt.xmpp.misc.impl.RiotDataCallback;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.util.Date;
 
 /**
  * Created: 11/08/2023 18:42
@@ -21,6 +20,7 @@ import java.util.Date;
 public class XMPPHandler implements ISocketListener, EventListener<PlainData> {
     private final VirtualRiotXMPPClient virtualRiotXMPPClient;
     private final RiotDataCallback riotDataCallback;
+    private long timestamp;
 
     public static XMPPHandler build(LeagueClient client) throws URISyntaxException, MalformedURLException {
         RiotDataCallback riotDataCallback = new RiotDataCallback(client.getVirtualLeagueClient());
@@ -47,6 +47,10 @@ public class XMPPHandler implements ISocketListener, EventListener<PlainData> {
         return virtualRiotXMPPClient;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
     @Override
     public String getConnectionIdentifier() {
         return null;
@@ -54,7 +58,7 @@ public class XMPPHandler implements ISocketListener, EventListener<PlainData> {
 
     @Override
     public void onEvent(PlainData plainData) {
-        Logger.info("Connected to XMPP: {}", new Date(plainData.getTimestamp()));
+        this.timestamp = plainData.getTimestamp();
     }
 
     @Override
