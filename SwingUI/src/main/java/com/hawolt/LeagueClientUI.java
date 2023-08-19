@@ -17,6 +17,7 @@ import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
@@ -28,6 +29,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,6 +51,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     private ChatSidebar chatSidebar;
+    private LoginUI loginUI;
     private MainUI mainUI;
 
     @Override
@@ -109,17 +112,32 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         return leagueClient;
     }
 
-    @Override
-    public void onError(Throwable throwable) {
-        Logger.fatal(throwable);
-        Logger.error("Failed to initialize Client");
+    private void showFailureDialog(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Login Failed",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
-    public static void main(String[] args) {
-        LeagueClientUI leagueClientUI = new LeagueClientUI("Swift Rift");
-        leagueClientUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        leagueClientUI.setVisible(true);
-        LoginUI.show(leagueClientUI);
+    @Override
+    public void onLoginFlowException(Throwable throwable) {
+        Logger.error("Failed to initialize Client: {}", throwable.getMessage());
+        if (throwable instanceof LeagueException e) {
+            switch (e.getType()) {
+                case NO_LEAGUE_ACCOUNT -> showFailureDialog("No League account connected");
+                case NO_SUMMONER_NAME -> showFailureDialog("No name set for summoner");
+            }
+        } else if (throwable instanceof IOException) {
+            switch (throwable.getMessage()) {
+                case "AUTH_FAILURE" -> showFailureDialog("Invalid username or password");
+                case "RATE_LIMITED" -> showFailureDialog("You are being rate limited");
+            }
+        } else {
+            showFailureDialog("Unknown Error during login");
+        }
+        this.loginUI.toggle(true);
     }
 
     @Override
@@ -146,5 +164,12 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         if (e.getNewState() == JFrame.MAXIMIZED_BOTH) {
             mainUI.adjust();
         }
+    }
+
+    public static void main(String[] args) {
+        LeagueClientUI leagueClientUI = new LeagueClientUI("Swift Rift");
+        leagueClientUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
+        leagueClientUI.setVisible(true);
     }
 }
