@@ -13,7 +13,6 @@ import com.hawolt.client.resources.ledge.parties.objects.invitation.PartyInvitat
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
-import com.hawolt.logger.Logger;
 import com.hawolt.virtual.leagueclient.authentication.Userinfo;
 import com.hawolt.virtual.leagueclient.client.Authentication;
 import okhttp3.*;
@@ -36,6 +35,23 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         super(client, base);
     }
 
+    public String getGameClientVersion() {
+        String leagueClientVersion = gameVersionSupplier.getVersionValue("League of Legends.exe");
+        int majorIndex = leagueClientVersion.indexOf('.');
+        String major = leagueClientVersion.substring(0, majorIndex);
+        int minorIndex = leagueClientVersion.indexOf('.', majorIndex + 1);
+        String minor = leagueClientVersion.substring(majorIndex + 1, minorIndex);
+        String remainder = leagueClientVersion.substring(minorIndex + 1).replaceAll("\\.", "");
+        return String.format(
+                "%s.%s.%s+branch.releases-%s-%s.code.public.content.release",
+                major,
+                minor,
+                remainder,
+                major,
+                minor
+        );
+    }
+
     public PartiesRegistration register() throws IOException {
         JSONObject object = new JSONObject();
         object.put("accountId", userInformation.getOriginalAccountId());
@@ -46,22 +62,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         object.put("platformId", platform.name());
         object.put("puuid", userInformation.getSub());
         JSONObject registration = new JSONObject();
-        String leagueClientVersion = gameVersionSupplier.getVersionValue("League of Legends.exe");
-        Logger.error(leagueClientVersion);
-        int majorIndex = leagueClientVersion.indexOf('.');
-        String major = leagueClientVersion.substring(0, majorIndex);
-        int minorIndex = leagueClientVersion.indexOf('.', majorIndex + 1);
-        String minor = leagueClientVersion.substring(majorIndex + 1, minorIndex);
-        String remainder = leagueClientVersion.substring(minorIndex + 1).replaceAll("\\.", "");
-        String gameClientVersion = String.format(
-                "%s.%s.%s+branch.releases-%s-%s.code.public.content.release",
-                major,
-                minor,
-                remainder,
-                major,
-                minor
-        );
-        registration.put("gameClientVersion", gameClientVersion);
+        registration.put("gameClientVersion", getGameClientVersion());
         registration.put("inventoryToken", JSONObject.NULL);
         registration.put("inventoryTokens", new JSONArray());
         LedgeEndpoint ledge = client.getLedge();
