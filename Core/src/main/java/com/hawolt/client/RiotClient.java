@@ -36,14 +36,14 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
 
     @Override
     public void accept(VirtualLeagueClient virtualLeagueClient, Throwable throwable) {
-        if (throwable != null) callback.onError(throwable);
+        if (throwable != null) callback.onLoginFlowException(throwable);
         else {
             LeagueClient client = new LeagueClient(virtualLeagueClient);
             try {
                 finalize(client);
                 callback.onClient(client);
             } catch (IOException | URISyntaxException e) {
-                callback.onError(e);
+                callback.onLoginFlowException(e);
             }
         }
     }
@@ -63,7 +63,7 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
         try {
             login(configuration, virtualRiotClientInstance);
         } catch (IOException | LeagueException e) {
-            callback.onError(e);
+            callback.onLoginFlowException(e);
         }
     }
 
