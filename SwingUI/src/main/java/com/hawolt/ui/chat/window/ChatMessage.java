@@ -7,6 +7,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Created: 09/08/2023 10:38
@@ -46,7 +47,6 @@ public class ChatMessage extends ChildUIComponent {
         this.repaint();
     }
 
-
     private String[] compute() {
         List<String> history = new ArrayList<>();
         int width = getPreferredSize().width - 10;
@@ -56,84 +56,79 @@ public class ChatMessage extends ChildUIComponent {
             Graphics2D graphics2D = PaintHelper.getGraphics2D();
             FontMetrics metrics = graphics2D.getFontMetrics();
             String[] messages = this.message.split("\n");
-            if (messages.length == 1 && !isTooBig(messages[0], width, metrics)) {
-                history.add(messages[0]);
-            } else {
-                for (String message : messages) {
-                    history.addAll(formatMessage(message, width, metrics));
-                }
+            for (String message : messages) {
+                history.addAll(formatMessage(message, width, metrics));
             }
         }
         return history.toArray(String[]::new);
     }
 
     private List<String> formatMessage(String message, int width, FontMetrics metrics) {
-        List<String> formattedMessage = new ArrayList<>();
+        List<String> result = new ArrayList<>();
+
         message = message.trim();
-        if (!isTooBig(message, width, metrics)) {
-            // fits in window -> add
-            formattedMessage.add(message);
-        } else {
+        String[] words = message.split(" ");
+
+        if (words.length > 0) {
             StringBuilder currentLine = new StringBuilder();
-            boolean hasTrailingMessagePart = false;
-            // message is too big -> check each word
-            for(String word: message.split(" ")) {
-                if(!isTooBig(currentLine + word + " ", width, metrics)) {
-                    // again if word fits on screen -> add to current line
-                    currentLine.append(word).append(" ");
+            int spaceWidth = metrics.charWidth(' ');
+
+            currentLine.append(words[0]);
+            for (int i = 1; i < words.length; i++) {
+                String word = words[i];
+                int wordWidth = metrics.stringWidth(word);
+                int currentLineWidth = metrics.stringWidth(currentLine.toString());
+
+                if (currentLineWidth + wordWidth + spaceWidth <= width) {
+                    currentLine.append(' ');
+                    currentLine.append(word);
                 } else {
-                    // add current line as message
-                    formattedMessage.add(currentLine.toString());
-                    // flush current line
-                    currentLine = new StringBuilder();
-                    // word is too big (how???) -> split word
-                    if (isTooBig(word, width, metrics)) {
-                        formattedMessage.addAll(formatLongWord(word, width, metrics));
-                        hasTrailingMessagePart = false;
+                    if (currentLine.length() > 0) {
+                        result.add(currentLine.toString());
+                        currentLine.setLength(0);
+                    }
+
+                    if (wordWidth > width) {
+                        List<String> subwords = formatLongWord(word, width, metrics);
+                        ListIterator<String> iterator = subwords.listIterator();
+
+                        String subword = iterator.next();
+                        while (iterator.hasNext()) {
+                            result.add(subword);
+                            subword = iterator.next();
+                        }
+                        currentLine.append(subword);
                     } else {
-                        currentLine.append(word).append(" ");
-                        hasTrailingMessagePart = true;
+                        currentLine.append(word);
                     }
                 }
-                if(hasTrailingMessagePart) {
-                    // ensure that last inline message is added
-                    formattedMessage.add(currentLine.toString());
-                }
+            }
+            result.add(currentLine.toString());
+        }
+
+        return result;
+    }
+
+    private List<String> formatLongWord(String word, int width, FontMetrics metrics) {
+        List<String> result = new ArrayList<>();
+
+        int currentWidth = metrics.charWidth(word.codePointAt(0));
+        int lastSplit = 0;
+
+        for (int i = 1; i < word.length(); i++) {
+            int c = word.codePointAt(i);
+            currentWidth += metrics.charWidth(c);
+
+            if (currentWidth > width) {
+                result.add(word.substring(lastSplit, i));
+
+                currentWidth = metrics.charWidth(c);
+                lastSplit = i;
             }
         }
-        return formattedMessage;
-    }
+        result.add(word.substring(lastSplit));
 
-    private List<String> formatLongWord(String word, int width, FontMetrics metrics){
-        List<String> parts = new ArrayList<>(splitWord(word.trim()));
-
-        while(parts.stream().anyMatch(part -> isTooBig(part, width, metrics))) {
-            List<String> temp = new ArrayList<>();
-
-            for(String part: parts) {
-                if(isTooBig(part, width, metrics)) {
-                    temp.addAll(splitWord(part));
-                } else {
-                    temp.add(part);
-                }
-                parts = new LinkedList<>(temp);
-            }
-        }
-        return parts;
-    }
-
-    private List<String> splitWord(String word){
-        List<String> retVal = new ArrayList<>();
-        int half = word.length() / 2;
-
-        retVal.add(word.substring(0, half));
-        retVal.add(word.substring(half));
-
-        return retVal;
-    }
-
-    private boolean isTooBig(String text, int width, FontMetrics metrics) {
-        return metrics.stringWidth(text) > width;
+        return result;
     }
 
     @Override
