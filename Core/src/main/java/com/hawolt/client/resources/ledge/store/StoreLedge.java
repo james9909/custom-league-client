@@ -32,11 +32,7 @@ public class StoreLedge extends AbstractLedgeEndpoint {
                 "1",
                 client.getVirtualLeagueClientInstance().getPlatform()
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .get()
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -64,11 +60,7 @@ public class StoreLedge extends AbstractLedgeEndpoint {
         object.put("inventoryType", type.name());
         object.put("itemId", itemId);
         array.put(object);
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .post(RequestBody.create(array.toString(), Constant.APPLICATION_JSON))
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -85,11 +77,7 @@ public class StoreLedge extends AbstractLedgeEndpoint {
                 name(),
                 "2"
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .get()
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);

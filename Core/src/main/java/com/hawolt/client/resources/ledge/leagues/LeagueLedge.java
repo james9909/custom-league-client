@@ -27,13 +27,7 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
                 name(),
                 version()
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
-                .get()
-                .build();
+        Request request = jsonRequest(uri).get().build();
         Call call = OkHttp3Client.perform(request, gateway);
         try (Response response = call.execute()) {
             try (ResponseBody body = response.body()) {
@@ -51,13 +45,7 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
                 version(),
                 puuid
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
-                .get()
-                .build();
+        Request request = jsonRequest(uri).get().build();
         Call call = OkHttp3Client.perform(request, gateway);
         try (Response response = call.execute()) {
             try (ResponseBody body = response.body()) {

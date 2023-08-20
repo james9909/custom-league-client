@@ -49,11 +49,7 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
     }
 
     public Summoner resolveSummoner(String uri) throws IOException {
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .get()
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -74,11 +70,7 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
                 platform.name().toLowerCase(),
                 userInformation.getSub()
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .get()
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -101,11 +93,7 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
                 .addPathSegment("validatename")
                 .addQueryParameter("summonerName", name)
                 .build();
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(url)
                 .get()
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -131,11 +119,7 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
                 .build();
         JSONObject object = new JSONObject();
         object.put("summonerName", name);
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(url)
                 .post(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);

@@ -54,11 +54,7 @@ public class PerksLedge extends AbstractLedgeEndpoint {
                 self.getSummonerId()
         );
 
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .post(RequestBody.create(escape(runes.toString()), Constant.APPLICATION_JSON))
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);

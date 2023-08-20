@@ -62,11 +62,7 @@ public class LootLedge extends AbstractLedgeEndpoint {
             array.put(upgrade);
         }
         object.put("lootNameRefIds", array);
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(url)
                 .post(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
@@ -94,13 +90,7 @@ public class LootLedge extends AbstractLedgeEndpoint {
                 .addQueryParameter("lastRecipeUpdate", timestamp)
                 .addQueryParameter("lastQueryUpdate", timestamp)
                 .build();
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
-                .get()
-                .build();
+        Request request = jsonRequest(url).get().build();
         Call call = OkHttp3Client.perform(request, gateway);
         try (Response response = call.execute()) {
             try (ResponseBody body = response.body()) {

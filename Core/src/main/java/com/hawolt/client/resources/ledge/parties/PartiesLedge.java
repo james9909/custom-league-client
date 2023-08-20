@@ -156,12 +156,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         object.put("maxPartySize", maxPartySize);
         object.put("maxTeamSize", maxTeamSize);
         object.put("queueId", queueId);
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
-                .put(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
+        Request request = jsonRequest(uri).put(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
@@ -175,12 +170,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 version(),
                 partyId
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
-                .put(RequestBody.create(type.toString(), Constant.APPLICATION_JSON))
+        Request request = jsonRequest(uri).put(RequestBody.create(type.toString(), Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
@@ -195,11 +185,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 partyId,
                 userInformation.getSub()
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .put(RequestBody.create(role.toString(), Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
@@ -216,11 +202,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 userInformation.getSub(),
                 action.name().toLowerCase() + "Action"
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .post(RequestBody.create(new byte[0], Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
@@ -244,11 +226,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         array.put(first.name());
         array.put(second.name());
         object.put("positionPref", array);
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .put(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
@@ -264,11 +242,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 current.getFirstPartyId(),
                 userInformation.getSub()
         );
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .put(RequestBody.create("true", Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);

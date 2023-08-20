@@ -40,11 +40,7 @@ public class TeamBuilderLedge extends AbstractLedgeEndpoint {
         object.put("initialSpellIds", new JSONArray().put(14).put(4));
         object.put("lastSelectedSkinIdByChampionId", new JSONObject());
         object.put("simplifiedInventoryJwt", client.getLedge().getInventoryService().getInventoryToken());
-        Request request = new Request.Builder()
-                .url(uri)
-                .addHeader("Authorization", auth())
-                .addHeader("User-Agent", agent())
-                .addHeader("Accept", "application/json")
+        Request request = jsonRequest(uri)
                 .post(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
         Call call = OkHttp3Client.perform(request, gateway);
