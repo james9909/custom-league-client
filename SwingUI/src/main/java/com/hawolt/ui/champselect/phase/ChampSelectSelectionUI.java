@@ -41,7 +41,7 @@ public class ChampSelectSelectionUI extends ChildUIComponent implements ChampSel
 
     public void update(Integer[] ids) {
         LeagueClientUI.service.execute(() -> {
-            ChampionLoader loader = new ChampionLoader();
+            ChampionLoader loader = new ChampionLoader().blockUntilLoaded();
             this.components = new ChampSelectSelectionComponent[ids.length];
             Arrays.sort(ids, (id1, id2) -> {
                 String name1 = loader.load(id1).getName();

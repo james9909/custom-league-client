@@ -1,9 +1,9 @@
 package com.hawolt.async.loader.impl;
 
-import com.hawolt.io.Core;
 import com.hawolt.async.loader.AbstractLoader;
-import com.hawolt.objects.Champion;
+import com.hawolt.io.Core;
 import com.hawolt.logger.Logger;
+import com.hawolt.objects.Champion;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 public class ChampionLoader extends AbstractLoader<Integer, Champion> {
 
     public static ChampionLoader instance = new ChampionLoader();
+    private boolean loaded;
 
     public ChampionLoader() {
         Logger.debug("loaded {} entries for {}", cache.size(), getClass().getSimpleName());
@@ -38,6 +39,18 @@ public class ChampionLoader extends AbstractLoader<Integer, Champion> {
                 cache.put(champion.getId(), champion);
             }
         }
+        this.loaded = true;
+    }
+
+    public ChampionLoader blockUntilLoaded() {
+        while (!loaded) {
+            try {
+                Thread.sleep(50L);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return this;
     }
 
     @Override
