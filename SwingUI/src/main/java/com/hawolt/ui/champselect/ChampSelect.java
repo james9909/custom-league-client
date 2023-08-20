@@ -60,10 +60,6 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         this.phaseUI.getButton().addActionListener(this);
         this.rtmpClient = client.getRTMPClient();
         this.rtmpClient.setDefaultCallback(this);
-
-        /* TODO
-        Logger.error(leagueClient.getLedge().getPerks().setRunesToMakeLittleTimmyAngry());
-        */
     }
 
     public LeagueClient getLeagueClient() {
@@ -71,7 +67,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     }
 
     private Map<String, Integer> actions = new HashMap<>();
-    private int currentActionSetIndex, ownTeamId;
+    private int currentActionSetIndex, localPlayerCellId, ownTeamId;
 
     private ChampSelectSidebarUI getOwnSidebarUI() {
         return ownTeamId == 1 ? teamOneUI : teamTwoUI;
@@ -93,7 +89,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         JSONObject state = object.getJSONObject("championSelectState");
         this.currentActionSetIndex = state.getInt("currentActionSetIndex");
 
-        int localPlayerCellId = state.getInt("localPlayerCellId");
+        this.localPlayerCellId = state.getInt("localPlayerCellId");
         JSONArray array = state.getJSONArray("actionSetList");
         for (int i = 0; i < array.length(); i++) {
             JSONArray nested = array.getJSONArray(i);
@@ -159,14 +155,20 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                 teamOneUI.update(currentActionSetIndex, i, phase);
                 teamTwoUI.update(currentActionSetIndex, i, phase);
             }
-            //UPDATE SIDEBARS
+            //UPDATE OWN TEAM
             JSONObject cells = state.getJSONObject("cells");
             JSONArray allied = cells.getJSONArray("alliedTeam");
             for (int i = 0; i < allied.length(); i++) {
                 JSONObject member = allied.getJSONObject(i);
-                int teamId = member.getInt("teamId");
-                ChampSelectSidebarUI champSelectSidebarUI = teamId == 1 ? teamOneUI : teamTwoUI;
+                ChampSelectSidebarUI champSelectSidebarUI = ownTeamId == 1 ? teamOneUI : teamTwoUI;
                 champSelectSidebarUI.update(new AlliedMember(member));
+            }
+            //UPDATE ENEMY TEAM
+            JSONArray enemy = cells.getJSONArray("enemyTeam");
+            for (int i = 0; i < enemy.length(); i++) {
+                JSONObject member = enemy.getJSONObject(i);
+                ChampSelectSidebarUI champSelectSidebarUI = ownTeamId == 2 ? teamOneUI : teamTwoUI;
+                champSelectSidebarUI.update(member);
             }
             //RELOAD
             this.revalidate();
@@ -217,6 +219,8 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                 switch (command) {
                     case "DODGE" -> {
                         this.rtmpClient.getTeamBuilderService().quitGameV2Asynchronous(this);
+                        this.headerUI.getTimerUI().stop();
+                        this.phaseUI.getChatUI().reset();
                         this.resetChampSelectState();
                         this.revalidate();
                     }
@@ -227,6 +231,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                                 championId,
                                 true
                         );
+                        this.phaseUI.show("pick");
                     }
                     case "PICK" -> {
                         int championId = (int) this.phaseUI.getPickPhaseUI().getSelectionUI().getSelectedChampionId();
@@ -246,15 +251,18 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
         try {
-            Logger.error(typedObject);
             if (typedObject == null || !typedObject.containsKey("data")) return;
             TypedObject data = typedObject.getTypedObject("data");
-            if (data == null || !data.containsKey("body")) return;
-            TypedObject body = data.getTypedObject("body");
-            if (body == null) return;
-            if (!body.containsKey("payload")) return;
+            if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;
+            TypedObject message = data.getTypedObject("flex.messaging.messages.AsyncMessage");
+            if (message == null || !message.containsKey("body")) return;
+            TypedObject body = message.getTypedObject("body");
+            if (body == null || !body.containsKey("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse"))
+                return;
+            TypedObject response = body.getTypedObject("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse");
+            if (response == null || !response.containsKey("payload")) return;
             try {
-                Object object = body.get("payload");
+                Object object = response.get("payload");
                 if (object == null) return;
                 update(Base64GZIP.unzipBase64(object.toString()));
             } catch (IOException e) {

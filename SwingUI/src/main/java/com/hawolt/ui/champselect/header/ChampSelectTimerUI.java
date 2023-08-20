@@ -32,6 +32,10 @@ public class ChampSelectTimerUI extends JPanel {
         this.timestamp = System.currentTimeMillis();
     }
 
+    public void stop() {
+        this.timestamp = 0;
+    }
+
     public void update(int state, String subphase) {
         this.state = state;
         switch (state) {
@@ -60,6 +64,7 @@ public class ChampSelectTimerUI extends JPanel {
     protected void paintComponent(Graphics g) {
         if (!isVisible()) return;
         super.paintComponent(g);
+        if (timestamp == 0) return;
         double difference = currentTotalTimeMillis - currentTimeRemainingMillis + (System.currentTimeMillis() - timestamp);
         double percentage = difference / currentTotalTimeMillis;
         if (percentage < 0) percentage = 0;

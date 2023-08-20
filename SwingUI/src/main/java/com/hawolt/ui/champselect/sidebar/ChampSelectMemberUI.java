@@ -93,7 +93,16 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
             int skinId = member.getSkinId() == 0 ? fallbackId : member.getSkinId();
             ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
                     "skin",
-                    image -> Scalr.crop(image, 300, 100, 680, 400)
+                    image -> {
+                        if (image != null) return Scalr.crop(image, 300, 100, 680, 400);
+                        else {
+                            ChampSelectMemberSprite failure = sprites.get(String.format(splash, championId, skinId));
+                            failure.setResource(String.format(splash, championId, fallbackId));
+                            sprites.put(failure.getResource(), failure);
+                            ResourceLoader.load(failure.getResource(), this);
+                        }
+                        return null;
+                    }
             );
             sprite.setResource(String.format(splash, championId, skinId));
             sprites.put(sprite.getResource(), sprite);
@@ -119,9 +128,9 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         }
     }
 
-    public void update(int championId, boolean completed) {
+    public void updateChampSelection(int championId) {
+        if (this.championId == championId) return;
         this.championId = championId;
-        this.completed = completed;
         if (championId == 0) return;
         ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
                 "image",
@@ -130,6 +139,18 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         sprite.setResource(String.format(preset, this.championId));
         sprites.put(sprite.getResource(), sprite);
         ResourceLoader.load(sprite.getResource(), this);
+        ChampSelectMemberSprite skin = new ChampSelectMemberSprite(
+                "skin",
+                image -> Scalr.crop(image, 300, 100, 680, 400)
+        );
+        skin.setResource(String.format(splash, championId, championId * 1000));
+        sprites.put(skin.getResource(), skin);
+        ResourceLoader.load(skin.getResource(), this);
+    }
+
+    public void update(int championId, boolean completed) {
+        this.updateChampSelection(championId);
+        this.completed = completed;
     }
 
     public BufferedImage getSprite(String name) {
@@ -207,13 +228,6 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
 
     @Override
     public void onException(Object o, Exception e) {
-        ChampSelectMemberSprite sprite = sprites.get(o.toString());
-        if ("skin".equalsIgnoreCase(sprite.getIdentifier())) {
-            int fallbackId = championId * 1000;
-            sprite.setResource(String.format(splash, championId, fallbackId));
-            sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
-        }
         Logger.fatal("Failed to load resource {}", o);
         Logger.error(e);
     }
@@ -224,6 +238,7 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         BufferedImage image = sprite.getFunction().apply(bufferedImage);
         sprite.setImage(image);
         if ("skin".equalsIgnoreCase(sprite.getIdentifier())) {
+            Logger.info("{} {} {}", sprite.getIdentifier(), o, bufferedImage == null);
             Dimension dimension = getSize();
             ChampSelectMemberSprite decoration = new ChampSelectMemberSprite(
                     "decoration",
@@ -231,6 +246,8 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
             );
             decoration.setImage(decoration.getFunction().apply(image));
             sprites.put("decoration", decoration);
+        } else {
+            sprites.put(sprite.getIdentifier(), sprite);
         }
         repaint();
     }

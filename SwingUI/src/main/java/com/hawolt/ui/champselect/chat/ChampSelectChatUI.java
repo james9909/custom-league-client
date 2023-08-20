@@ -58,9 +58,13 @@ public class ChampSelectChatUI extends ChildUIComponent implements IMessageListe
         });
     }
 
-    public void build() {
-        //JOIN CHAT
+    public void reset() {
         this.area.setText("");
+    }
+
+    public void build() {
+        reset();
+        //JOIN CHAT
         LeagueClientUI.service.execute(() -> {
             if (client == null) return;
             this.context = client.getCachedValue(CacheType.MATCH_CONTEXT);

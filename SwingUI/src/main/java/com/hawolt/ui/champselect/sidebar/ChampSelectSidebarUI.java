@@ -88,6 +88,10 @@ public class ChampSelectSidebarUI extends JPanel {
         this.revalidate();
     }
 
+    public void update(JSONObject object) {
+        ((ChampSelectMemberUI) memberUIs[object.getInt("cellId") % 5]).updateChampSelection(object.getInt("championId"));
+    }
+
     public void update(AlliedMember member) {
         ((ChampSelectMemberUI) memberUIs[member.getCellId() % 5]).updateAlliedMember(member);
     }

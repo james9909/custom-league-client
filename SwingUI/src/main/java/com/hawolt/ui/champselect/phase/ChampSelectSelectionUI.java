@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect.phase;
 
+import com.hawolt.LeagueClientUI;
 import com.hawolt.async.loader.impl.ChampionLoader;
 import com.hawolt.ui.champselect.ChampSelectPhase;
 import com.hawolt.ui.champselect.IChampSelection;
@@ -39,20 +40,23 @@ public class ChampSelectSelectionUI extends ChildUIComponent implements ChampSel
     }
 
     public void update(Integer[] ids) {
-        this.removeAll();
-        this.components = new ChampSelectSelectionComponent[ids.length];
-        Arrays.sort(ids, (id1, id2) -> {
-            String name1 = ChampionLoader.instance.getCache().get(id1).getName();
-            String name2 = ChampionLoader.instance.getCache().get(id2).getName();
-            return name1.compareTo(name2);
+        LeagueClientUI.service.execute(() -> {
+            ChampionLoader loader = new ChampionLoader();
+            this.components = new ChampSelectSelectionComponent[ids.length];
+            Arrays.sort(ids, (id1, id2) -> {
+                String name1 = loader.load(id1).getName();
+                String name2 = loader.load(id2).getName();
+                return name1.compareTo(name2);
+            });
+            this.removeAll();
+            for (int i = 0; i < components.length; i++) {
+                ChampSelectSelectionComponent component = new ChampSelectSelectionComponent(this, i);
+                this.components[i] = component;
+                component.update(ids[i]);
+                this.add(component);
+            }
+            this.revalidate();
         });
-        for (int i = 0; i < components.length; i++) {
-            ChampSelectSelectionComponent component = new ChampSelectSelectionComponent(this, i);
-            this.components[i] = component;
-            component.update(ids[i]);
-            this.add(component);
-        }
-        this.revalidate();
     }
 
     @Override
