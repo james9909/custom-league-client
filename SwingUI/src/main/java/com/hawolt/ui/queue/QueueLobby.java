@@ -1,21 +1,30 @@
 package com.hawolt.ui.queue;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.async.ExecutorManager;
 import com.hawolt.client.resources.ledge.LedgeEndpoint;
 import com.hawolt.client.resources.ledge.parties.PartiesLedge;
-import com.hawolt.client.resources.ledge.parties.objects.PartiesRegistration;
-import com.hawolt.client.resources.ledge.parties.objects.PartyException;
+import com.hawolt.client.resources.ledge.parties.objects.*;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyAction;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
-import com.hawolt.client.resources.ledge.parties.objects.invitation.PartyInvitation;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created: 11/08/2023 23:00
@@ -23,6 +32,8 @@ import java.io.IOException;
  **/
 
 public class QueueLobby extends ChildUIComponent {
+    private final ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("queue-resumer");
+    private ScheduledFuture<?> future;
 
     public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(new BorderLayout());
@@ -45,11 +56,9 @@ public class QueueLobby extends ChildUIComponent {
             LedgeEndpoint ledges = leagueClientUI.getLeagueClient().getLedge();
             SummonerLedge summonerLedge = ledges.getSummoner();
             PartiesLedge partiesLedge = ledges.getParties();
-            PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             try {
                 Summoner summoner = summonerLedge.resolveSummonerByName(name);
-                PartyInvitation invitation = partiesLedge.invite(registration.getFirstPartyId(), summoner.getPUUID());
-                Logger.error(invitation);
+                partiesLedge.invite(summoner.getPUUID());
             } catch (IOException | PartyException e) {
                 Logger.error(e);
             }
@@ -71,11 +80,37 @@ public class QueueLobby extends ChildUIComponent {
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             try {
-                if (registration == null) registration = partiesLedge.register();
+                if (registration == null) partiesLedge.register();
+                partiesLedge.ready();
                 PositionPreference primary = main.getItemAt(main.getSelectedIndex());
                 PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
-                PartiesRegistration last = partiesLedge.metadata(registration.getFirstPartyId(), primary, secondary);
-                partiesLedge.setQueueAction(last.getFirstPartyId(), PartyAction.START);
+                partiesLedge.metadata(primary, secondary);
+                JSONObject response = partiesLedge.setQueueAction(PartyAction.START);
+                List<GatekeeperRestriction> direct = "GATEKEEPER_RESTRICTED".equals(response.getString("errorCode")) ?
+                        new PartyGatekeeper(response).getRestrictionList() : new ArrayList<>();
+                CurrentParty party = partiesLedge.getOwnPlayer().getCurrentParty();
+                PartyRestriction restriction = party.getPartyRestriction();
+                List<GatekeeperRestriction> indirect = restriction != null ?
+                        restriction.getRestrictionList() : new ArrayList<>();
+                if (direct.isEmpty() && indirect.isEmpty()) return;
+                List<GatekeeperRestriction> sorted = Stream.of(direct, indirect)
+                        .flatMap(Collection::stream)
+                        .sorted(((o1, o2) -> Long.compare(o2.getRemainingMillis(), o1.getRemainingMillis())))
+                        .toList();
+                GatekeeperRestriction gatekeeperRestriction = sorted.get(0);
+                Logger.debug("Restriction: {}", gatekeeperRestriction);
+                leagueClientUI.getChatSidebar().getEssentials().toggleQueueState(
+                        System.currentTimeMillis(),
+                        gatekeeperRestriction.getRemainingMillis(),
+                        true
+                );
+                future = scheduler.schedule(() -> {
+                    try {
+                        partiesLedge.resume();
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
+                }, gatekeeperRestriction.getRemainingMillis(), TimeUnit.MILLISECONDS);
             } catch (IOException e) {
                 Logger.error(e);
             }
@@ -83,11 +118,13 @@ public class QueueLobby extends ChildUIComponent {
         bottom.add(start);
         JButton stop = new JButton("STOP QUEUE");
         stop.addActionListener(listener -> {
+            if (future != null) future.cancel(true);
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             try {
                 if (registration == null) return;
-                partiesLedge.setQueueAction(registration.getFirstPartyId(), PartyAction.STOP);
+                partiesLedge.setQueueAction(PartyAction.STOP);
+                leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
             } catch (IOException e) {
                 Logger.error(e);
             }

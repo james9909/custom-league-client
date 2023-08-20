@@ -110,6 +110,7 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
 
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
+        Logger.debug(riotMessageServiceMessage);
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
@@ -161,16 +162,16 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
         try {
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
-            if (registration == null) registration = partiesLedge.register();
-            registration = partiesLedge.leave(registration.getFirstPartyId(), PartyRole.DECLINED);
+            if (registration == null) partiesLedge.register();
+            partiesLedge.leave(PartyRole.DECLINED);
             partiesLedge.gamemode(
-                    registration.getFirstPartyId(),
+                    partiesLedge.getCurrentPartyId(),
                     maximumParticipantListSize,
                     0,
                     queueId
             );
-            partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
-            partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
+            partiesLedge.partytype(PartyType.OPEN);
+            partiesLedge.metadata(PositionPreference.FILL, PositionPreference.UNSELECTED);
             layout.show(parent, "lobby");
         } catch (IOException ex) {
             Logger.error(ex);

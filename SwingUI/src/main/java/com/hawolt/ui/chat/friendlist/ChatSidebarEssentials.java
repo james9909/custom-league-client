@@ -38,8 +38,15 @@ public class ChatSidebarEssentials extends ChildUIComponent {
     }
 
     public void toggleQueueState(long currentTimeMillis, long estimatedMatchmakingTimeMillis) {
-        if (toggled) return;
-        state.setTimer(currentTimeMillis, estimatedMatchmakingTimeMillis);
+        toggleQueueState(currentTimeMillis, estimatedMatchmakingTimeMillis, false);
+    }
+
+    public void toggleQueueState(long currentTimeMillis, long estimatedMatchmakingTimeMillis, boolean lpq) {
+        if (toggled) {
+            if (state.isLPQ()) state.updateLPQ(estimatedMatchmakingTimeMillis);
+            return;
+        }
+        state.setTimer(currentTimeMillis, estimatedMatchmakingTimeMillis, lpq);
         add(state, 0);
         toggled = true;
         revalidate();

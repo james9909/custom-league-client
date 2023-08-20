@@ -9,7 +9,6 @@ import com.hawolt.client.resources.ledge.parties.objects.data.PartyAction;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyRole;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyType;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
-import com.hawolt.client.resources.ledge.parties.objects.invitation.PartyInvitation;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
@@ -31,7 +30,7 @@ import java.util.Arrays;
 
 public class PartiesLedge extends AbstractLedgeEndpoint {
 
-    private PartiesRegistration current;
+    private PartiesRegistration registration;
 
     public PartiesLedge(LeagueClient client, String base) {
         super(client, base);
@@ -52,6 +51,10 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 major,
                 minor
         );
+    }
+
+    public String getCurrentPartyId() throws IOException {
+        return registration == null ? register().getCurrentParty().getPartyId() : registration.getCurrentParty().getPartyId();
     }
 
     public PartiesRegistration register() throws IOException {
@@ -91,36 +94,36 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (this.registration = new PartiesRegistration(o));
     }
 
-    public PartyInvitation invite(Summoner summoner) throws IOException, PartyException {
-        return invite(current, summoner.getPUUID());
-    }
-
-    public PartyInvitation invite(PartiesRegistration registration, Summoner summoner) throws IOException, PartyException {
+    public PartiesRegistration invite(Summoner summoner) throws IOException, PartyException {
         return invite(registration, summoner.getPUUID());
     }
 
-    public PartyInvitation invite(Summoner... summoners) throws IOException, PartyException {
-        return invite(current, Arrays.stream(summoners).map(Summoner::getPUUID).toArray(String[]::new));
+    public PartiesRegistration invite(PartiesRegistration registration, Summoner summoner) throws IOException, PartyException {
+        return invite(registration, summoner.getPUUID());
     }
 
-    public PartyInvitation invite(PartiesRegistration registration, Summoner... summoners) throws IOException, PartyException {
+    public PartiesRegistration invite(Summoner... summoners) throws IOException, PartyException {
+        return invite(registration, Arrays.stream(summoners).map(Summoner::getPUUID).toArray(String[]::new));
+    }
+
+    public PartiesRegistration invite(PartiesRegistration registration, Summoner... summoners) throws IOException, PartyException {
         return invite(Arrays.stream(summoners).map(Summoner::getPUUID).toArray(String[]::new));
     }
 
-    public PartyInvitation invite(String... puuids) throws IOException, PartyException {
-        return invite(current, puuids);
+    public PartiesRegistration invite(String... puuids) throws IOException, PartyException {
+        return invite(registration, puuids);
     }
 
-    public PartyInvitation invite(PartiesRegistration registration, String... puuids) throws IOException, PartyException {
+    public PartiesRegistration invite(PartiesRegistration registration, String... puuids) throws IOException, PartyException {
         if (registration == null) throw new PartyException();
         String uri = String.format("%s/%s/v%s/parties/%s/invite",
                 base,
                 name(),
                 version(),
-                current.getFirstPartyId()
+                this.registration.getCurrentParty().getPartyId()
         );
         JSONArray array = new JSONArray();
         for (String puuid : puuids) {
@@ -135,7 +138,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return new PartyInvitation(o);
+        return (this.registration = new PartiesRegistration(o));
     }
 
     public PartiesRegistration gamemode(String partyId, long maxPartySize, long maxTeamSize, long queueId) throws IOException {
@@ -160,29 +163,29 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (registration = new PartiesRegistration(o));
     }
 
-    public PartiesRegistration partytype(String partyId, PartyType type) throws IOException {
+    public PartiesRegistration partytype(PartyType type) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/partytype",
                 base,
                 name(),
                 version(),
-                partyId
+                getCurrentPartyId()
         );
         Request request = jsonRequest(uri).put(RequestBody.create(type.toString(), Constant.APPLICATION_JSON))
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (registration = new PartiesRegistration(o));
     }
 
-    public PartiesRegistration leave(String partyId, PartyRole role) throws IOException {
+    public PartiesRegistration leave(PartyRole role) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/role",
                 base,
                 name(),
                 version(),
-                partyId,
+                getCurrentPartyId(),
                 userInformation.getSub()
         );
         Request request = jsonRequest(uri)
@@ -190,15 +193,15 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (registration = new PartiesRegistration(o));
     }
 
-    public PartiesRegistration setQueueAction(String partyId, PartyAction action) throws IOException {
+    public JSONObject setQueueAction(PartyAction action) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/%s",
                 base,
                 name(),
                 version(),
-                partyId,
+                getCurrentPartyId(),
                 userInformation.getSub(),
                 action.name().toLowerCase() + "Action"
         );
@@ -207,15 +210,16 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        if (!o.has("errorCode")) registration = new PartiesRegistration(o);
+        return o;
     }
 
-    public PartiesRegistration metadata(String partyId, PositionPreference first, PositionPreference second) throws IOException {
+    public PartiesRegistration metadata(PositionPreference first, PositionPreference second) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/metadata",
                 base,
                 name(),
                 version(),
-                partyId,
+                getCurrentPartyId(),
                 userInformation.getSub()
         );
         JSONObject object = new JSONObject();
@@ -231,7 +235,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (registration = new PartiesRegistration(o));
     }
 
     public PartiesRegistration ready() throws IOException {
@@ -239,7 +243,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 base,
                 name(),
                 version(),
-                current.getFirstPartyId(),
+                registration.getCurrentParty().getPartyId(),
                 userInformation.getSub()
         );
         Request request = jsonRequest(uri)
@@ -247,11 +251,42 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
                 .build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         JSONObject o = new JSONObject(response.asString());
-        return (current = new PartiesRegistration(o));
+        return (registration = new PartiesRegistration(o));
+    }
+
+    public PartiesRegistration resume() throws IOException {
+        String uri = String.format("%s/%s/v%s/parties/%s/members/%s/resumeAction",
+                base,
+                name(),
+                version(),
+                registration.getCurrentParty().getPartyId(),
+                userInformation.getSub()
+        );
+        Request request = jsonRequest(uri)
+                .post(RequestBody.create(new byte[0], Constant.APPLICATION_JSON))
+                .build();
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        JSONObject o = new JSONObject(response.asString());
+        return (registration = new PartiesRegistration(o));
+    }
+
+    public PartiesRegistration getOwnPlayer() throws IOException {
+        String uri = String.format("%s/%s/v%s/players/%s",
+                base,
+                name(),
+                version(),
+                client.getVirtualRiotClient().getRiotClientUser().getSub()
+        );
+        Request request = jsonRequest(uri)
+                .get()
+                .build();
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        JSONObject o = new JSONObject(response.asString());
+        return (registration = new PartiesRegistration(o));
     }
 
     public PartiesRegistration getCurrentRegistration() {
-        return current;
+        return registration;
     }
 
     @Override

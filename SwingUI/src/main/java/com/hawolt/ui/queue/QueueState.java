@@ -15,8 +15,9 @@ import java.util.concurrent.TimeUnit;
 public class QueueState extends ChildUIComponent {
     private final ScheduledExecutorService service = ExecutorManager.getScheduledService("queue-state");
     private final Font font = new Font("Arial", Font.BOLD, 20);
-    private long currentTimeMillis;
+    private long currentTimeMillis, estimatedMatchmakingTimeMillis;
     private String estimate;
+    private boolean lpq;
 
     public QueueState() {
         super(new BorderLayout());
@@ -37,9 +38,10 @@ public class QueueState extends ChildUIComponent {
         String total = convertMStoTimestamp(elapsed);
         FontMetrics metrics = graphics2D.getFontMetrics();
         int y = (dimension.height >> 1) + (metrics.getAscent() >> 1) - 2;
-        if (estimate == null) return;
         int width = metrics.stringWidth(total);
         graphics2D.drawString(total, dimension.width - width - 5, y);
+        if (estimate == null) return;
+        if (lpq) graphics2D.setColor(Color.RED);
         graphics2D.drawString(String.format("Ø %s", estimate), 5, y);
     }
 
@@ -58,8 +60,29 @@ public class QueueState extends ChildUIComponent {
         return duration.toString();
     }
 
-    public void setTimer(long currentTimeMillis, long estimatedMatchmakingTimeMillis) {
-        this.estimate = convertMStoTimestamp(estimatedMatchmakingTimeMillis);
+    public boolean isLPQ() {
+        return lpq;
+    }
+
+    public void updateLPQ(long estimatedMatchmakingTimeMillis) {
+        long currentEstimate = this.estimatedMatchmakingTimeMillis;
+        this.estimatedMatchmakingTimeMillis = estimatedMatchmakingTimeMillis + currentEstimate;
+        this.setEstimate();
+        this.lpq = false;
+    }
+
+    private void setEstimate() {
+        if (estimatedMatchmakingTimeMillis != -1) {
+            this.estimate = convertMStoTimestamp(estimatedMatchmakingTimeMillis);
+        } else {
+            this.estimate = null;
+        }
+    }
+
+    public void setTimer(long currentTimeMillis, long estimatedMatchmakingTimeMillis, boolean lpq) {
+        this.estimatedMatchmakingTimeMillis = estimatedMatchmakingTimeMillis;
         this.currentTimeMillis = currentTimeMillis;
+        this.setEstimate();
+        this.lpq = lpq;
     }
 }
