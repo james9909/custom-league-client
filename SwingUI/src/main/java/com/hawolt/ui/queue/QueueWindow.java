@@ -56,7 +56,9 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
         try {
-            String body = Base64GZIP.unzipBase64(typedObject.getTypedObject("data").getString("body"));
+            TypedObject data = typedObject.getTypedObject("data");
+            TypedObject message = data.getTypedObject("flex.messaging.messages.AcknowledgeMessage");
+            String body = Base64GZIP.unzipBase64(message.getString("body"));
             JSONArray array = new JSONArray(body);
             Map<String, List<JSONObject>> map = new HashMap<>();
             for (int i = 0; i < array.length(); i++) {
