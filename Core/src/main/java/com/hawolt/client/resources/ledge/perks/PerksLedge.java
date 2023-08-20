@@ -37,10 +37,7 @@ public class PerksLedge extends AbstractLedgeEndpoint {
 
     public String setRunesForCurrentRegistration(JSONObject runes) throws IOException {
         PartiesRegistration registration = client.getLedge().getParties().getCurrentRegistration();
-        JSONObject source = registration.getSource();
-        JSONObject currentParty = source.getJSONObject("currentParty");
-        JSONObject gameMode = currentParty.getJSONObject("gameMode");
-        long queueId = gameMode.getLong("queueId");
+        int queueId = registration.getCurrentParty().getPartyGameMode().getQueueId();
 
         UserInformationLeagueAccount account = userInformation.getUserInformationLeagueAccount();
         Summoner self = client.getLedge().getSummoner().resolveSummonerByName(account.getSummonerName());
