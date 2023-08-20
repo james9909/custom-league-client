@@ -2,7 +2,7 @@ package com.hawolt.client;
 
 import com.hawolt.authentication.ICookieSupplier;
 import com.hawolt.authentication.LocalCookieSupplier;
-import com.hawolt.http.Gateway;
+import com.hawolt.http.auth.Gateway;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 
 /**

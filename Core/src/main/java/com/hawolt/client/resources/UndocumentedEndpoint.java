@@ -1,7 +1,7 @@
 package com.hawolt.client.resources;
 
 import com.hawolt.client.LeagueClient;
-import com.hawolt.http.Gateway;
+import com.hawolt.http.auth.Gateway;
 import com.hawolt.virtual.leagueclient.client.VirtualLeagueClient;
 
 /**
