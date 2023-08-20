@@ -37,7 +37,6 @@ public class MainUI extends MainUIComponent implements ComponentListener {
 
     @Override
     public void componentResized(ComponentEvent e) {
-        System.err.println("COMPONENT RESIZED");
         if (main == null) return;
         adjust();
     }
