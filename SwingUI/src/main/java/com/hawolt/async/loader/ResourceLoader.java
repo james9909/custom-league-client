@@ -4,13 +4,11 @@ import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.generic.data.Unsafe;
 import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
 import com.hawolt.io.Core;
 import com.hawolt.io.RunLevel;
 import com.hawolt.logger.Logger;
-import okhttp3.Call;
 import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,11 +68,9 @@ public class ResourceLoader {
                         .header("User-Agent", StaticConstant.USER_AGENT)
                         .get()
                         .build();
-                Call call = OkHttp3Client.perform(request);
-                try (Response response = call.execute()) {
-                    try (ResponseBody body = response.body()) {
-                        handleConsumption(uri, body.bytes());
-                    }
+                try {
+                    IResponse response = OkHttp3Client.execute(request);
+                    handleConsumption(uri, response.response());
                 } catch (IOException e) {
                     handleError(uri, e);
                 }
