@@ -51,6 +51,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     private ChatSidebar chatSidebar;
+    private LayoutManager manager;
     private LoginUI loginUI;
     private MainUI mainUI;
 
@@ -73,7 +74,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                 .getVirtualLeagueClientInstance()
                 .getUserInformation();
         chatSidebar = new ChatSidebar(userInformation, chatWindow);
-        LayoutManager manager = new LayoutManager(this);
+        manager = new LayoutManager(this);
         manager.setBackground(Color.MAGENTA);
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
@@ -98,6 +99,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         xmppClient.addFriendListener(friendlist);
         xmppClient.addMessageListener(chatWindow);
         friendlist.revalidate();
+    }
+
+    public LayoutManager getLayoutManager() {
+        return manager;
     }
 
     public ChatSidebar getChatSidebar() {

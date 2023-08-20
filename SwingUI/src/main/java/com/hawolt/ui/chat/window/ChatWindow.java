@@ -48,6 +48,7 @@ public class ChatWindow extends ChildUIComponent implements IMessageListener, IC
         ChatWindowContent content = new ChatWindowContent(jid, xmppClient, new BorderLayout());
         this.container.add(jid, content);
         this.map.put(jid, content);
+        this.revalidate();
     }
 
     private boolean isChatConfigured(String jid) {

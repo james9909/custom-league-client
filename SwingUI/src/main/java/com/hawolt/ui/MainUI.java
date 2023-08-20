@@ -1,6 +1,6 @@
 package com.hawolt.ui;
 
-import com.hawolt.ui.chat.window.ChatWindow;
+import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.MainUIComponent;
 
 import javax.swing.*;
@@ -16,23 +16,25 @@ import java.awt.event.ComponentListener;
 public class MainUI extends MainUIComponent implements ComponentListener {
 
     private final Dimension dimension = new Dimension(400, 300);
+    private final JLayeredPane layeredPane;
     private JComponent main, chat;
 
     public MainUI(JFrame frame) {
         super(frame);
-        this.setLayout(null);
+        this.setLayout(new BorderLayout());
         this.setPreferredSize(new Dimension(1600, 900));
         this.addComponentListener(this);
         this.container.add(this);
+        this.add(layeredPane = new JLayeredPane(), BorderLayout.CENTER);
         this.init();
     }
 
     public void setMainComponent(JComponent main) {
         if (this.main != null) this.remove(this.main);
-        Dimension dimension = getPreferredSize();
         this.main = main;
-        this.main.setBounds(0, 0, dimension.width, dimension.height);
-        this.add(main);
+        Dimension dimension = getPreferredSize();
+        main.setBounds(0, 0, dimension.width, dimension.height);
+        this.layeredPane.add(main, JLayeredPane.DEFAULT_LAYER);
     }
 
     @Override
@@ -43,6 +45,7 @@ public class MainUI extends MainUIComponent implements ComponentListener {
 
     public void adjust() {
         Dimension dimension = getSize();
+        Logger.error(dimension);
         main.setBounds(0, 0, dimension.width, dimension.height);
         setChatPosition();
         revalidate();
@@ -69,9 +72,9 @@ public class MainUI extends MainUIComponent implements ComponentListener {
 
     }
 
-    public void addChatComponent(ChatWindow chat) {
+    public void addChatComponent(JComponent chat) {
         this.chat = chat;
-        this.add(chat);
+        this.layeredPane.add(chat, JLayeredPane.POPUP_LAYER);
         this.setChatPosition();
     }
 }
