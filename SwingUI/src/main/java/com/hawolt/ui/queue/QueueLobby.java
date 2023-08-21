@@ -86,7 +86,8 @@ public class QueueLobby extends ChildUIComponent {
                 PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
                 partiesLedge.metadata(primary, secondary);
                 JSONObject response = partiesLedge.setQueueAction(PartyAction.START);
-                List<GatekeeperRestriction> direct = "GATEKEEPER_RESTRICTED".equals(response.getString("errorCode")) ?
+                List<GatekeeperRestriction> direct = response.has("errorCode") &&
+                        "GATEKEEPER_RESTRICTED".equals(response.getString("errorCode")) ?
                         new PartyGatekeeper(response).getRestrictionList() : new ArrayList<>();
                 CurrentParty party = partiesLedge.getOwnPlayer().getCurrentParty();
                 PartyRestriction restriction = party.getPartyRestriction();
