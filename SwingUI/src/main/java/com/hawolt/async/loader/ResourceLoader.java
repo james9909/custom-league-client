@@ -3,8 +3,8 @@ package com.hawolt.async.loader;
 import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.generic.data.Unsafe;
-import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
+import com.hawolt.http.layer.impl.OkHttpResponse;
 import com.hawolt.io.Core;
 import com.hawolt.io.RunLevel;
 import com.hawolt.logger.Logger;
@@ -69,7 +69,7 @@ public class ResourceLoader {
                         .get()
                         .build();
                 try {
-                    IResponse response = OkHttp3Client.execute(request);
+                    IResponse response = OkHttpResponse.from(request);
                     handleConsumption(uri, response.response());
                 } catch (IOException e) {
                     handleError(uri, e);
