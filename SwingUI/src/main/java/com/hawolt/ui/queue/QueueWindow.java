@@ -163,7 +163,7 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         try {
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             if (registration == null) partiesLedge.register();
-            partiesLedge.leave(PartyRole.DECLINED);
+            partiesLedge.role(PartyRole.DECLINED);
             partiesLedge.gamemode(
                     partiesLedge.getCurrentPartyId(),
                     maximumParticipantListSize,
