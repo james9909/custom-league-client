@@ -1,9 +1,8 @@
 package com.hawolt.ui.queue.pop;
 
-import com.hawolt.async.ExecutorManager;
-
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 public class QueueCountdown extends JPanel implements Runnable {
-    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("queue-countdown");
+    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     private final long timestamp = System.currentTimeMillis();
     private final ScheduledFuture<?> future;
     private final long maxAfkMillis;
