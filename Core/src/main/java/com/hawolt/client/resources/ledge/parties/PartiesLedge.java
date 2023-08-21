@@ -180,12 +180,16 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         return (registration = new PartiesRegistration(o));
     }
 
-    public PartiesRegistration leave(PartyRole role) throws IOException {
+    public PartiesRegistration role(PartyRole role) throws IOException {
+        return role(getCurrentPartyId(), role);
+    }
+
+    public PartiesRegistration role(String partyId, PartyRole role) throws IOException {
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/role",
                 base,
                 name(),
                 version(),
-                getCurrentPartyId(),
+                partyId,
                 userInformation.getSub()
         );
         Request request = jsonRequest(uri)

@@ -14,7 +14,7 @@ public class PartyMember extends PartyParticipant {
 
     public PartyMember(JSONObject o) {
         super(o);
-        if (o.has("metadata")) {
+        if (o.has("metadata") && !o.isNull("metadata")) {
             this.participantMetadata = new PartyParticipantMetadata(o.getJSONObject("metadata"));
         }
         this.canInvite = o.getBoolean("canInvite");

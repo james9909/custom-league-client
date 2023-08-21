@@ -8,16 +8,18 @@ import org.json.JSONObject;
  **/
 
 public class AvailableParty extends Party {
-    private final PartyGameMode partyGameMode;
     private final long invitedBySummonerId, inviteTimestamp;
     private final String invitedByPuuid;
+    private PartyGameMode partyGameMode;
 
     public AvailableParty(JSONObject o) {
         super(o);
-        this.partyGameMode = new PartyGameMode(o.getJSONObject("gameMode"));
         this.invitedBySummonerId = o.getLong("invitedBySummonerId");
         this.inviteTimestamp = o.getLong("inviteTimestamp");
         this.invitedByPuuid = o.getString("invitedByPuuid");
+        if (o.has("gameMode") && !o.isNull("gameMode")) {
+            this.partyGameMode = new PartyGameMode(o.getJSONObject("gameMode"));
+        }
     }
 
     @Override

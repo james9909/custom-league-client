@@ -13,12 +13,12 @@ import java.util.List;
  **/
 
 public class PartiesRegistration {
-    private final String platformId, puuid;
+    protected final List<Party> parties = new ArrayList<>();
     private final long accountId, summonerId, eligibilityHash, createdAt, serverUtcMillis;
+    private final String platformId, puuid;
     private final int version;
 
-    protected final List<Party> parties = new ArrayList<>();
-    protected final CurrentParty currentParty;
+    protected CurrentParty currentParty;
 
     public PartiesRegistration(JSONObject o) {
         Logger.debug("Registration: {}", o);
@@ -30,15 +30,17 @@ public class PartiesRegistration {
         this.createdAt = o.getLong("createdAt");
         this.version = o.getInt("version");
         this.puuid = o.getString("puuid");
-        this.currentParty = new CurrentParty(o.getJSONObject("currentParty"));
         JSONArray parties = o.getJSONArray("parties");
         for (int i = 0; i < parties.length(); i++) {
             JSONObject party = parties.getJSONObject(i);
-            if ("LEADER".equals(party.getString("role"))) {
-                this.parties.add(new OwnedParty(party));
-            } else {
+            if ("INVITED".equals(party.getString("role"))) {
                 this.parties.add(new AvailableParty(party));
+            } else {
+                this.parties.add(new ActiveParty(party));
             }
+        }
+        if (o.has("currentParty") && !o.isNull("currentParty")) {
+            this.currentParty = new CurrentParty(o.getJSONObject("currentParty"));
         }
     }
 

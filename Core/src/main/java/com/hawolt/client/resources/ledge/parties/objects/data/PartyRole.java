@@ -6,7 +6,7 @@ package com.hawolt.client.resources.ledge.parties.objects.data;
  **/
 
 public enum PartyRole {
-    DECLINED;
+    DECLINED, MEMBER;
 
     @Override
     public String toString() {

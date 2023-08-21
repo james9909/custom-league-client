@@ -35,14 +35,16 @@ public class CurrentParty {
             JSONObject player = players.getJSONObject(i);
             if ("INVITED".equals(player.getString("role"))) {
                 this.players.add(new PendingPartyMember(player));
+            } else if ("DECLINED".equals(player.getString("role"))) {
+                this.players.add(new PartyParticipant(player));
             } else {
                 this.players.add(new PartyMember(player));
             }
         }
-        if (o.has("gameMode")) {
+        if (o.has("gameMode") && !o.isNull("gameMode")) {
             this.partyGameMode = new PartyGameMode(o.getJSONObject("gameMode"));
         }
-        if (o.has("activeRestrictions")) {
+        if (o.has("activeRestrictions") && !o.isNull("activeRestrictions")) {
             partyRestriction = new PartyRestriction(o.getJSONObject("activeRestrictions"));
         }
     }

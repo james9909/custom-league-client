@@ -7,10 +7,10 @@ import org.json.JSONObject;
  * Author: Twitter @hawolt
  **/
 
-public class OwnedParty extends Party {
+public class ActiveParty extends Party {
     private final boolean ready, canInvite;
 
-    public OwnedParty(JSONObject object) {
+    public ActiveParty(JSONObject object) {
         super(object);
         this.ready = object.getBoolean("ready");
         this.canInvite = object.getBoolean("canInvite");
