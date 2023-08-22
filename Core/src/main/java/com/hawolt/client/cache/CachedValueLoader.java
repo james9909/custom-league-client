@@ -11,14 +11,14 @@ import java.util.function.Consumer;
 
 public class CachedValueLoader<T> implements Runnable {
     private final Consumer<CachedValueLoader<?>> consumer;
-    private final ExceptionalRunnable<T> runnable;
+    private final ExceptionalSupplier<T> supplier;
     private final CacheType type;
     private Exception e;
     private T value;
 
-    public CachedValueLoader(CacheType type, ExceptionalRunnable<T> runnable, Consumer<CachedValueLoader<?>> consumer) {
+    public CachedValueLoader(CacheType type, ExceptionalSupplier<T> supplier, Consumer<CachedValueLoader<?>> consumer) {
         this.consumer = consumer;
-        this.runnable = runnable;
+        this.supplier = supplier;
         this.type = type;
     }
 
@@ -38,7 +38,7 @@ public class CachedValueLoader<T> implements Runnable {
     public void run() {
         Logger.info("Caching value for {}", type);
         try {
-            this.value = runnable.run();
+            this.value = supplier.get();
         } catch (Exception e) {
             this.e = e;
         }

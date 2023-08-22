@@ -5,6 +5,6 @@ package com.hawolt.client.cache;
  * Author: Twitter @hawolt
  **/
 
-public interface ExceptionalRunnable<T> {
-    T run() throws Exception;
+public interface ExceptionalSupplier<T> {
+    T get() throws Exception;
 }
