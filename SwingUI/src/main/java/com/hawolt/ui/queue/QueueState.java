@@ -3,6 +3,7 @@ package com.hawolt.ui.queue;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.util.panel.ChildUIComponent;
 
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +23,8 @@ public class QueueState extends ChildUIComponent {
     public QueueState() {
         super(new BorderLayout());
         this.setBackground(Color.GRAY);
-        this.setPreferredSize(new Dimension(0, 20));
+        this.setPreferredSize(new Dimension(0, 30));
+        this.setBorder(new MatteBorder(0, 0, 2, 0, Color.DARK_GRAY));
         this.service.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);
     }
 

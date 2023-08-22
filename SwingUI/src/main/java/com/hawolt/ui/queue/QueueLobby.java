@@ -10,20 +10,23 @@ import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
+import com.hawolt.rms.data.subject.service.IServiceMessageListener;
+import com.hawolt.rms.data.subject.service.MessageService;
+import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -31,12 +34,59 @@ import java.util.stream.Stream;
  * Author: Twitter @hawolt
  **/
 
-public class QueueLobby extends ChildUIComponent {
+public class QueueLobby extends ChildUIComponent implements ActionListener, IServiceMessageListener<RiotMessageServiceMessage> {
     private final ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("queue-resumer");
+    private final ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 5));
+    private final JComboBox<PositionPreference> main, other;
+    private final LeagueClientUI leagueClientUI;
     private ScheduledFuture<?> future;
+
+    @Override
+    public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
+        JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
+        PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
+        String puuid = registration.getPUUID();
+        CurrentParty party = registration.getCurrentParty();
+        if (party == null) return;
+        Logger.error(party);
+        List<PartyParticipant> list = party.getPlayers();
+        list.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
+            SummonerLedge summonerLedge = leagueClientUI.getLeagueClient().getLedge().getSummoner();
+            try {
+                getSummonerComponentAt(0).update(self, summonerLedge.resolveSummonerByPUUD(puuid));
+                list.remove(self);
+                int memberPosition = 1;
+                for (PartyParticipant participant : list) {
+                    Summoner summoner = summonerLedge.resolveSummonerByPUUD(participant.getPUUID());
+                    if (participant.getRole().equals("MEMBER") || participant.getRole().equals("LEADER")) {
+                        getSummonerComponentAt(memberPosition++).update(participant, summoner);
+                    }
+                }
+                for (int i = memberPosition; i < 5; i++) {
+                    getSummonerComponentAt(i).update(null, null);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            revalidate();
+        });
+    }
+
+    private SummonerComponent getSummonerComponentAt(int id) {
+        int index;
+        if (id == 0) index = 2;
+        else if (id == 1) index = 1;
+        else if (id == 2) index = 3;
+        else if (id == 3) index = 0;
+        else index = 4;
+        return (SummonerComponent) grid.getComponent(index);
+    }
+
 
     public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(new BorderLayout());
+        this.leagueClientUI = leagueClientUI;
+        this.leagueClientUI.getLeagueClient().getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, this);
         JButton close = new JButton("Return to previous Component");
         close.addActionListener(listener -> layout.show(parent, "modes"));
         add(close, BorderLayout.NORTH);
@@ -66,11 +116,17 @@ public class QueueLobby extends ChildUIComponent {
         component.add(invite, BorderLayout.NORTH);
 
         ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
-        JComboBox<PositionPreference> main = new JComboBox<>(PositionPreference.values());
+        main = new JComboBox<>(PositionPreference.values());
+        main.addActionListener(this);
         roles.add(main);
-        JComboBox<PositionPreference> other = new JComboBox<>(PositionPreference.values());
+        other = new JComboBox<>(PositionPreference.values());
+        other.addActionListener(this);
         roles.add(other);
         component.add(roles, BorderLayout.SOUTH);
+
+        for (int i = 0; i < 5; i++) grid.add(new SummonerComponent());
+        grid.setBackground(Color.YELLOW);
+        component.add(grid, BorderLayout.CENTER);
 
         add(component, BorderLayout.CENTER);
 
@@ -132,5 +188,17 @@ public class QueueLobby extends ChildUIComponent {
         });
         bottom.add(stop);
         add(bottom, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            PositionPreference primary = main.getItemAt(main.getSelectedIndex());
+            PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
+            PartiesLedge ledge = leagueClientUI.getLeagueClient().getLedge().getParties();
+            ledge.metadata(primary, secondary);
+        } catch (IOException ex) {
+            Logger.error(ex);
+        }
     }
 }

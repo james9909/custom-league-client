@@ -41,17 +41,25 @@ import java.util.Map;
 
 public class QueueWindow extends ChildUIComponent implements ActionListener, Runnable, PacketCallback, IServiceMessageListener<RiotMessageServiceMessage> {
     private final CardLayout layout = new CardLayout();
-    private final ChildUIComponent parent;
     private final LeagueClientUI leagueClientUI;
+    private final ChildUIComponent parent;
+    private final QueueLobby lobby;
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
-        this.add(parent = new ChildUIComponent(layout));
-        this.parent.add("lobby", new QueueLobby(leagueClientUI, parent, layout));
+        this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
+        this.parent.add("lobby", lobby = new QueueLobby(leagueClientUI, parent, layout));
         LeagueClientUI.service.execute(this);
     }
 
+    public void showClientComponent(String name) {
+        layout.show(parent, name);
+    }
+
+    public QueueLobby getLobby() {
+        return lobby;
+    }
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
@@ -72,6 +80,7 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
                 if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
                 map.get(gameMode).add(object);
             }
+            ChildUIComponent main = new ChildUIComponent(new BorderLayout());
             ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
             modes.setBorder(new EmptyBorder(5, 5, 5, 5));
             for (String key : map.keySet()) {
@@ -89,7 +98,11 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
                 parent.add(grid, BorderLayout.NORTH);
                 modes.add(parent);
             }
-            this.parent.add("modes", modes);
+            main.add(modes, BorderLayout.CENTER);
+            JButton button = new JButton("Show Lobby");
+            button.addActionListener(listener -> layout.show(parent, "lobby"));
+            main.add(button, BorderLayout.SOUTH);
+            this.parent.add("modes", main);
             layout.show(parent, "modes");
             revalidate();
         } catch (IOException e) {
