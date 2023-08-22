@@ -28,7 +28,7 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
 
     public StoreImage(StoreItem item) {
         this.item = item;
-        ResourceLoader.load(getImageURL(item.getInventoryType(), item.getItemId()), this);
+        ResourceLoader.loadResource(getImageURL(item.getInventoryType(), item.getItemId()), this);
     }
 
     @Override

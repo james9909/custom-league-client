@@ -35,7 +35,7 @@ public class ChatSidebarProfileIcon extends ChildUIComponent implements Resource
     }
 
     public void setIconId(long iconId) {
-        ResourceLoader.load(String.format(ICON_BASE_URL, iconId), this);
+        ResourceLoader.loadResource(String.format(ICON_BASE_URL, iconId), this);
     }
 
     @Override

@@ -35,7 +35,7 @@ public class StoreButton extends JPanel implements MouseListener, MouseMotionLis
         this.currency = currency;
         this.element = element;
         this.price = price;
-        ResourceLoader.load(String.join("/", BASE, currency == CurrencyType.IP ? "icon-be-150.png" : "icon-rp-72.png"), this);
+        ResourceLoader.loadResource(String.join("/", BASE, currency == CurrencyType.IP ? "icon-be-150.png" : "icon-rp-72.png"), this);
     }
 
     @Override

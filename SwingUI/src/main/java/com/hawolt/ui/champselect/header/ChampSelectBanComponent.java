@@ -44,7 +44,7 @@ public class ChampSelectBanComponent extends JPanel implements ResourceConsumer<
     public void update(int championId) {
         if (this.championId == championId) return;
         this.championId = championId;
-        ResourceLoader.load(String.format(preset, this.championId), this);
+        ResourceLoader.loadResource(String.format(preset, this.championId), this);
     }
 
     @Override
