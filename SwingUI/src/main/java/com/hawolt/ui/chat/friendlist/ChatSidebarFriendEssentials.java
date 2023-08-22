@@ -5,6 +5,7 @@ import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -20,6 +21,7 @@ public class ChatSidebarFriendEssentials extends ChildUIComponent implements Doc
 
     public ChatSidebarFriendEssentials(VirtualRiotXMPPClient xmppClient, IFriendListComponent component) {
         super(new BorderLayout(5, 0));
+        this.setBorder(new EmptyBorder(5, 0, 0, 0));
         this.setBackground(Color.GRAY);
         this.component = component;
         input = new JHintTextField("Name");
