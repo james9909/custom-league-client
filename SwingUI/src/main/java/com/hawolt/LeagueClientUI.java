@@ -12,7 +12,7 @@ import com.hawolt.shutdown.ShutdownHook;
 import com.hawolt.ui.MainUI;
 import com.hawolt.ui.chat.ChatSidebar;
 import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
-import com.hawolt.ui.chat.window.ChatWindow;
+import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
@@ -52,6 +52,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     private ChatSidebar chatSidebar;
     private LayoutManager manager;
+    private ChatUI chatUI;
     private LoginUI loginUI;
     private MainUI mainUI;
 
@@ -66,32 +67,31 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
         mainUI = new MainUI(this);
         ChildUIComponent temporary = new ChildUIComponent(new BorderLayout());
-        ChatWindow chatWindow = new ChatWindow();
-        chatWindow.setSupplier(xmppClient);
-        chatWindow.setVisible(false);
-        mainUI.addChatComponent(chatWindow);
+        chatUI = new ChatUI();
+        chatUI.setSupplier(xmppClient);
+        chatUI.setVisible(false);
+        mainUI.addChatComponent(chatUI);
         UserInformation userInformation = client.getVirtualLeagueClient()
                 .getVirtualLeagueClientInstance()
                 .getUserInformation();
-        chatSidebar = new ChatSidebar(userInformation, chatWindow);
+        chatSidebar = new ChatSidebar(userInformation, this);
         manager = new LayoutManager(this);
-        manager.setBackground(Color.MAGENTA);
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
         chatSidebar.configure(userInformation);
         if (leagueClient.getXMPP().getTimestamp() > 0) {
-            buildSidebarUI(xmppClient, chatWindow);
+            buildSidebarUI(xmppClient, chatUI);
         } else {
             xmppClient.addHandler(
                     EventType.ON_READY,
-                    (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatWindow)
+                    (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatUI)
             );
         }
         mainUI.setMainComponent(temporary);
         mainUI.revalidate();
     }
 
-    private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatWindow chatWindow) {
+    private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatUI chatWindow) {
         chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
         friendlist.onEvent(xmppClient.getFriendList());
@@ -115,6 +115,22 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public LeagueClient getLeagueClient() {
         return leagueClient;
+    }
+
+    public LayoutManager getManager() {
+        return manager;
+    }
+
+    public ChatUI getChatUI() {
+        return chatUI;
+    }
+
+    public LoginUI getLoginUI() {
+        return loginUI;
+    }
+
+    public MainUI getMainUI() {
+        return mainUI;
     }
 
     private void showFailureDialog(String message) {

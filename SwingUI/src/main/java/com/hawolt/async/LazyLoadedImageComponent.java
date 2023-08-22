@@ -23,7 +23,7 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
 
     public LazyLoadedImageComponent(String uri, Dimension dimension) {
         this.dimension = dimension;
-        ResourceLoader.load(uri, this);
+        ResourceLoader.loadResource(uri, this);
     }
 
     @Override
