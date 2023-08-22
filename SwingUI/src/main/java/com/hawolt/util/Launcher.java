@@ -21,7 +21,7 @@ public class Launcher {
                 ProcessBuilder builder = new ProcessBuilder(
                         "C:\\Riot Games\\League of Legends\\Game\\League of Legends.exe",
                         String.format("%s %s %s %s", ip, port, encryptionKey, playerId),
-                        "-Product=" + gameMode,
+                        "-Product=" + ("TFT".equals(gameMode) ? gameMode : "LoL"),
                         "-PlayerID=" + playerId,
                         "-GameID=" + gameId,
                         "-PlayerNameMode=SUMMONER",
@@ -36,8 +36,8 @@ public class Launcher {
                         "-UseMetal=0:1",
                         "-UseNewX3D",
                         "-UseNewX3DFramebuffers",
-                        "-RiotClientPort=61650",
-                        "-RiotClientAuthToken=LXs55fEr3JOpQ3M2KyTBOw"
+                        "-RiotClientPort=42069",
+                        "-RiotClientAuthToken=SwiftRiftOrNoRiftAtAll"
                 );
                 builder.directory(new File("C:\\Riot Games\\League of Legends\\Game"));
                 builder.redirectErrorStream(true);

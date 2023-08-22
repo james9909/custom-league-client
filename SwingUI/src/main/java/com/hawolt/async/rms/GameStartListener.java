@@ -21,6 +21,7 @@ public class GameStartListener implements IServiceMessageListener<RiotMessageSer
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
         JSONObject object = riotMessageServiceMessage.getPayload().getPayload();
+        if (!object.has("serverIp")) return;
         String ip = object.getString("serverIp");
         String gameMode = object.getString("gameMode");
         String port = String.valueOf(object.getInt("serverPort"));
