@@ -8,7 +8,9 @@ package com.hawolt.client.resources.ledge.store.objects;
 public enum StoreSortProperty {
     BLUE_ESSENCE("Blue Essence"),
     RIOT_POINT("RP"),
-    NAME("Name");
+    NAME("Name"),
+
+    RELEASE_DATE("Release Date");
 
     private final String name;
 
@@ -21,3 +23,4 @@ public enum StoreSortProperty {
         return this.name;
     }
 }
+

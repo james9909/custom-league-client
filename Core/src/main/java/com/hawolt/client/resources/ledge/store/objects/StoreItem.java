@@ -1,9 +1,14 @@
 package com.hawolt.client.resources.ledge.store.objects;
 
+import com.hawolt.logger.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,6 +23,8 @@ public class StoreItem {
     private boolean active, valid;
     private JSONObject object;
     private long itemId;
+
+    private Date releaseDate;
 
     public StoreItem(JSONArray array) {
         this.valid = !array.isEmpty();
@@ -38,6 +45,12 @@ public class StoreItem {
                 if (enGB.has("description")) this.description = enGB.getString("description");
                 if (enGB.has("name")) this.name = enGB.getString("name");
             }
+        }
+        String releaseDate = item.getString("releaseDate");
+        try {
+            this.releaseDate = Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(releaseDate)));
+        } catch (DateTimeParseException e) {
+            Logger.error("Could not parse release date '{}': {}", releaseDate, e);
         }
         this.object = item;
     }
@@ -98,6 +111,10 @@ public class StoreItem {
         return itemId;
     }
 
+    public Date getReleaseDate() {
+        return releaseDate;
+    }
+
     @Override
     public String toString() {
         return "StoreItem{" +
@@ -110,6 +127,7 @@ public class StoreItem {
                 ", valid=" + valid +
                 ", object=" + object +
                 ", itemId=" + itemId +
+                ", releaseDate=" + releaseDate +
                 '}';
     }
 }
