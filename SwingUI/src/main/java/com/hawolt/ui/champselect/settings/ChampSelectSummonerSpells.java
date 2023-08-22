@@ -30,7 +30,7 @@ public class ChampSelectSummonerSpells extends ChildUIComponent implements Actio
         super(new GridLayout(0, 2, 5, 0));
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
         this.spellChangedListener = spellChangedListener;
-        ResourceLoader.load("https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json", this);
+        ResourceLoader.loadResource("https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json", this);
     }
 
     public Spell getSelectedSpell1() {

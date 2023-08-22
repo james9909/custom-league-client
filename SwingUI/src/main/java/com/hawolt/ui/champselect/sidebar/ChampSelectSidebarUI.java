@@ -1,6 +1,7 @@
 package com.hawolt.ui.champselect.sidebar;
 
 import com.hawolt.ui.champselect.AlliedMember;
+import com.hawolt.ui.champselect.IChampSelection;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,13 +37,13 @@ public class ChampSelectSidebarUI extends JPanel {
         }
     }
 
-    public void rebuild(JSONArray team, int localPlayerCellId) {
+    public void rebuild(IChampSelection selection, JSONArray team, int localPlayerCellId) {
         this.removeAll();
         this.localPlayerCellId = localPlayerCellId;
         this.memberUIs = new ChampSelectMemberUI[team.length()];
         for (int i = 0; i < team.length(); i++) {
             JSONObject member = team.getJSONObject(i);
-            this.memberUIs[i] = new ChampSelectMemberUI(member);
+            this.memberUIs[i] = new ChampSelectMemberUI(selection, member);
             this.add(memberUIs[i]);
             if (i == 0) {
                 this.teamId = member.getInt("teamId");

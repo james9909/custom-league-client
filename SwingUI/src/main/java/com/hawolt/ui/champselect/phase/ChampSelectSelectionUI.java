@@ -1,7 +1,6 @@
 package com.hawolt.ui.champselect.phase;
 
 import com.hawolt.LeagueClientUI;
-import com.hawolt.async.loader.impl.ChampionLoader;
 import com.hawolt.ui.champselect.ChampSelectPhase;
 import com.hawolt.ui.champselect.IChampSelection;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -31,26 +30,25 @@ public class ChampSelectSelectionUI extends ChildUIComponent implements ChampSel
         this.phase = phase;
     }
 
-    public void update(JSONArray array) {
+    public void update(IChampSelection selection, JSONArray array) {
         Integer[] arr = new Integer[array.length()];
         for (int i = 0; i < array.length(); i++) {
             arr[i] = array.getInt(i);
         }
-        update(arr);
+        update(selection, arr);
     }
 
-    public void update(Integer[] ids) {
+    public void update(IChampSelection selection, Integer[] ids) {
         LeagueClientUI.service.execute(() -> {
-            ChampionLoader loader = new ChampionLoader().blockUntilLoaded();
             this.components = new ChampSelectSelectionComponent[ids.length];
             Arrays.sort(ids, (id1, id2) -> {
-                String name1 = loader.load(id1).getName();
-                String name2 = loader.load(id2).getName();
+                String name1 = selection.getChampionCache().get(id1).getName();
+                String name2 = selection.getChampionCache().get(id2).getName();
                 return name1.compareTo(name2);
             });
             this.removeAll();
             for (int i = 0; i < components.length; i++) {
-                ChampSelectSelectionComponent component = new ChampSelectSelectionComponent(this, i);
+                ChampSelectSelectionComponent component = new ChampSelectSelectionComponent(this, selection, i);
                 this.components[i] = component;
                 component.update(ids[i]);
                 this.add(component);
