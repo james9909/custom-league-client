@@ -19,6 +19,7 @@ public class ShutdownHook implements Runnable, IExceptionCallback {
 
 
     public ShutdownHook(LeagueClient client) {
+        list.add(new ShutdownLeaveParty(client));
         list.add(new ShutdownPartyRegistration(client));
         list.add(new ShutdownRTMP(client));
         list.add(new ShutdownXMPP(client));
