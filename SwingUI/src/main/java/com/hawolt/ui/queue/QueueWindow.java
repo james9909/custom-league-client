@@ -39,55 +39,77 @@ import java.util.Map;
  * Author: Twitter @hawolt
  **/
 
-public class QueueWindow extends ChildUIComponent implements ActionListener, Runnable, PacketCallback, IServiceMessageListener<RiotMessageServiceMessage> {
+public class QueueWindow extends ChildUIComponent implements Runnable, PacketCallback, IServiceMessageListener<RiotMessageServiceMessage> {
     private final CardLayout layout = new CardLayout();
-    private final ChildUIComponent parent;
     private final LeagueClientUI leagueClientUI;
+    private final ChildUIComponent parent;
+    private final QueueLobby lobby;
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
-        this.add(parent = new ChildUIComponent(layout));
-        this.parent.add("lobby", new QueueLobby(leagueClientUI, parent, layout));
+        this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
+        this.parent.add("lobby", lobby = new QueueLobby(leagueClientUI, parent, layout));
         LeagueClientUI.service.execute(this);
     }
 
+    public void showClientComponent(String name) {
+        layout.show(parent, name);
+    }
+
+    public QueueLobby getLobby() {
+        return lobby;
+    }
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
         try {
-            String body = Base64GZIP.unzipBase64(typedObject.getTypedObject("data").getString("body"));
+            TypedObject data = typedObject.getTypedObject("data");
+            TypedObject message = data.getTypedObject("flex.messaging.messages.AcknowledgeMessage");
+            String body = Base64GZIP.unzipBase64(message.getString("body"));
             JSONArray array = new JSONArray(body);
             Map<String, List<JSONObject>> map = new HashMap<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject object = array.getJSONObject(i);
                 String state = object.getString("queueState");
                 String shortName = object.getString("shortName");
-                if (!shortName.contains("DRAFT") && !shortName.contains("RANKED-FLEX") && !shortName.contains("RANKED-SOLO"))
+                if (!shortName.contains("DRAFT") && !shortName.contains("RANKED-FLEX") && !shortName.contains("RANKED-SOLO") && !shortName.contains("TFT"))
                     continue;
                 if ("OFF".equals(state)) continue;
                 String gameMode = object.getString("gameMode");
                 if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
                 map.get(gameMode).add(object);
             }
+            ChildUIComponent main = new ChildUIComponent(new BorderLayout());
             ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
             modes.setBorder(new EmptyBorder(5, 5, 5, 5));
             for (String key : map.keySet()) {
                 if (key.contains("TUTORIAL")) continue;
-                ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
-                ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-                for (JSONObject object : map.get(key)) {
-                    System.out.println(object.toString());
-                    String name = object.getString("shortName");
-                    JButton button = new JButton(name);
-                    button.setActionCommand(object.toString());
-                    button.addActionListener(this);
-                    grid.add(button);
+                    ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
+                    ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
+                    for (JSONObject object : map.get(key)) {
+                        System.out.println(object.toString());
+                        String name = object.getString("shortName");
+                        if (name.contains("TUTORIAL")) {
+                            continue;
+                        }
+                        JButton button = new JButton(name);
+                        button.setActionCommand(object.toString());
+                        if (key.contains("CLASSIC")) {
+                            button.addActionListener(e -> goToLobby(e, 0));
+                        } else if (key.contains("TFT")) {
+                            button.addActionListener(e -> goToLobby(e, 1));
+                        }
+                        grid.add(button);
                 }
                 parent.add(grid, BorderLayout.NORTH);
                 modes.add(parent);
             }
-            this.parent.add("modes", modes);
+            main.add(modes, BorderLayout.CENTER);
+            JButton button = new JButton("Show Lobby");
+            button.addActionListener(listener -> layout.show(parent, "lobby"));
+            main.add(button, BorderLayout.SOUTH);
+            this.parent.add("modes", main);
             layout.show(parent, "modes");
             revalidate();
         } catch (IOException e) {
@@ -108,6 +130,7 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
 
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
+        Logger.debug(riotMessageServiceMessage);
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
@@ -115,7 +138,6 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
             switch (info.getString("backwardsTransitionReason")) {
                 case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {
                     leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
-                    Logger.info("make us able to que again by indicating we are ready");
                     try {
                         leagueClientUI.getLeagueClient().getLedge().getParties().ready();
                     } catch (IOException e) {
@@ -152,24 +174,28 @@ public class QueueWindow extends ChildUIComponent implements ActionListener, Run
         }
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
+  public void goToLobby(ActionEvent e, int mode) {
         JSONObject json = new JSONObject(e.getActionCommand());
         long queueId = json.getLong("id");
         long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
         PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
         try {
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
-            if (registration == null) registration = partiesLedge.register();
-            registration = partiesLedge.leave(registration.getFirstPartyId(), PartyRole.DECLINED);
+            if (registration == null) partiesLedge.register();
+            partiesLedge.role(PartyRole.DECLINED);
             partiesLedge.gamemode(
-                    registration.getFirstPartyId(),
+                    partiesLedge.getCurrentPartyId(),
                     maximumParticipantListSize,
                     0,
                     queueId
             );
-            partiesLedge.partytype(registration.getFirstPartyId(), PartyType.OPEN);
-            partiesLedge.metadata(registration.getFirstPartyId(), PositionPreference.FILL, PositionPreference.UNSELECTED);
+            partiesLedge.partytype(PartyType.OPEN);
+            partiesLedge.metadata(PositionPreference.FILL, PositionPreference.UNSELECTED);
+            if (mode == 0) {
+                this.parent.add("lobby", new QueueLobby(leagueClientUI, parent, layout));
+            } else if (mode == 1) {
+                this.parent.add("lobby", new TFTQueueLobby(leagueClientUI, parent, layout));
+            }
             layout.show(parent, "lobby");
         } catch (IOException ex) {
             Logger.error(ex);

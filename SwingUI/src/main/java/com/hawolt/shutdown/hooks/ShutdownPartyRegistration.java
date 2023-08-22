@@ -1,10 +1,10 @@
 package com.hawolt.shutdown.hooks;
 
-import com.hawolt.shutdown.ShutdownTask;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.PartiesRegistration;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyAction;
+import com.hawolt.shutdown.ShutdownTask;
 
 /**
  * Created: 16/08/2023 18:06
@@ -21,6 +21,6 @@ public class ShutdownPartyRegistration extends ShutdownTask {
         PartiesLedge ledge = client.getLedge().getParties();
         PartiesRegistration registration = ledge.getCurrentRegistration();
         if (registration == null) return;
-        ledge.setQueueAction(registration.getFirstPartyId(), PartyAction.STOP);
+        ledge.setQueueAction(PartyAction.STOP);
     }
 }

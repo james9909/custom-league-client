@@ -22,10 +22,11 @@ public class GameStartListener implements IServiceMessageListener<RiotMessageSer
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
         JSONObject object = riotMessageServiceMessage.getPayload().getPayload();
         String ip = object.getString("serverIp");
+        String gameMode = object.getString("gameMode");
         String port = String.valueOf(object.getInt("serverPort"));
         String encryptionKey = object.getString("encryptionKey");
         String gameId = String.valueOf(object.getLong("gameId"));
         String summonerId = String.valueOf(object.getLong("summonerId"));
-        Launcher.launch(ip, port, encryptionKey, summonerId, gameId, platform);
+        Launcher.launch(ip, port, encryptionKey, summonerId, gameId, platform, gameMode);
     }
 }

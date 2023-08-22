@@ -1,5 +1,6 @@
 package com.hawolt.ui.chat.window;
 
+import com.hawolt.LeagueClientUI;
 import com.hawolt.ui.chat.friendlist.IFriendListComponent;
 import com.hawolt.util.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -20,9 +21,8 @@ import java.util.Map;
  * Author: Twitter @hawolt
  **/
 
-public class ChatWindow extends ChildUIComponent implements IMessageListener, IChatWindow {
+public class ChatUI extends ChildUIComponent implements IMessageListener, IChatWindow {
     private final Map<String, ChatWindowContent> map = new HashMap<>();
-
     private final CardLayout layout = new CardLayout();
     private final ChildUIComponent container;
     private final ChatWindowHeader header;
@@ -30,7 +30,7 @@ public class ChatWindow extends ChildUIComponent implements IMessageListener, IC
     private IFriendListComponent component;
     private String lastOpenedChat;
 
-    public ChatWindow() {
+    public ChatUI() {
         super(new BorderLayout());
         this.add(header = new ChatWindowHeader(new BorderLayout()), BorderLayout.NORTH);
         this.add(container = new ChildUIComponent(this.layout), BorderLayout.CENTER);
@@ -48,6 +48,7 @@ public class ChatWindow extends ChildUIComponent implements IMessageListener, IC
         ChatWindowContent content = new ChatWindowContent(jid, xmppClient, new BorderLayout());
         this.container.add(jid, content);
         this.map.put(jid, content);
+        this.revalidate();
     }
 
     private boolean isChatConfigured(String jid) {

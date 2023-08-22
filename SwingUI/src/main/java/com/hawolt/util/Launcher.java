@@ -15,20 +15,20 @@ import java.io.InputStreamReader;
  **/
 
 public class Launcher {
-    public static void launch(String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform) {
+    public static void launch(String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform, String gameMode) {
         LeagueClientUI.service.execute(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(
                         "C:\\Riot Games\\League of Legends\\Game\\League of Legends.exe",
                         String.format("%s %s %s %s", ip, port, encryptionKey, playerId),
-                        "-Product=LoL",
+                        "-Product=" + gameMode,
                         "-PlayerID=" + playerId,
                         "-GameID=" + gameId,
                         "-PlayerNameMode=SUMMONER",
                         "-GameBaseDir=C:\\Riot Games\\League of Legends",
                         "-Region=" + platform.getFriendlyName(),
                         "-PlatformID=" + platform.name(),
-                        "-Locale=en_GB",
+                        "-Locale=en_US",
                         "-SkipBuild",
                         "-EnableCrashpad=true",
                         "-EnableLNP",
@@ -36,8 +36,8 @@ public class Launcher {
                         "-UseMetal=0:1",
                         "-UseNewX3D",
                         "-UseNewX3DFramebuffers",
-                        "-RiotClientPort=52849",
-                        "-RiotClientAuthToken=-sljrIEr7rIt4Kuu2HSamUA"
+                        "-RiotClientPort=61650",
+                        "-RiotClientAuthToken=LXs55fEr3JOpQ3M2KyTBOw"
                 );
                 builder.directory(new File("C:\\Riot Games\\League of Legends\\Game"));
                 builder.redirectErrorStream(true);

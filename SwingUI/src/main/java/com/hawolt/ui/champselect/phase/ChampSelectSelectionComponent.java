@@ -2,8 +2,8 @@ package com.hawolt.ui.champselect.phase;
 
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
-import com.hawolt.async.loader.impl.ChampionLoader;
 import com.hawolt.logger.Logger;
+import com.hawolt.ui.champselect.IChampSelection;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -23,13 +23,15 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
     private final static String preset = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/%s.png";
     private final static Color opaque = new Color(255, 255, 255, 100);
     private ChampSelectSelectionCallback callback;
+    private IChampSelection champSelection;
     private Rectangle rectangle;
     private BufferedImage image;
     private boolean selected;
     private int componentId;
     private int championId;
 
-    public ChampSelectSelectionComponent(ChampSelectSelectionCallback callback, int componentId) {
+    public ChampSelectSelectionComponent(ChampSelectSelectionCallback callback, IChampSelection champSelection, int componentId) {
+        this.champSelection = champSelection;
         this.componentId = componentId;
         this.callback = callback;
         this.setBackground(Color.BLACK);
@@ -48,7 +50,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
             int y = 5;
             this.rectangle = new Rectangle(x, y, 64, 64);
             g.drawImage(image, x, y, null);
-            g.drawString(ChampionLoader.instance.getCache().get(championId).getName(), x, y + 80);
+            g.drawString(champSelection.getChampionCache().get(championId).getName(), x, y + 80);
             if (!selected) return;
             Graphics2D graphics2D = (Graphics2D) g;
 
@@ -67,7 +69,7 @@ public class ChampSelectSelectionComponent extends JPanel implements MouseListen
     public void update(int championId) {
         if (this.championId != 0) return;
         this.championId = championId;
-        ResourceLoader.load(String.format(preset, this.championId), this);
+        ResourceLoader.loadResource(String.format(preset, this.championId), this);
     }
 
     @Override

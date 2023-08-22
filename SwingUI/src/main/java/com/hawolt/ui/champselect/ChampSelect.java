@@ -1,9 +1,12 @@
 package com.hawolt.ui.champselect;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.logger.Logger;
+import com.hawolt.objects.Champion;
 import com.hawolt.rtmp.LeagueRtmpClient;
 import com.hawolt.rtmp.amf.TypedObject;
 import com.hawolt.rtmp.io.RtmpPacket;
@@ -30,7 +33,7 @@ import java.util.Map;
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelect extends ChildUIComponent implements PacketCallback, IChampSelection, ActionListener, ISpellChangedListener {
+public class ChampSelect extends ChildUIComponent implements PacketCallback, IChampSelection, ActionListener, ISpellChangedListener, ResourceConsumer<JSONArray, byte[]> {
 
     private final ChampSelectSidebarUI teamOneUI, teamTwoUI;
     private final ChampSelectHeaderUI headerUI;
@@ -46,6 +49,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         this.add(teamOneUI = new ChampSelectSidebarUI(), BorderLayout.WEST);
         this.add(teamTwoUI = new ChampSelectSidebarUI(), BorderLayout.EAST);
         this.phaseUI.getButton().addActionListener(this);
+        ResourceLoader.loadResource("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json", this);
     }
 
     public ChampSelect(LeagueClient client) {
@@ -60,10 +64,6 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         this.phaseUI.getButton().addActionListener(this);
         this.rtmpClient = client.getRTMPClient();
         this.rtmpClient.setDefaultCallback(this);
-
-        /* TODO
-        Logger.error(leagueClient.getLedge().getPerks().setRunesToMakeLittleTimmyAngry());
-        */
     }
 
     public LeagueClient getLeagueClient() {
@@ -71,7 +71,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     }
 
     private Map<String, Integer> actions = new HashMap<>();
-    private int currentActionSetIndex, ownTeamId;
+    private int currentActionSetIndex, localPlayerCellId, ownTeamId;
 
     private ChampSelectSidebarUI getOwnSidebarUI() {
         return ownTeamId == 1 ? teamOneUI : teamTwoUI;
@@ -93,7 +93,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         JSONObject state = object.getJSONObject("championSelectState");
         this.currentActionSetIndex = state.getInt("currentActionSetIndex");
 
-        int localPlayerCellId = state.getInt("localPlayerCellId");
+        this.localPlayerCellId = state.getInt("localPlayerCellId");
         JSONArray array = state.getJSONArray("actionSetList");
         for (int i = 0; i < array.length(); i++) {
             JSONArray nested = array.getJSONArray(i);
@@ -112,7 +112,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         int currentActionSetIndex = state.getInt("currentActionSetIndex");
 
         headerUI.getTimerUI().update(currentActionSetIndex, "");
-        phaseUI.getBanPhaseUI().getSelectionUI().update(allChampionIds);
+        phaseUI.getBanPhaseUI().getSelectionUI().update(this, allChampionIds);
 
         JSONObject cells = state.getJSONObject("cells");
         JSONArray allied = cells.getJSONArray("alliedTeam");
@@ -123,9 +123,9 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         JSONArray teamTwo = ownTeamId == 1 ? enemy : allied;
 
         headerUI.getTeamTwoUI().rebuild(teamTwo);
-        teamOneUI.rebuild(teamOne, localPlayerCellId);
+        teamOneUI.rebuild(this, teamOne, localPlayerCellId);
         headerUI.getTeamOneUI().rebuild(teamOne);
-        teamTwoUI.rebuild(teamTwo, localPlayerCellId);
+        teamTwoUI.rebuild(this, teamTwo, localPlayerCellId);
     }
 
     public void update(String data) {
@@ -159,14 +159,20 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                 teamOneUI.update(currentActionSetIndex, i, phase);
                 teamTwoUI.update(currentActionSetIndex, i, phase);
             }
-            //UPDATE SIDEBARS
+            //UPDATE OWN TEAM
             JSONObject cells = state.getJSONObject("cells");
             JSONArray allied = cells.getJSONArray("alliedTeam");
             for (int i = 0; i < allied.length(); i++) {
                 JSONObject member = allied.getJSONObject(i);
-                int teamId = member.getInt("teamId");
-                ChampSelectSidebarUI champSelectSidebarUI = teamId == 1 ? teamOneUI : teamTwoUI;
+                ChampSelectSidebarUI champSelectSidebarUI = ownTeamId == 1 ? teamOneUI : teamTwoUI;
                 champSelectSidebarUI.update(new AlliedMember(member));
+            }
+            //UPDATE ENEMY TEAM
+            JSONArray enemy = cells.getJSONArray("enemyTeam");
+            for (int i = 0; i < enemy.length(); i++) {
+                JSONObject member = enemy.getJSONObject(i);
+                ChampSelectSidebarUI champSelectSidebarUI = ownTeamId == 2 ? teamOneUI : teamTwoUI;
+                champSelectSidebarUI.update(member);
             }
             //RELOAD
             this.revalidate();
@@ -185,7 +191,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         for (int i = 0; i < champions.length(); i++) {
             ids[i] = champions.getInt(i);
         }
-        phaseUI.getPickPhaseUI().getSelectionUI().update(ids);
+        phaseUI.getPickPhaseUI().getSelectionUI().update(this, ids);
     }
 
     public void resetChampSelectState() {
@@ -217,6 +223,8 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                 switch (command) {
                     case "DODGE" -> {
                         this.rtmpClient.getTeamBuilderService().quitGameV2Asynchronous(this);
+                        this.headerUI.getTimerUI().stop();
+                        this.phaseUI.getChatUI().reset();
                         this.resetChampSelectState();
                         this.revalidate();
                     }
@@ -227,6 +235,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                                 championId,
                                 true
                         );
+                        this.phaseUI.show("pick");
                     }
                     case "PICK" -> {
                         int championId = (int) this.phaseUI.getPickPhaseUI().getSelectionUI().getSelectedChampionId();
@@ -246,15 +255,18 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
         try {
-            Logger.error(typedObject);
             if (typedObject == null || !typedObject.containsKey("data")) return;
             TypedObject data = typedObject.getTypedObject("data");
-            if (data == null || !data.containsKey("body")) return;
-            TypedObject body = data.getTypedObject("body");
-            if (body == null) return;
-            if (!body.containsKey("payload")) return;
+            if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;
+            TypedObject message = data.getTypedObject("flex.messaging.messages.AsyncMessage");
+            if (message == null || !message.containsKey("body")) return;
+            TypedObject body = message.getTypedObject("body");
+            if (body == null || !body.containsKey("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse"))
+                return;
+            TypedObject response = body.getTypedObject("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse");
+            if (response == null || !response.containsKey("payload")) return;
             try {
-                Object object = body.get("payload");
+                Object object = response.get("payload");
                 if (object == null) return;
                 update(Base64GZIP.unzipBase64(object.toString()));
             } catch (IOException e) {
@@ -274,5 +286,33 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
                 Logger.error(e);
             }
         });
+    }
+
+    private final Map<Integer, Champion> cache = new HashMap<>();
+
+
+    @Override
+    public Map<Integer, Champion> getChampionCache() {
+        return cache;
+    }
+
+    @Override
+    public void onException(Object o, Exception e) {
+        Logger.fatal("Failed to load '{}'", o);
+        Logger.error(e);
+    }
+
+    @Override
+    public void consume(Object o, JSONArray array) {
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject reference = array.getJSONObject(i);
+            Champion champion = new Champion(reference);
+            cache.put(champion.getId(), champion);
+        }
+    }
+
+    @Override
+    public JSONArray transform(byte[] bytes) throws Exception {
+        return new JSONArray(new String(bytes));
     }
 }

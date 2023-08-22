@@ -18,18 +18,17 @@ public class JHintTextField extends JTextField {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        if (getText().length() == 0) {
-            int height = getHeight();
-            Graphics2D graphics2D = (Graphics2D) g;
-            graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            Insets insets = getInsets();
-            FontMetrics fontMetrics = g.getFontMetrics();
-            int background = getBackground().getRGB();
-            int foreground = getForeground().getRGB();
-            int mask = 0xFEFEFEFE;
-            int blend = ((background & mask) >>> 1) + ((foreground & mask) >>> 1);
-            g.setColor(new Color(blend, true));
-            g.drawString(hint, insets.left, height / 2 + fontMetrics.getAscent() / 2 - 2);
-        }
+        if (!getText().isEmpty()) return;
+        int height = getHeight();
+        Graphics2D graphics2D = (Graphics2D) g;
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        Insets insets = getInsets();
+        FontMetrics fontMetrics = g.getFontMetrics();
+        int background = getBackground().getRGB();
+        int foreground = getForeground().getRGB();
+        int mask = 0xFEFEFEFE;
+        int blend = ((background & mask) >>> 1) + ((foreground & mask) >>> 1);
+        g.setColor(new Color(blend, true));
+        g.drawString(hint, insets.left, height / 2 + fontMetrics.getAscent() / 2 - 2);
     }
 }

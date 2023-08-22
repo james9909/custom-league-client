@@ -23,7 +23,7 @@ public class HeaderWalletCurrency extends JComponent implements ResourceConsumer
 
     public HeaderWalletCurrency(String resource) {
         this.setBackground(Color.GRAY);
-        ResourceLoader.load(resource, this);
+        ResourceLoader.loadResource(resource, this);
     }
 
     public void setAmount(int amount) {

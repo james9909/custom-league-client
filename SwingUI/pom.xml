@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>SwingUI</artifactId>
-    <version>1.0-alpha</version>
+    <version>1.03-alpha</version>
 
     <build>
         <plugins>
@@ -25,7 +25,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>bundled-client-${version}-alpha</finalName>
+                    <finalName>bundled-client-${version}</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.hawolt.LeagueClientUI</mainClass>
@@ -56,11 +56,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.0</version>
-        </dependency>
         <dependency>
             <groupId>org.imgscalr</groupId>
             <artifactId>imgscalr-lib</artifactId>

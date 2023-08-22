@@ -2,7 +2,7 @@ package com.hawolt.client;
 
 import com.hawolt.authentication.ICookieSupplier;
 import com.hawolt.authentication.LocalCookieSupplier;
-import com.hawolt.http.Gateway;
+import com.hawolt.http.auth.Gateway;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 
 /**
@@ -118,7 +118,7 @@ public class ClientConfiguration {
             return new Builder()
                     .setSupplier(new LocalCookieSupplier())
                     .setMultifactorSupplier(multifactor)
-                    .setIgnoreSummoner(true)
+                    .setIgnoreSummoner(false)
                     .setUsername(username)
                     .setPassword(password)
                     .setSelfRefresh(true)

@@ -10,3 +10,5 @@ resources/*
 **/test/**
 #completly ignore target directory
 **/target/**
+#ignore jetbrains .iml configs
+***.iml

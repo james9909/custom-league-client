@@ -2,18 +2,21 @@ package com.hawolt.async.loader;
 
 import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.cryptography.SHA256;
 import com.hawolt.generic.data.Unsafe;
-import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
+import com.hawolt.http.layer.impl.OkHttpResponse;
 import com.hawolt.io.Core;
 import com.hawolt.io.RunLevel;
 import com.hawolt.logger.Logger;
-import okhttp3.Call;
 import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,6 +29,7 @@ import java.util.concurrent.TimeUnit;
  **/
 
 public class ResourceLoader {
+    private static final Path directory = StaticConstant.APPLICATION_CACHE.resolve("assets");
     private static final ExecutorService service = ExecutorManager.registerService(
             "resource-loader-jobs",
             Executors.newFixedThreadPool(8)
@@ -37,6 +41,19 @@ public class ResourceLoader {
 
     static {
         ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("resource-loader");
+        scheduler.execute(() -> {
+            File directory = ResourceLoader.directory.toFile();
+            if (!directory.exists()) return;
+            File[] assets = directory.listFiles();
+            if (assets == null) return;
+            for (File file : assets) {
+                try {
+                    cache.put(file.getName(), Files.readAllBytes(file.toPath()));
+                } catch (IOException e) {
+                    Logger.error("Failed to load file '{}' from local cache", file.getName());
+                }
+            }
+        });
         scheduler.scheduleWithFixedDelay(() -> {
             if (queue.isEmpty()) return;
             service.execute(queue.remove(0));
@@ -47,40 +64,41 @@ public class ResourceLoader {
         return Unsafe.cast(in);
     }
 
-
-    public static void load(String uri, ResourceConsumer<?, byte[]> consumer) {
-        load(uri, false, consumer);
-    }
-
-    public static void load(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        if (cache.containsKey(uri)) {
+    private static void load(String path, boolean priority, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
+        String hash = SHA256.hash(path);
+        if (cache.containsKey(hash)) {
             try {
-                consumer.consume(uri, Unsafe.cast(consumer.transform(cache.get(uri))));
+                consumer.consume(path, Unsafe.cast(consumer.transform(cache.get(hash))));
             } catch (Exception e) {
-                consumer.onException(uri, e);
+                consumer.onException(path, e);
             }
-        } else if (pending.containsKey(uri)) {
-            pending.get(uri).add(consumer);
+        } else if (pending.containsKey(hash)) {
+            pending.get(hash).add(consumer);
         } else {
-            pending.put(uri, new ArrayList<>());
-            pending.get(uri).add(consumer);
-            Runnable runnable = () -> {
-                Request request = new Request.Builder()
-                        .url(uri)
-                        .header("User-Agent", StaticConstant.USER_AGENT)
-                        .get()
-                        .build();
-                Call call = OkHttp3Client.perform(request);
-                try (Response response = call.execute()) {
-                    try (ResponseBody body = response.body()) {
-                        handleConsumption(uri, body.bytes());
-                    }
-                } catch (IOException e) {
-                    handleError(uri, e);
-                }
-            };
+            pending.put(hash, new ArrayList<>());
+            pending.get(hash).add(consumer);
             queue.add(priority ? 0 : queue.size(), runnable);
         }
+    }
+
+    public static void loadResource(String uri, ResourceConsumer<?, byte[]> consumer) {
+        loadResource(uri, false, consumer);
+    }
+
+    public static void loadResource(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
+        load(uri, priority, consumer, () -> {
+            Request request = new Request.Builder()
+                    .url(uri)
+                    .header("User-Agent", StaticConstant.USER_AGENT)
+                    .get()
+                    .build();
+            try {
+                IResponse response = OkHttpResponse.from(request);
+                handleConsumption(uri, response.response());
+            } catch (IOException e) {
+                handleError(uri, e);
+            }
+        });
     }
 
     public static void loadLocalResource(String name, ResourceConsumer<?, byte[]> consumer) {
@@ -88,31 +106,40 @@ public class ResourceLoader {
     }
 
     public static void loadLocalResource(String name, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        if (cache.containsKey(name)) {
-            try {
-                consumer.consume(name, Unsafe.cast(consumer.transform(cache.get(name))));
-            } catch (Exception e) {
-                consumer.onException(name, e);
+        load(name, priority, consumer, () -> {
+            try (InputStream stream = RunLevel.get(name)) {
+                handleConsumption(name, Core.read(stream).toByteArray());
+            } catch (IOException e) {
+                handleError(name, e);
             }
-        } else if (pending.containsKey(name)) {
-            pending.get(name).add(consumer);
-        } else {
-            pending.put(name, new ArrayList<>());
-            pending.get(name).add(consumer);
-            Runnable runnable = () -> {
-                try (InputStream stream = RunLevel.get(name)) {
-                    handleConsumption(name, Core.read(stream).toByteArray());
-                } catch (IOException e) {
-                    handleError(name, e);
-                }
-            };
-            queue.add(priority ? 0 : queue.size(), runnable);
-        }
+        });
+    }
+
+    private static void writeToCache(String o, String hash, byte[] b) {
+        cache.put(hash, b);
+        service.execute(() -> {
+            try {
+                if (!directory.toFile().exists()) Files.createDirectories(directory);
+                Path target = directory.resolve(hash);
+                Files.write(
+                        target,
+                        b,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                );
+                Logger.debug("stored '{}' in local cache as {}", o, hash);
+            } catch (IOException e) {
+                Logger.error(e);
+            }
+        });
     }
 
     private static void handleConsumption(String o, byte[] b) {
-        cache.put(o, b);
-        List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(o));
+        String hash = SHA256.hash(o);
+        writeToCache(o, hash, b);
+        if (!pending.containsKey(hash)) Logger.error("attempt to load unknown value '{}' from cache", o);
+        List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(hash));
         for (ResourceConsumer<?, byte[]> consumer : list) {
             try {
                 consumer.consume(o, convert(consumer.transform(b)));

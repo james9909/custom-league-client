@@ -13,39 +13,90 @@ import java.util.List;
  **/
 
 public class PartiesRegistration {
+    protected final List<Party> parties = new ArrayList<>();
+    private final long accountId, summonerId, eligibilityHash, createdAt, serverUtcMillis;
+    private final String platformId, puuid;
+    private final int version;
 
-    private final List<PartiesParty> parties = new ArrayList<>();
-    private final JSONObject source;
+    protected CurrentParty currentParty;
 
     public PartiesRegistration(JSONObject o) {
-        this.source = o;
-        if (!o.has("parties")) return;
+        Logger.debug("Registration: {}", o);
+        this.serverUtcMillis = o.getLong("serverUtcMillis");
+        this.eligibilityHash = o.getLong("eligibilityHash");
+        this.platformId = o.getString("platformId");
+        this.summonerId = o.getLong("summonerId");
+        this.accountId = o.getLong("accountId");
+        this.createdAt = o.getLong("createdAt");
+        this.version = o.getInt("version");
+        this.puuid = o.getString("puuid");
         JSONArray parties = o.getJSONArray("parties");
         for (int i = 0; i < parties.length(); i++) {
-            this.parties.add(new PartiesParty(parties.getJSONObject(i)));
+            JSONObject party = parties.getJSONObject(i);
+            if ("INVITED".equals(party.getString("role"))) {
+                this.parties.add(new AvailableParty(party));
+            } else {
+                this.parties.add(new ActiveParty(party));
+            }
+        }
+        if (o.has("currentParty") && !o.isNull("currentParty")) {
+            this.currentParty = new CurrentParty(o.getJSONObject("currentParty"));
         }
     }
 
-    public JSONObject getSource() {
-        return source;
+    public String getPlatformId() {
+        return platformId;
     }
 
-    public boolean isPartyAvailable() {
-        return !parties.isEmpty();
+    public String getPUUID() {
+        return puuid;
     }
 
-    public String getFirstPartyId() {
-        return parties.get(0).getPartyId();
+    public long getAccountId() {
+        return accountId;
     }
 
-    public List<PartiesParty> getParties() {
+    public long getSummonerId() {
+        return summonerId;
+    }
+
+    public long getEligibilityHash() {
+        return eligibilityHash;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public long getServerUtcMillis() {
+        return serverUtcMillis;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public List<Party> getParties() {
         return parties;
+    }
+
+    public CurrentParty getCurrentParty() {
+        return currentParty;
     }
 
     @Override
     public String toString() {
         return "PartiesRegistration{" +
-                "parties=" + parties +
+                "platformId='" + platformId + '\'' +
+                ", puuid='" + puuid + '\'' +
+                ", accountId=" + accountId +
+                ", summonerId=" + summonerId +
+                ", eligibilityHash=" + eligibilityHash +
+                ", createdAt=" + createdAt +
+                ", serverUtcMillis=" + serverUtcMillis +
+                ", version=" + version +
+                ", parties=" + parties +
+                ", currentParty=" + currentParty +
                 '}';
     }
 }

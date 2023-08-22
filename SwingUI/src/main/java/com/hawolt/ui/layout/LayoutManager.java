@@ -47,6 +47,22 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         layout.show(center, "placebo");
     }
 
+    public void showClientComponent(String name) {
+        layout.show(center, name);
+    }
+
+    public ChampSelect getChampSelect() {
+        return champSelect;
+    }
+
+    public QueueWindow getQueue() {
+        return queue;
+    }
+
+    public RuneSelectionPanel getRunes() {
+        return runes;
+    }
+
     public StoreWindow getStore() {
         return store;
     }

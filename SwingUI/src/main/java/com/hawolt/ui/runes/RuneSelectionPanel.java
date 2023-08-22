@@ -51,7 +51,7 @@ public class RuneSelectionPanel extends ChildUIComponent implements ActionListen
         this.button = new JButton("Set Runes");
         this.button.addActionListener(this);
         this.add(button, BorderLayout.SOUTH);
-        ResourceLoader.load(String.format(DD_RUNES, patch), this);
+        ResourceLoader.loadResource(String.format(DD_RUNES, patch), this);
         ResourceLoader.loadLocalResource("runes.json", this);
     }
 

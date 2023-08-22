@@ -8,7 +8,7 @@ import org.json.JSONObject;
  **/
 
 public class Spell {
-    public final static String BASE = "https://raw.communitydragon.org/latest/game/data/spells/icons2d/";
+    public final static String BASE = "https://raw.communitydragon.org/latest/game/data/spells/icons2d";
     private final long id;
     private final String name, iconName;
     private String iconPath;

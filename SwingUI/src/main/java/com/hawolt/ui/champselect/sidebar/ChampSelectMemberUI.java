@@ -2,19 +2,25 @@ package com.hawolt.ui.champselect.sidebar;
 
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
-import com.hawolt.async.loader.impl.SpellLoader;
+import com.hawolt.io.Core;
 import com.hawolt.logger.Logger;
+import com.hawolt.objects.Champion;
+import com.hawolt.objects.Spell;
 import com.hawolt.ui.champselect.AlliedMember;
+import com.hawolt.ui.champselect.IChampSelection;
 import com.hawolt.util.Image;
 import com.hawolt.util.jhlab.GaussianFilter;
 import org.imgscalr.Scalr;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
+import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,9 +44,11 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
     private boolean completed;
 
     private AlliedMember member;
+    private IChampSelection selection;
 
-    public ChampSelectMemberUI(JSONObject object) {
+    public ChampSelectMemberUI(IChampSelection selection, JSONObject object) {
         super();
+        this.selection = selection;
         this.nameVisibilityType = object.getString("nameVisibilityType");
         this.championId = object.getInt("championId");
         this.summonerId = object.getInt("summonerId");
@@ -77,6 +85,26 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         return nameVisibilityType;
     }
 
+    private static Map<Long, Spell> cache = new HashMap<>();
+
+    static {
+        try {
+            String resource = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json";
+            HttpsURLConnection connection = (HttpsURLConnection) new URL(resource).openConnection();
+            connection.setRequestProperty("User-Agent", "Sentinel");
+            try (InputStream stream = connection.getInputStream()) {
+                JSONArray array = new JSONArray(Core.read(stream).toString());
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject reference = array.getJSONObject(i);
+                    Spell spell = new Spell(reference);
+                    cache.put(spell.getId(), spell);
+                }
+            }
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
     public void updateAlliedMember(AlliedMember member) {
         this.member = member;
         if (member.getChampionPickIntent() != 0) {
@@ -86,42 +114,47 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
             );
             sprite.setResource(String.format(preset, member.getChampionPickIntent()));
             sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
+            ResourceLoader.loadResource(sprite.getResource(), this);
         }
-        if (championId != 0) {
-            int fallbackId = championId * 1000;
-            int skinId = member.getSkinId() == 0 ? fallbackId : member.getSkinId();
+        if (member.getChampionPickIntent() != 0) {
             ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
+                    "image",
+                    image -> Image.circleize(Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 64, 64))
+            );
+            sprite.setResource(String.format(preset, member.getChampionPickIntent()));
+            sprites.put(sprite.getResource(), sprite);
+            ResourceLoader.loadResource(sprite.getResource(), this);
+            ChampSelectMemberSprite skin = new ChampSelectMemberSprite(
                     "skin",
                     image -> Scalr.crop(image, 300, 100, 680, 400)
             );
-            sprite.setResource(String.format(splash, championId, skinId));
-            sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
+            skin.setResource(String.format(splash, member.getChampionPickIntent(), member.getChampionPickIntent() * 1000));
+            sprites.put(skin.getResource(), skin);
+            ResourceLoader.loadResource(skin.getResource(), this);
         }
         if (member.getSpell1Id() != 0) {
             ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
                     "summoner1",
                     image -> Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 28, 28)
             );
-            sprite.setResource(SpellLoader.instance.getCache().get((long) member.getSpell1Id()).getIconPath());
+            sprite.setResource(cache.get((long) member.getSpell1Id()).getIconPath());
             sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
+            ResourceLoader.loadResource(sprite.getResource(), this);
         }
         if (member.getSpell2Id() != 0) {
             ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
                     "summoner2",
                     image -> Scalr.resize(image, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 28, 28)
             );
-            sprite.setResource(SpellLoader.instance.getCache().get((long) member.getSpell2Id()).getIconPath());
+            sprite.setResource(cache.get((long) member.getSpell2Id()).getIconPath());
             sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
+            ResourceLoader.loadResource(sprite.getResource(), this);
         }
     }
 
-    public void update(int championId, boolean completed) {
+    public void updateChampSelection(int championId) {
+        if (this.championId == championId) return;
         this.championId = championId;
-        this.completed = completed;
         if (championId == 0) return;
         ChampSelectMemberSprite sprite = new ChampSelectMemberSprite(
                 "image",
@@ -129,7 +162,19 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         );
         sprite.setResource(String.format(preset, this.championId));
         sprites.put(sprite.getResource(), sprite);
-        ResourceLoader.load(sprite.getResource(), this);
+        ResourceLoader.loadResource(sprite.getResource(), this);
+        ChampSelectMemberSprite skin = new ChampSelectMemberSprite(
+                "skin",
+                image -> Scalr.crop(image, 300, 100, 680, 400)
+        );
+        skin.setResource(String.format(splash, championId, championId * 1000));
+        sprites.put(skin.getResource(), skin);
+        ResourceLoader.loadResource(skin.getResource(), this);
+    }
+
+    public void update(int championId, boolean completed) {
+        this.updateChampSelection(championId);
+        this.completed = completed;
     }
 
     public BufferedImage getSprite(String name) {
@@ -155,43 +200,45 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
 
             if (member != null) paintMember(dimension, graphics2D, member.getHiddenName(), member.getPosition());
 
-            int baseOffset = 10;
-            int x = teamId == 1 ? baseOffset : dimension.width - baseOffset - 64;
-            int y = (dimension.height >> 1) - (64 >> 1) - 15;
-
-            int spellX = teamId == 1 ? x + baseOffset + 64 : x - baseOffset - 28;
-
             g.setColor(Color.BLACK);
             BufferedImage summoner1 = getSprite("summoner1");
             if (summoner1 != null) {
-                g.fillRect(spellX - 1, y, summoner1.getWidth() + 2, summoner1.getHeight() + 2);
-                g.drawImage(summoner1, spellX, 1 + y, null);
+                paintSummonerSpell(graphics2D, summoner1, 0);
             }
-
             BufferedImage summoner2 = getSprite("summoner2");
             if (summoner2 != null) {
-                g.fillRect(spellX - 1, -2 + y + 64 - 28, summoner2.getWidth() + 2, summoner2.getHeight() + 2);
-                g.drawImage(summoner2, spellX, -1 + y + 64 - 28, null);
+                paintSummonerSpell(graphics2D, summoner2, 1);
             }
 
             BufferedImage image = getSprite("image");
             if (image == null) return;
+            //  g.drawImage(image, x, y, null);
 
 
-            graphics2D.setColor(Color.BLACK);
+          /*  graphics2D.setColor(Color.BLACK);
             graphics2D.fill(new RoundRectangle2D.Float(x - 2, y - 2, image.getWidth() + 4, image.getHeight() + 4, 360, 360));
+g.drawImage(image, x, y, null)
+            ;*/
 
-            g.drawImage(image, x, y, null);
+            if (decoration == null || completed) return;
 
-            if (completed) return;
-
-            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             graphics2D.setColor(opaque);
-            graphics2D.fill(new RoundRectangle2D.Float(x - 2, y - 2, image.getWidth() + 4, image.getHeight() + 4, 360, 360));
+            graphics2D.fillRect(0, 0, dimension.width, dimension.height);
 
         } catch (Exception e) {
             Logger.error(e);
         }
+    }
+
+    protected void paintSummonerSpell(Graphics2D graphics2D, BufferedImage summoner, int index) {
+        Dimension dimension = getSize();
+        int baseOffset = 5;
+        int factor = index == 1 ? 28 + baseOffset : 0;
+        int x = teamId == 0 ? baseOffset + factor : dimension.width - baseOffset - 28 - factor;
+        int y = baseOffset;
+        graphics2D.fillRect(x - 1, y - 1, summoner.getWidth() + 2, summoner.getHeight() + 2);
+        graphics2D.drawImage(summoner, x, y, null);
     }
 
     protected void paintMember(Dimension dimension, Graphics2D graphics2D, String name, String position) {
@@ -203,17 +250,13 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         graphics2D.drawString(name, 5, y);
         int width = metrics.stringWidth(position);
         graphics2D.drawString(position, rectangle.width - 5 - width, y);
+        Champion champion = selection.getChampionCache().get(championId);
+        if (champion == null) return;
+        graphics2D.drawString(champion.getName(), 5, 5 + metrics.getAscent());
     }
 
     @Override
     public void onException(Object o, Exception e) {
-        ChampSelectMemberSprite sprite = sprites.get(o.toString());
-        if ("skin".equalsIgnoreCase(sprite.getIdentifier())) {
-            int fallbackId = championId * 1000;
-            sprite.setResource(String.format(splash, championId, fallbackId));
-            sprites.put(sprite.getResource(), sprite);
-            ResourceLoader.load(sprite.getResource(), this);
-        }
         Logger.fatal("Failed to load resource {}", o);
         Logger.error(e);
     }
@@ -224,6 +267,7 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
         BufferedImage image = sprite.getFunction().apply(bufferedImage);
         sprite.setImage(image);
         if ("skin".equalsIgnoreCase(sprite.getIdentifier())) {
+            Logger.info("{} {} {}", sprite.getIdentifier(), o, bufferedImage == null);
             Dimension dimension = getSize();
             ChampSelectMemberSprite decoration = new ChampSelectMemberSprite(
                     "decoration",
@@ -231,6 +275,8 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
             );
             decoration.setImage(decoration.getFunction().apply(image));
             sprites.put("decoration", decoration);
+        } else {
+            sprites.put(sprite.getIdentifier(), sprite);
         }
         repaint();
     }

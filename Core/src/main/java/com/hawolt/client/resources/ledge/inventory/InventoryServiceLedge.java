@@ -7,6 +7,8 @@ import okhttp3.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created: 19/01/2023 16:38
@@ -71,6 +73,75 @@ public class InventoryServiceLedge extends AbstractLedgeEndpoint {
             }
         }
     }
+
+    public String getInventoryJwt(String type) throws IOException {
+        HttpUrl uri = new HttpUrl.Builder()
+                .scheme("https")
+                .host(base.substring(base.lastIndexOf('/') + 1))
+                .addPathSegment(name())
+                .addPathSegment("v2")
+                .addPathSegment("inventoriesWithLoyalty")
+                .addQueryParameter("puuid", userInformation.getSub())
+                .addQueryParameter("location", String.format("lolriot.ams1.%s", platform.name().toLowerCase()))
+                .addQueryParameter("accountId", String.valueOf(client.getVirtualRiotClient().getRiotClientUser().getDataUserId()))
+                .addQueryParameter("inventoryTypes", type)
+                .addQueryParameter("signed", "true")
+                .build();
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                String plain = body.string();
+                return new JSONObject(plain).getJSONObject("data").get("itemsJwt").toString();
+            }
+        }
+    }
+
+    public String getLegendInstanceId(int itemId) throws IOException {
+        HttpUrl uri = new HttpUrl.Builder()
+                .scheme("https")
+                .host(base.substring(base.lastIndexOf('/') + 1))
+                .addPathSegment(name())
+                .addPathSegment("v2")
+                .addPathSegment("inventoriesWithLoyalty")
+                .addQueryParameter("puuid", userInformation.getSub())
+                .addQueryParameter("location", String.format("lolriot.ams1.%s", platform.name().toLowerCase()))
+                .addQueryParameter("accountId", String.valueOf(client.getVirtualRiotClient().getRiotClientUser().getDataUserId()))
+                .addQueryParameter("inventoryTypes", "TFT_PLAYBOOK")
+                .build();
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent())
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+        Call call = OkHttp3Client.perform(request, gateway);
+        try (Response response = call.execute()) {
+            try (ResponseBody body = response.body()) {
+                String plain = body.string();
+                JSONObject object = new JSONObject(plain);
+                HashMap<String, Object> map = (HashMap<String, Object>) object.toMap();
+                HashMap<String, Object> data = (HashMap<String, Object>) map.get("data");
+                HashMap<String, Object> items = (HashMap<String, Object>) data.get("items");
+                ArrayList<HashMap<String, Object>> tftPlaybook = (ArrayList<HashMap<String, Object>>) items.get("TFT_PLAYBOOK");
+                for (int i = 0; i < tftPlaybook.size(); i++) {
+                    int playbookItemId = (int) tftPlaybook.get(i).get("itemId");
+                    if (itemId == playbookItemId) {
+                        return (String) tftPlaybook.get(i).get("instanceId");
+                    }
+                }
+                return null;
+            }
+        }
+    }
+
 
     @Override
     public int version() {

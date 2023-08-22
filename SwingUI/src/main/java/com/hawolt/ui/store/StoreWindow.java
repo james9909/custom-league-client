@@ -5,6 +5,7 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.StoreLedge;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
+import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONArray;
@@ -37,11 +38,19 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
             JSONObject object = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
             JSONObject items = object.getJSONObject("items");
             JSONArray champions = items.getJSONArray("CHAMPION");
-            Long[] ids = new Long[champions.length()];
-            for (int i = 0; i < champions.length(); i++) {
-                ids[i] = champions.getLong(i);
-            }
-            pane.addTab(InventoryType.CHAMPION.name(), new StorePage(client, ids));
+            List<Long> list = champions.toList()
+                    .stream()
+                    .map(Object::toString)
+                    .map(Long::parseLong)
+                    .toList();
+            pane.addTab(
+                    InventoryType.CHAMPION.name(),
+                    new StorePage(
+                            client,
+                            list,
+                            StoreSortProperty.values()
+                    )
+            );
             //  pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client));
         } catch (Exception e) {
             Logger.error(e);
