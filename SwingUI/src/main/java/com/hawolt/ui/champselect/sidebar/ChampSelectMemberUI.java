@@ -209,23 +209,9 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
             if (summoner2 != null) {
                 paintSummonerSpell(graphics2D, summoner2, 1);
             }
-
-            BufferedImage image = getSprite("image");
-            if (image == null) return;
-            //  g.drawImage(image, x, y, null);
-
-
-          /*  graphics2D.setColor(Color.BLACK);
-            graphics2D.fill(new RoundRectangle2D.Float(x - 2, y - 2, image.getWidth() + 4, image.getHeight() + 4, 360, 360));
-g.drawImage(image, x, y, null)
-            ;*/
-
             if (decoration == null || completed) return;
-
-            // graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             graphics2D.setColor(opaque);
             graphics2D.fillRect(0, 0, dimension.width, dimension.height);
-
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -234,8 +220,8 @@ g.drawImage(image, x, y, null)
     protected void paintSummonerSpell(Graphics2D graphics2D, BufferedImage summoner, int index) {
         Dimension dimension = getSize();
         int baseOffset = 5;
-        int factor = index == 1 ? 28 + baseOffset : 0;
-        int x = teamId == 0 ? baseOffset + factor : dimension.width - baseOffset - 28 - factor;
+        int factor = (teamId == 1 ? 28 + baseOffset : 0) + (index == 0 ? 0 : ((baseOffset + 28) * (teamId == 1 ? -1 : 1)));
+        int x = teamId == 1 ? dimension.width - baseOffset - 28 - factor : baseOffset + factor;
         int y = baseOffset;
         graphics2D.fillRect(x - 1, y - 1, summoner.getWidth() + 2, summoner.getHeight() + 2);
         graphics2D.drawImage(summoner, x, y, null);
@@ -252,7 +238,8 @@ g.drawImage(image, x, y, null)
         graphics2D.drawString(position, rectangle.width - 5 - width, y);
         Champion champion = selection.getChampionCache().get(championId);
         if (champion == null) return;
-        graphics2D.drawString(champion.getName(), 5, 5 + metrics.getAscent());
+        Dimension size = getSize();
+        graphics2D.drawString(champion.getName(), teamId == 1 ? 5 : size.width - 5 - metrics.stringWidth(champion.getName()), 5 + metrics.getAscent());
     }
 
     @Override

@@ -64,6 +64,7 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         this.phaseUI.getButton().addActionListener(this);
         this.rtmpClient = client.getRTMPClient();
         this.rtmpClient.setDefaultCallback(this);
+        ResourceLoader.loadResource("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json", this);
     }
 
     public LeagueClient getLeagueClient() {
@@ -309,6 +310,8 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
             Champion champion = new Champion(reference);
             cache.put(champion.getId(), champion);
         }
+        reconfigure();
+        revalidate();
     }
 
     @Override
