@@ -22,7 +22,7 @@ public class PartyParticipant {
         this.role = o.getString("role");
     }
 
-    public String getPuuid() {
+    public String getPUUID() {
         return puuid;
     }
 

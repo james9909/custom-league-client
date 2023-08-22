@@ -48,7 +48,7 @@ public class PartiesRegistration {
         return platformId;
     }
 
-    public String getPuuid() {
+    public String getPUUID() {
         return puuid;
     }
 

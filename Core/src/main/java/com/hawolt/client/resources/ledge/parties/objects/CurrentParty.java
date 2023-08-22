@@ -33,12 +33,10 @@ public class CurrentParty {
         JSONArray players = o.getJSONArray("players");
         for (int i = 0; i < players.length(); i++) {
             JSONObject player = players.getJSONObject(i);
-            if ("INVITED".equals(player.getString("role"))) {
-                this.players.add(new PendingPartyMember(player));
-            } else if ("DECLINED".equals(player.getString("role"))) {
-                this.players.add(new PartyParticipant(player));
-            } else {
-                this.players.add(new PartyMember(player));
+            switch (player.getString("role")) {
+                case "MEMBER", "LEADER" -> this.players.add(new PartyMember(player));
+                case "INVITED" -> this.players.add(new PendingPartyMember(player));
+                default -> this.players.add(new PartyParticipant(player));
             }
         }
         if (o.has("gameMode") && !o.isNull("gameMode")) {

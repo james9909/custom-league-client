@@ -22,7 +22,7 @@ public class Party {
         this.role = object.getString("role");
     }
 
-    public String getPuuid() {
+    public String getPUUID() {
         return puuid;
     }
 

@@ -22,6 +22,22 @@ public class AvailableParty extends Party {
         }
     }
 
+    public long getInvitedBySummonerId() {
+        return invitedBySummonerId;
+    }
+
+    public long getInviteTimestamp() {
+        return inviteTimestamp;
+    }
+
+    public String getInvitedByPUUID() {
+        return invitedByPuuid;
+    }
+
+    public PartyGameMode getPartyGameMode() {
+        return partyGameMode;
+    }
+
     @Override
     public String toString() {
         return "AvailableParty{" +
