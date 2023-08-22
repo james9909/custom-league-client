@@ -2,6 +2,7 @@ package com.hawolt.ui.store;
 
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
+import com.hawolt.client.resources.ledge.store.objects.StoreSortOrder;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.util.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -44,12 +45,18 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         add(scrollPane, BorderLayout.CENTER);
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
-        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null);
-        JComboBox<StoreSortProperty> sortBox = new JComboBox<>(properties);
+        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, StoreSortOrder.ASCENDING);
+        JComboBox<StoreSortOption> sortBox = new JComboBox<>();
+        for (StoreSortProperty property : properties) {
+            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.ASCENDING));
+            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.DESCENDING));
+        }
         sortBox.addItemListener(listener -> {
             AudioEngine.play("air_button_press_1.wav");
-            comparator.setProperty(sortBox.getItemAt(sortBox.getSelectedIndex()));
-            this.updateElements();
+            StoreSortOption option = sortBox.getItemAt(sortBox.getSelectedIndex());
+            comparator.setProperty(option.property());
+            comparator.setOrder(option.order());
+            updateElements();
         });
         this.add(sortBox, BorderLayout.NORTH);
     }
