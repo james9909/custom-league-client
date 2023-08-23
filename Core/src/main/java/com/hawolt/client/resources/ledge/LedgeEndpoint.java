@@ -1,6 +1,7 @@
 package com.hawolt.client.resources.ledge;
 
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.resources.ledge.gsm.GameServiceMessageLedge;
 import com.hawolt.client.resources.ledge.inventory.InventoryServiceLedge;
 import com.hawolt.client.resources.ledge.leagues.LeagueLedge;
 import com.hawolt.client.resources.ledge.loot.LootLedge;
@@ -19,6 +20,7 @@ import com.hawolt.yaml.YamlWrapper;
  **/
 
 public class LedgeEndpoint {
+    private final GameServiceMessageLedge gameServiceMessageLedge;
     private final InventoryServiceLedge inventoryServiceLedge;
     private final TeamBuilderLedge teamBuilderLedge;
     private final SummonerLedge summonerLedge;
@@ -39,6 +41,11 @@ public class LedgeEndpoint {
         this.summonerLedge = new SummonerLedge(client, wrapper.get(ConfigValue.LEDGE));
         this.teamBuilderLedge = new TeamBuilderLedge(client, wrapper.get(ConfigValue.LEDGE));
         this.inventoryServiceLedge = new InventoryServiceLedge(client, wrapper.get(ConfigValue.LEDGE));
+        this.gameServiceMessageLedge = new GameServiceMessageLedge(client, wrapper.get(ConfigValue.LEDGE));
+    }
+
+    public GameServiceMessageLedge getGameServiceMessage() {
+        return gameServiceMessageLedge;
     }
 
     public InventoryServiceLedge getInventoryService() {
