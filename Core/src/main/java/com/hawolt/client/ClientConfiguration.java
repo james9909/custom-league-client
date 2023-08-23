@@ -2,6 +2,7 @@ package com.hawolt.client;
 
 import com.hawolt.authentication.ICookieSupplier;
 import com.hawolt.authentication.LocalCookieSupplier;
+import com.hawolt.generic.data.Platform;
 import com.hawolt.http.auth.Gateway;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 
@@ -49,16 +50,35 @@ public class ClientConfiguration {
         return builder.gateway;
     }
 
+    public Platform getPlatform() {
+        return builder.platform;
+    }
+
+    public String getRefreshToken() {
+        return builder.ec1;
+    }
+
     public ICookieSupplier getCookieSupplier() {
         return builder.supplier;
     }
 
     public static class Builder {
         private Boolean ignoreSummoner, selfRefresh, complete, minimal;
-        private String username, password;
+        private String username, password, ec1;
         private MultiFactorSupplier multifactor;
         private ICookieSupplier supplier;
+        private Platform platform;
         private Gateway gateway;
+
+        public Builder setPlatform(Platform platform) {
+            this.platform = platform;
+            return this;
+        }
+
+        public Builder setRefreshToken(String ec1) {
+            this.ec1 = ec1;
+            return this;
+        }
 
         public Builder setGateway(Gateway gateway) {
             this.gateway = gateway;
@@ -113,18 +133,33 @@ public class ClientConfiguration {
         }
     }
 
+    private static ClientConfiguration.Builder getDefault() {
+        return new Builder()
+                .setSupplier(new LocalCookieSupplier())
+                .setIgnoreSummoner(false)
+                .setSelfRefresh(true)
+                .setMinimal(false)
+                .setComplete(true)
+                .setGateway(null);
+    }
+
+    public static ClientConfiguration getDefault(Platform platform, String token) {
+        try {
+            return getDefault()
+                    .setRefreshToken(token)
+                    .setPlatform(platform)
+                    .build();
+        } catch (IncompleteConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static ClientConfiguration getDefault(String username, String password, MultiFactorSupplier multifactor) {
         try {
-            return new Builder()
-                    .setSupplier(new LocalCookieSupplier())
+            return getDefault()
                     .setMultifactorSupplier(multifactor)
-                    .setIgnoreSummoner(false)
                     .setUsername(username)
                     .setPassword(password)
-                    .setSelfRefresh(true)
-                    .setMinimal(false)
-                    .setComplete(true)
-                    .setGateway(null)
                     .build();
         } catch (IncompleteConfigurationException e) {
             throw new RuntimeException(e);

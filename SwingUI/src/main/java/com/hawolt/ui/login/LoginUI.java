@@ -1,6 +1,7 @@
 package com.hawolt.ui.login;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.generic.data.Platform;
 import com.hawolt.objects.LocalSettings;
 import com.hawolt.service.LocalSettingsService;
 import com.hawolt.ui.impl.JHintTextField;
@@ -20,11 +21,12 @@ import java.awt.event.KeyEvent;
  **/
 
 public class LoginUI extends MainUIComponent implements ActionListener {
-    private final JHintTextField username;
+    private final JHintTextField username, ec1;
+    private final JComboBox<Platform> region;
     private final JPasswordField password;
     private final ILoginCallback callback;
+    private final JButton login, ecLogin;
     private final JCheckBox rememberMe;
-    private final JButton login;
 
     public static LoginUI show(LeagueClientUI leagueClientUI) {
         return new LoginUI(leagueClientUI);
@@ -35,12 +37,18 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.setLayout(new GridLayout(0, 1, 0, 5));
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
 
+        this.ec1 = new JHintTextField("");
         this.username = new JHintTextField("");
         this.password = new JPasswordField();
-        this.login = new JButton("Login");
+        this.login = new JButton("disabled due to HCaptcha");
+        this.login.setEnabled(false);
+        this.login.setActionCommand("REGULAR");
+        this.ecLogin = new JButton("Login using EC1");
         this.rememberMe = new JCheckBox("Remember Me");
+        this.region = new JComboBox<>(Platform.values());
         JLabel usernameLabel = new JLabel("Username");
         JLabel passwordLabel = new JLabel("Password");
+        JLabel ecLabel = new JLabel("EC1 Token");
 
         this.add(usernameLabel);
         this.add(username);
@@ -48,7 +56,12 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.add(password);
         this.add(login);
         this.add(rememberMe);
-        this.setPreferredSize(new Dimension(300, 200));
+        this.add(ecLabel);
+        this.add(ec1);
+        this.add(region);
+        this.add(ecLogin);
+        this.setPreferredSize(new Dimension(300, 300));
+        this.ecLogin.addActionListener(this);
         this.login.addActionListener(this);
         this.container.add(this);
 
@@ -76,20 +89,28 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         rememberMe.setEnabled(state);
         username.setEnabled(state);
         password.setEnabled(state);
+        ecLogin.setEnabled(state);
+        region.setEnabled(state);
         login.setEnabled(state);
+        ec1.setEnabled(state);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String pass = new String(password.getPassword());
-        String user = username.getText();
-        toggle(false);
-
-        if (rememberMe.isSelected()) {
-            LocalSettings settings = new LocalSettings(user, pass, rememberMe.isSelected());
-            LocalSettingsService.get().writeFile(settings);
+        this.toggle(false);
+        if ("REGULAR".equals(e.getActionCommand())) {
+            String pass = new String(password.getPassword());
+            String user = username.getText();
+            if (rememberMe.isSelected()) {
+                LocalSettings settings = new LocalSettings(user, pass, rememberMe.isSelected());
+                LocalSettingsService.get().writeFile(settings);
+            }
+            LeagueClientUI.service.execute(() -> callback.onLogin(user, pass));
+        } else {
+            LeagueClientUI.service.execute(() -> callback.onLogin(
+                    region.getItemAt(region.getSelectedIndex()),
+                    ec1.getText()
+            ));
         }
-
-        LeagueClientUI.service.execute(() -> callback.onLogin(user, pass));
     }
 }

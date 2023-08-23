@@ -57,10 +57,10 @@ public class RTMPHandler {
                 (Session) virtualLeagueClient.get(Authentication.SESSION),
                 (Sipt) virtualLeagueClient.get(Authentication.SIPT)
         );
+
         this.virtualLeagueRTMPClient.connect(client.getVirtualLeagueClient().getVirtualRiotClient().getUsername(), rtmpSupplier);
         return this;
     }
-
     public LeagueRtmpClient getVirtualLeagueRTMPClient() {
         return virtualLeagueRTMPClient;
     }

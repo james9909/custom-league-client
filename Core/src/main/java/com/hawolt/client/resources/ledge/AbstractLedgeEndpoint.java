@@ -40,7 +40,7 @@ public abstract class AbstractLedgeEndpoint extends UndocumentedEndpoint {
     }
 
     public String auth() {
-        return String.format("Bearer %s", tokenSupplier.get("session.session_token", true));
+        return String.format("Bearer %s", tokenSupplier.getSimple("session_token"));
     }
 
     public String agent() {

@@ -6,6 +6,7 @@ import com.hawolt.client.ClientConfiguration;
 import com.hawolt.client.IClientCallback;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.RiotClient;
+import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
 import com.hawolt.objects.LocalSettings;
 import com.hawolt.rms.data.subject.service.MessageService;
@@ -104,6 +105,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         friendlist.revalidate();
     }
 
+    public LeagueClient getLeagueClient() {
+        return leagueClient;
+    }
+
     public LayoutManager getLayoutManager() {
         return manager;
     }
@@ -114,10 +119,6 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public RiotClient getRiotClient() {
         return riotClient;
-    }
-
-    public LeagueClient getLeagueClient() {
-        return leagueClient;
     }
 
     public LayoutManager getManager() {
@@ -164,21 +165,9 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         this.loginUI.toggle(true);
     }
 
-    @Override
-    public void onLogin(String username, String password) {
-        this.createRiotClient(username, password);
-    }
-
-    @Override
-    public void windowStateChanged(WindowEvent e) {
-        if (e.getNewState() == Frame.MAXIMIZED_BOTH) {
-            mainUI.adjust();
-        }
-    }
-
-    private void createRiotClient(String username, String password) {
+    private ClientConfiguration getConfiguration(String username, String password) {
         JFrame parent = this;
-        ClientConfiguration configuration = ClientConfiguration.getDefault(username, password, new MultiFactorSupplier() {
+        return ClientConfiguration.getDefault(username, password, new MultiFactorSupplier() {
             @Override
             public String get() {
                 return (String) JOptionPane.showInputDialog(
@@ -191,7 +180,28 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                         "");
             }
         });
-        this.riotClient = new RiotClient(configuration, this);
+    }
+
+    @Override
+    public void onLogin(String username, String password) {
+        this.createRiotClient(getConfiguration(username, password), true);
+    }
+
+    @Override
+    public void onLogin(Platform platform, String ec1) {
+        ClientConfiguration configuration = ClientConfiguration.getDefault(platform, ec1);
+        this.createRiotClient(configuration, false);
+    }
+
+    @Override
+    public void windowStateChanged(WindowEvent e) {
+        if (e.getNewState() == Frame.MAXIMIZED_BOTH) {
+            mainUI.adjust();
+        }
+    }
+
+    private void createRiotClient(ClientConfiguration configuration, boolean regular) {
+        this.riotClient = new RiotClient(configuration, this, regular);
     }
 
     public static void main(String[] args) {
@@ -202,7 +212,11 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
             LocalSettingsService.get().deleteFile();
             leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
         } else {
-            leagueClientUI.createRiotClient(localSettings.getUsername(), localSettings.getPassword());
+            ClientConfiguration configuration = leagueClientUI.getConfiguration(
+                    localSettings.getUsername(),
+                    localSettings.getPassword()
+            );
+            leagueClientUI.createRiotClient(configuration, true);
         }
         leagueClientUI.setVisible(true);
     }

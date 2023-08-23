@@ -1,5 +1,7 @@
 package com.hawolt.ui.login;
 
+import com.hawolt.generic.data.Platform;
+
 /**
  * Created: 07/08/2023 18:30
  * Author: Twitter @hawolt
@@ -7,4 +9,6 @@ package com.hawolt.ui.login;
 
 public interface ILoginCallback {
     void onLogin(String username, String password);
+
+    void onLogin(Platform platform, String ec1);
 }
