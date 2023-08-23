@@ -9,6 +9,7 @@ import com.hawolt.client.RiotClient;
 import com.hawolt.logger.Logger;
 import com.hawolt.objects.LocalSettings;
 import com.hawolt.rms.data.subject.service.MessageService;
+import com.hawolt.rtmp.amf.decoder.AMFDecoder;
 import com.hawolt.service.LocalSettingsService;
 import com.hawolt.shutdown.ShutdownHook;
 import com.hawolt.ui.MainUI;
@@ -60,9 +61,9 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     @Override
     public void onClient(LeagueClient client) {
-        client.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(client.getPlayerPlatform()));
-        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(client)));
         buildUI(leagueClient = client);
+        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(client)));
+        client.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
     }
 
     private void buildUI(LeagueClient client) {
@@ -194,6 +195,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     public static void main(String[] args) {
+        AMFDecoder.debug = false;
         LocalSettings localSettings = LocalSettingsService.get().readFile();
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
         if (localSettings == null) {
