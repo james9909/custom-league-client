@@ -1,13 +1,15 @@
-package com.hawolt.util;
+package com.hawolt.client;
 
-import com.hawolt.LeagueClientUI;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created: 10/08/2023 21:11
@@ -15,8 +17,10 @@ import java.io.InputStreamReader;
  **/
 
 public class Launcher {
+    private static final ExecutorService SERVICE = Executors.newSingleThreadExecutor();
+
     public static void launch(String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform, String gameMode) {
-        LeagueClientUI.service.execute(() -> {
+        SERVICE.execute(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(
                         "C:\\Riot Games\\League of Legends\\Game\\League of Legends.exe",
@@ -56,5 +60,15 @@ public class Launcher {
                 Logger.error(e);
             }
         });
+    }
+
+    public static void launch(Platform platform, JSONObject object) {
+        String ip = object.getString("serverIp");
+        String gameMode = object.getString("gameMode");
+        String port = String.valueOf(object.getInt("serverPort"));
+        String encryptionKey = object.getString("encryptionKey");
+        String gameId = String.valueOf(object.getLong("gameId"));
+        String summonerId = String.valueOf(object.getLong("summonerId"));
+        Launcher.launch(ip, port, encryptionKey, summonerId, gameId, platform, gameMode);
     }
 }
