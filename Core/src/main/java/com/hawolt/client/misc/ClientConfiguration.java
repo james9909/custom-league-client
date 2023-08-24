@@ -1,9 +1,10 @@
-package com.hawolt.client;
+package com.hawolt.client.misc;
 
 import com.hawolt.authentication.ICookieSupplier;
 import com.hawolt.authentication.LocalCookieSupplier;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.http.auth.Gateway;
+import com.hawolt.virtual.riotclient.instance.CaptchaSupplier;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 
 /**
@@ -62,13 +63,23 @@ public class ClientConfiguration {
         return builder.supplier;
     }
 
+    public CaptchaSupplier getCaptchaSupplier() {
+        return builder.captchaSupplier;
+    }
+
     public static class Builder {
         private Boolean ignoreSummoner, selfRefresh, complete, minimal;
-        private String username, password, ec1;
         private MultiFactorSupplier multifactor;
+        private CaptchaSupplier captchaSupplier;
+        private String username, password, ec1;
         private ICookieSupplier supplier;
         private Platform platform;
         private Gateway gateway;
+
+        public Builder setCaptchaSupplier(CaptchaSupplier captchaSupplier) {
+            this.captchaSupplier = captchaSupplier;
+            return this;
+        }
 
         public Builder setPlatform(Platform platform) {
             this.platform = platform;
@@ -126,9 +137,6 @@ public class ClientConfiguration {
         }
 
         public ClientConfiguration build() throws IncompleteConfigurationException {
-            if (ignoreSummoner == null || selfRefresh == null || complete == null || minimal == null) {
-                throw new IncompleteConfigurationException();
-            }
             return new ClientConfiguration(this);
         }
     }
@@ -136,7 +144,7 @@ public class ClientConfiguration {
     private static ClientConfiguration.Builder getDefault() {
         return new Builder()
                 .setSupplier(new LocalCookieSupplier())
-                .setIgnoreSummoner(false)
+                .setIgnoreSummoner(true)
                 .setSelfRefresh(true)
                 .setMinimal(false)
                 .setComplete(true)
