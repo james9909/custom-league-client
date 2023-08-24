@@ -185,6 +185,6 @@ public class Loadout extends AbstractLedgeEndpoint {
 
     @Override
     public String auth() {
-        return String.join(" ", "Bearer", client.getVirtualLeagueClientInstance().getLeagueClientSupplier().get("lol.access_token", true));
+        return String.join(" ", "Bearer", client.getVirtualLeagueClientInstance().getLeagueClientSupplier().getSimple("access_token"));
     }
 }
