@@ -40,8 +40,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.ec1 = new JHintTextField("");
         this.username = new JHintTextField("");
         this.password = new JPasswordField();
-        this.login = new JButton("disabled due to HCaptcha");
-        this.login.setEnabled(false);
+        this.login = new JButton("Login");
         this.login.setActionCommand("REGULAR");
         this.ecLogin = new JButton("Login using EC1");
         this.rememberMe = new JCheckBox("Remember Me");
@@ -98,7 +97,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         this.toggle(false);
-        if ("REGULAR".equals(e.getActionCommand())) {
+        if (e == null || "REGULAR".equals(e.getActionCommand())) {
             String pass = new String(password.getPassword());
             String user = username.getText();
             if (rememberMe.isSelected()) {

@@ -2,10 +2,10 @@ package com.hawolt;
 
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.async.rms.GameStartListener;
-import com.hawolt.client.ClientConfiguration;
 import com.hawolt.client.IClientCallback;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.RiotClient;
+import com.hawolt.client.misc.ClientConfiguration;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
 import com.hawolt.objects.LocalSettings;

@@ -3,6 +3,8 @@ package com.hawolt.client;
 import com.hawolt.client.handler.RMSHandler;
 import com.hawolt.client.handler.RTMPHandler;
 import com.hawolt.client.handler.XMPPHandler;
+import com.hawolt.client.misc.ClientConfiguration;
+import com.hawolt.client.misc.captcha.ManualCaptchaSupplier;
 import com.hawolt.exception.CaptchaException;
 import com.hawolt.virtual.client.LoginStateConsumer;
 import com.hawolt.virtual.leagueclient.client.VirtualLeagueClient;
@@ -10,7 +12,6 @@ import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.instance.VirtualLeagueClientInstance;
 import com.hawolt.virtual.riotclient.RiotClientException;
 import com.hawolt.virtual.riotclient.client.VirtualRiotClient;
-import com.hawolt.virtual.riotclient.instance.CaptchaSupplier;
 import com.hawolt.virtual.riotclient.instance.VirtualRiotClientInstance;
 
 import java.io.IOException;
@@ -51,7 +52,6 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
                 finalize(client);
                 callback.onClient(client);
             } catch (Exception e) {
-                e.printStackTrace();
                 callback.onLoginFlowException(e);
             }
         }
@@ -104,7 +104,7 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
     private void login(ClientConfiguration configuration, VirtualRiotClientInstance virtualRiotClientInstance) throws IOException, LeagueException, RiotClientException, CaptchaException, InterruptedException {
         String username = configuration.getUsername();
         String password = configuration.getPassword();
-        VirtualRiotClient virtualRiotClient = virtualRiotClientInstance.login(username, password, configuration.getMultifactorSupplier(), CaptchaSupplier.blank);
+        VirtualRiotClient virtualRiotClient = virtualRiotClientInstance.login(username, password, configuration.getMultifactorSupplier(), new ManualCaptchaSupplier());
         VirtualLeagueClientInstance virtualLeagueClientInstance = virtualRiotClient.createVirtualLeagueClientInstance();
         CompletableFuture<VirtualLeagueClient> virtualLeagueClientFuture = virtualLeagueClientInstance.login(
                 configuration.getIgnoreSummoner(),
