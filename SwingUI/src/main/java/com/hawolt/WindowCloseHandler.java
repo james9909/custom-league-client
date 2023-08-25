@@ -1,10 +1,11 @@
 package com.hawolt;
 
-import com.hawolt.service.LocalSettingsService;
+import com.hawolt.client.settings.login.LoginSettingsService;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 /**
  * Created: 22/08/2023 09:32
@@ -32,8 +33,11 @@ public class WindowCloseHandler extends WindowAdapter {
                 new String[]{"LOGOUT", "EXIT", "CANCEL"},
                 "EXIT");
 
-        if (option == 0) LocalSettingsService.get().deleteFile();
-
+        if (option == 0) {
+            try {
+                LoginSettingsService.get().deleteSettingsFile();
+            } catch (IOException ex) {}
+        }
         if (option != 2) closingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 }

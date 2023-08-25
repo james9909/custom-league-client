@@ -8,15 +8,17 @@ import com.hawolt.client.RiotClient;
 import com.hawolt.client.misc.ClientConfiguration;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
-import com.hawolt.objects.LocalSettings;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rtmp.amf.decoder.AMFDecoder;
-import com.hawolt.service.LocalSettingsService;
+import com.hawolt.client.settings.client.ClientSettingsService;
+import com.hawolt.client.settings.login.LoginSettings;
+import com.hawolt.client.settings.login.LoginSettingsService;
 import com.hawolt.shutdown.ShutdownHook;
 import com.hawolt.ui.MainUI;
 import com.hawolt.ui.chat.ChatSidebar;
 import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
 import com.hawolt.ui.chat.window.ChatUI;
+import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
@@ -57,6 +59,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private ChatSidebar chatSidebar;
     private LayoutManager manager;
     private ChatUI chatUI;
+    private SettingsUI settingsUI;
     private LoginUI loginUI;
     private MainUI mainUI;
 
@@ -75,6 +78,11 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         chatUI.setSupplier(xmppClient);
         chatUI.setVisible(false);
         mainUI.addChatComponent(chatUI);
+
+        settingsUI = new SettingsUI();
+        settingsUI.setVisible(false);
+        mainUI.addSettingsComponent(settingsUI);
+
         UserInformation userInformation = client.getVirtualLeagueClient()
                 .getVirtualLeagueClientInstance()
                 .getUserInformation();
@@ -127,6 +135,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public ChatUI getChatUI() {
         return chatUI;
+    }
+
+    public SettingsUI getSettingsUI() {
+        return settingsUI;
     }
 
     public LoginUI getLoginUI() {
@@ -206,17 +218,30 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public static void main(String[] args) {
         AMFDecoder.debug = false;
-        LocalSettings localSettings = LocalSettingsService.get().readFile();
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
-        if (localSettings == null) {
-            LocalSettingsService.get().deleteFile();
-            leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
-        } else {
+
+        try {
+            ClientSettingsService.get().readSettingsFile();
+        } catch (IOException e1) {
+            try {
+                ClientSettingsService.get().writeSettingsFile();
+            } catch (IOException e2) {}
+        }
+
+        try {
+            LoginSettingsService.get().readSettingsFile();
+
+            LoginSettings loginSettings = LoginSettingsService.get().getSettings();
             ClientConfiguration configuration = leagueClientUI.getConfiguration(
-                    localSettings.getUsername(),
-                    localSettings.getPassword()
+                    loginSettings.getUsername(),
+                    loginSettings.getPassword()
             );
             leagueClientUI.createRiotClient(configuration, true);
+        } catch (IOException e1) {
+            try {
+                LoginSettingsService.get().deleteSettingsFile();
+            } catch (IOException e2) {}
+            leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
         }
         leagueClientUI.setVisible(true);
     }

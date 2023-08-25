@@ -2,8 +2,8 @@ package com.hawolt.ui.login;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.generic.data.Platform;
-import com.hawolt.objects.LocalSettings;
-import com.hawolt.service.LocalSettingsService;
+import com.hawolt.client.settings.login.LoginSettings;
+import com.hawolt.client.settings.login.LoginSettingsService;
 import com.hawolt.ui.impl.JHintTextField;
 import com.hawolt.util.panel.MainUIComponent;
 
@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 
 /**
  * Created: 06/08/2023 13:10
@@ -101,8 +102,11 @@ public class LoginUI extends MainUIComponent implements ActionListener {
             String pass = new String(password.getPassword());
             String user = username.getText();
             if (rememberMe.isSelected()) {
-                LocalSettings settings = new LocalSettings(user, pass, rememberMe.isSelected());
-                LocalSettingsService.get().writeFile(settings);
+                LoginSettings settings = LoginSettingsService.get().getSettings();
+                settings.setUsername(user).setPassword(pass).setRememberMe(rememberMe.isSelected());
+                try {
+                    LoginSettingsService.get().writeSettingsFile();
+                } catch (IOException ex) {}
             }
             LeagueClientUI.service.execute(() -> callback.onLogin(user, pass));
         } else {

@@ -1,5 +1,7 @@
 package com.hawolt.client;
 
+import com.hawolt.client.settings.client.ClientSettings;
+import com.hawolt.client.settings.client.ClientSettingsService;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
 import org.json.JSONObject;
@@ -20,16 +22,17 @@ public class Launcher {
     private static final ExecutorService SERVICE = Executors.newSingleThreadExecutor();
 
     public static void launch(String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform, String gameMode) {
+        String leagueDirectory = ClientSettingsService.get().getSettings().getString(ClientSettings.Key.GAME_BASE_DIRECTORY.get());
         SERVICE.execute(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(
-                        "C:\\Riot Games\\League of Legends\\Game\\League of Legends.exe",
+                        leagueDirectory + "\\Game\\League of Legends.exe",
                         String.format("%s %s %s %s", ip, port, encryptionKey, playerId),
                         "-Product=" + ("TFT".equals(gameMode) ? gameMode : "LoL"),
                         "-PlayerID=" + playerId,
                         "-GameID=" + gameId,
                         "-PlayerNameMode=SUMMONER",
-                        "-GameBaseDir=C:\\Riot Games\\League of Legends",
+                        "-GameBaseDir=" + leagueDirectory,
                         "-Region=" + platform.getFriendlyName(),
                         "-PlatformID=" + platform.name(),
                         "-Locale=en_US",
@@ -43,7 +46,7 @@ public class Launcher {
                         "-RiotClientPort=42069",
                         "-RiotClientAuthToken=SwiftRiftOrNoRiftAtAll"
                 );
-                builder.directory(new File("C:\\Riot Games\\League of Legends\\Game"));
+                builder.directory(new File(leagueDirectory + "\\Game"));
                 builder.redirectErrorStream(true);
                 Process process = builder.start();
                 try (FileWriter writer = new FileWriter("log", false)) {
