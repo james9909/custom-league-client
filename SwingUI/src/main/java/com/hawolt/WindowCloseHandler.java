@@ -12,6 +12,13 @@ import java.awt.event.WindowEvent;
  **/
 
 public class WindowCloseHandler extends WindowAdapter {
+
+    private final JFrame closingFrame;
+
+    public WindowCloseHandler(JFrame closingFrame) {
+        this.closingFrame = closingFrame;
+    }
+
     @Override
     public void windowClosing(WindowEvent e) {
         super.windowClosing(e);
@@ -22,9 +29,11 @@ public class WindowCloseHandler extends WindowAdapter {
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                new String[]{"LOGOUT", "EXIT"},
+                new String[]{"LOGOUT", "EXIT", "CANCEL"},
                 "EXIT");
 
         if (option == 0) LocalSettingsService.get().deleteFile();
+
+        if (option != 2) closingFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 }

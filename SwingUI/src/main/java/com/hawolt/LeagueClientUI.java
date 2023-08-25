@@ -50,8 +50,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     public LeagueClientUI(String title) {
         super(title);
         this.addWindowStateListener(this);
-        this.addWindowListener(new WindowCloseHandler());
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.addWindowListener(new WindowCloseHandler(this));
+        this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
     private ChatSidebar chatSidebar;
