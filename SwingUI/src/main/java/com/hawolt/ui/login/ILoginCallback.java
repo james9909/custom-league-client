@@ -9,6 +9,4 @@ import com.hawolt.generic.data.Platform;
 
 public interface ILoginCallback {
     void onLogin(String username, String password);
-
-    void onLogin(Platform platform, String ec1);
 }

@@ -21,8 +21,8 @@ import java.nio.charset.StandardCharsets;
  **/
 
 public class SummonerLedge extends AbstractLedgeEndpoint {
-    public SummonerLedge(LeagueClient client, String base) {
-        super(client, base);
+    public SummonerLedge(LeagueClient client) {
+        super(client);
     }
 
     public Summoner resolveSummonerByPUUD(String name) throws IOException {

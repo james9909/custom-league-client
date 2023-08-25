@@ -4,13 +4,13 @@ import com.hawolt.client.handler.RMSHandler;
 import com.hawolt.client.handler.RTMPHandler;
 import com.hawolt.client.handler.XMPPHandler;
 import com.hawolt.client.misc.ClientConfiguration;
-import com.hawolt.client.misc.captcha.ManualCaptchaSupplier;
 import com.hawolt.exception.CaptchaException;
 import com.hawolt.virtual.client.LoginStateConsumer;
+import com.hawolt.virtual.client.RiotClientException;
+import com.hawolt.virtual.client.captcha.ManualCaptchaSupplier;
 import com.hawolt.virtual.leagueclient.client.VirtualLeagueClient;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.instance.VirtualLeagueClientInstance;
-import com.hawolt.virtual.riotclient.RiotClientException;
 import com.hawolt.virtual.riotclient.client.VirtualRiotClient;
 import com.hawolt.virtual.riotclient.instance.VirtualRiotClientInstance;
 
@@ -29,14 +29,10 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
     private final ClientConfiguration configuration;
     private final IClientCallback callback;
 
-    public RiotClient(ClientConfiguration configuration, IClientCallback callback, boolean regular) {
+    public RiotClient(ClientConfiguration configuration, IClientCallback callback) {
         this.configuration = configuration;
         this.callback = callback;
-        if (regular) {
-            this.loginAndCreate();
-        } else {
-            this.refreshAndCreate();
-        }
+        this.loginAndCreate();
     }
 
     public ClientConfiguration getConfiguration() {
@@ -63,45 +59,23 @@ public class RiotClient implements BiConsumer<VirtualLeagueClient, Throwable> {
         if (configuration.getComplete()) client.setRTMP(RTMPHandler.build(client).connect());
     }
 
-
-    private void refreshAndCreate() {
-        try {
-            VirtualRiotClientInstance instance = getRiotClientInstance();
-            VirtualRiotClient virtualRiotClient = instance.login(configuration.getPlatform(), configuration.getRefreshToken(), null);
-            VirtualLeagueClientInstance virtualLeagueClientInstance = virtualRiotClient.createVirtualLeagueClientInstance(
-                    virtualRiotClient.getRiotClientSupplier(),
-                    true
-            );
-            CompletableFuture<VirtualLeagueClient> virtualLeagueClientFuture = virtualLeagueClientInstance.login(
-                    configuration.getIgnoreSummoner(),
-                    configuration.getSelfRefresh(),
-                    configuration.getComplete(),
-                    configuration.getMinimal()
-            );
-            virtualLeagueClientFuture.whenComplete(this);
-        } catch (IOException | LeagueException e) {
-            callback.onLoginFlowException(e);
-        }
-    }
-
     private VirtualRiotClientInstance getRiotClientInstance() {
         return VirtualRiotClientInstance.create(
                 configuration.getGateway(),
                 configuration.getCookieSupplier(),
-                new LoginStateConsumer(),
-                false
+                new LoginStateConsumer()
         );
     }
 
     private void loginAndCreate() {
         try {
             login(configuration, getRiotClientInstance());
-        } catch (IOException | LeagueException | RiotClientException | CaptchaException | InterruptedException e) {
+        } catch (IOException | LeagueException | CaptchaException | InterruptedException | RiotClientException e) {
             callback.onLoginFlowException(e);
         }
     }
 
-    private void login(ClientConfiguration configuration, VirtualRiotClientInstance virtualRiotClientInstance) throws IOException, LeagueException, RiotClientException, CaptchaException, InterruptedException {
+    private void login(ClientConfiguration configuration, VirtualRiotClientInstance virtualRiotClientInstance) throws IOException, LeagueException, CaptchaException, InterruptedException, RiotClientException {
         String username = configuration.getUsername();
         String password = configuration.getPassword();
         VirtualRiotClient virtualRiotClient = virtualRiotClientInstance.login(username, password, configuration.getMultifactorSupplier(), new ManualCaptchaSupplier());

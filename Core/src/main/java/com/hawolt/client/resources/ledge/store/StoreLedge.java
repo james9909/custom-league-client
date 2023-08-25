@@ -22,8 +22,8 @@ import java.util.List;
  **/
 
 public class StoreLedge extends AbstractLedgeEndpoint {
-    public StoreLedge(LeagueClient client, String base) {
-        super(client, base);
+    public StoreLedge(LeagueClient client) {
+        super(client);
     }
 
     public List<StoreItem> catalogV1() throws IOException {

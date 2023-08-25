@@ -8,7 +8,6 @@ import com.hawolt.client.resources.ledge.loot.objects.PlayerLoot;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
-import com.hawolt.logger.Logger;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -24,8 +23,8 @@ import java.util.UUID;
  **/
 
 public class LootLedge extends AbstractLedgeEndpoint {
-    public LootLedge(LeagueClient client, String base) {
-        super(client, base);
+    public LootLedge(LeagueClient client) {
+        super(client);
     }
 
     //TODO hardcoded location fix

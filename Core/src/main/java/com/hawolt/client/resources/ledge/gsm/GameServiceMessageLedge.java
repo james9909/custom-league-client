@@ -15,8 +15,8 @@ import java.io.IOException;
  **/
 
 public class GameServiceMessageLedge extends AbstractLedgeEndpoint {
-    public GameServiceMessageLedge(LeagueClient client, String base) {
-        super(client, base);
+    public GameServiceMessageLedge(LeagueClient client) {
+        super(client);
     }
 
     public JSONObject getCurrentGameInformation() throws IOException {

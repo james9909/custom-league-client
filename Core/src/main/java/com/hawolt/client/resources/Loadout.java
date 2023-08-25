@@ -16,8 +16,8 @@ import java.io.IOException;
 public class Loadout extends AbstractLedgeEndpoint {
     private final InventoryServiceLedge inventoryServiceLedge;
 
-    public Loadout(LeagueClient leagueClient, String base) {
-        super(leagueClient, base);
+    public Loadout(LeagueClient leagueClient) {
+        super(leagueClient);
         this.inventoryServiceLedge = leagueClient.getLedge().getInventoryService();
     }
 

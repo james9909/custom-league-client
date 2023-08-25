@@ -6,22 +6,21 @@ import com.hawolt.client.IClientCallback;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.RiotClient;
 import com.hawolt.client.misc.ClientConfiguration;
-import com.hawolt.generic.data.Platform;
-import com.hawolt.logger.Logger;
-import com.hawolt.rms.data.subject.service.MessageService;
-import com.hawolt.rtmp.amf.decoder.AMFDecoder;
 import com.hawolt.client.settings.client.ClientSettingsService;
 import com.hawolt.client.settings.login.LoginSettings;
 import com.hawolt.client.settings.login.LoginSettingsService;
+import com.hawolt.logger.Logger;
+import com.hawolt.rms.data.subject.service.MessageService;
+import com.hawolt.rtmp.amf.decoder.AMFDecoder;
 import com.hawolt.shutdown.ShutdownHook;
 import com.hawolt.ui.MainUI;
 import com.hawolt.ui.chat.ChatSidebar;
 import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
 import com.hawolt.ui.chat.window.ChatUI;
-import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
+import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
@@ -196,13 +195,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     @Override
     public void onLogin(String username, String password) {
-        this.createRiotClient(getConfiguration(username, password), true);
-    }
-
-    @Override
-    public void onLogin(Platform platform, String ec1) {
-        ClientConfiguration configuration = ClientConfiguration.getDefault(platform, ec1);
-        this.createRiotClient(configuration, false);
+        this.createRiotClient(getConfiguration(username, password));
     }
 
     @Override
@@ -212,8 +205,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         }
     }
 
-    private void createRiotClient(ClientConfiguration configuration, boolean regular) {
-        this.riotClient = new RiotClient(configuration, this, regular);
+    private void createRiotClient(ClientConfiguration configuration) {
+        this.riotClient = new RiotClient(configuration, this);
     }
 
     public static void main(String[] args) {
@@ -225,7 +218,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         } catch (IOException e1) {
             try {
                 ClientSettingsService.get().writeSettingsFile();
-            } catch (IOException e2) {}
+            } catch (IOException e2) {
+            }
         }
 
         try {
@@ -236,11 +230,12 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                     loginSettings.getUsername(),
                     loginSettings.getPassword()
             );
-            leagueClientUI.createRiotClient(configuration, true);
+            leagueClientUI.createRiotClient(configuration);
         } catch (IOException e1) {
             try {
                 LoginSettingsService.get().deleteSettingsFile();
-            } catch (IOException e2) {}
+            } catch (IOException e2) {
+            }
             leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
         }
         leagueClientUI.setVisible(true);
