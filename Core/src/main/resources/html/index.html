@@ -1,5 +1,42 @@
-<html>
+<html lang="en">
 <head>
+    <title>Solve hCaptcha</title>
+    <meta charset="UTF-8" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body {
+            font-family: Roboto, Courier, monospace;
+            margin: 0;
+            background-color: #1F2937;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            gap: 30px;
+        }
+        h1 {
+            color: #F9FAF8;
+        }
+        button {
+            background-color: #006400;
+            color: #F9FAF8;
+            border: none;
+            padding: 10px 20px;
+            width: 150px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+            margin-top: 30px;
+        }
+        button:hover {
+            background-color: #183D3D;
+        }
+        .h-captcha {
+            min-height: 94px; /* min height of hcaptcha iframe (64px) + margin (30px), so it wouldn't "jump"*/
+        }
+    </style>
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <script>
         window.onload = function () {
@@ -15,43 +52,30 @@
             document.querySelector('#hcaptcha-form').onsubmit = function (e) {
                 e.preventDefault();
                 const resp = document.getElementsByName('h-captcha-response')[0].value;
-                document.getElementById('resp').value = resp;
+                submitToBackend(resp);
             };
         }
 
-        function submitToBackend() {
-            const token = document.getElementById('resp').value;
+        function submitToBackend(token) {
             fetch("http://localhost:42069/v1/hcaptcha/response", {
                 method: "POST",
                 body: token,
             })
                 .then((response) => {
                     if (response.status === 200) {
-                        alert("that worked! this page will now close")
                         window.close();
                     } else {
-                        alert("something went wrong");
+                        alert("Check if the hCaptcha is done correctly, if not please report this error on discord");
                     }
                 })
         }
     </script>
 </head>
 <body>
-<h1>hcaptcha solving</h1>
-<hr>
+<h1>Log in with this simple hCaptcha</h1>
 <form action="/" method="POST" id="hcaptcha-form">
-    <div class="h-captcha" data-sitekey="019f1553-3845-481c-a6f5-5a60ccf6d830"></div>
-    <input type="submit" value="Generate h-captcha-response">
+    <div class="h-captcha" data-sitekey="019f1553-3845-481c-a6f5-5a60ccf6d830" data-theme="dark"></div>
+    <button type="submit">Continue</button>
 </form>
-<hr>
-<div>
-      <span>
-        <label for="resp">h-captcha-response</label><br>
-        <textarea id="resp" cols="42" rows="5"></textarea>
-      </span>
-    <br><br>
-    <button onclick="submitToBackend()" id="submitter">Submit h-captcha-reponse</button>
-</div>
-
 </body>
 </html>
