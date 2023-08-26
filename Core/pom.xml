@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.github.hawolt.league-client-api</groupId>
             <artifactId>VirtualClient</artifactId>
-            <version>54574bb2cd</version>
+            <version>7a6cf7aae0</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>
