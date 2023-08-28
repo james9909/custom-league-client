@@ -87,8 +87,9 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 if (key.contains("TUTORIAL")) continue;
                 ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
                 ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
+                JLabel label = new JLabel(key);
+                grid.add(label);
                 for (JSONObject object : map.get(key)) {
-                    System.out.println(object.toString());
                     String name = object.getString("shortName");
                     if (name.contains("TUTORIAL")) {
                         continue;
