@@ -4,12 +4,12 @@ import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.champselect.ChampSelect;
 import com.hawolt.ui.chat.window.ChatUI;
+import com.hawolt.ui.github.ReleaseWindow;
 import com.hawolt.ui.queue.QueueWindow;
 import com.hawolt.ui.runes.RuneSelectionPanel;
 import com.hawolt.ui.store.StoreWindow;
 import com.hawolt.util.panel.ChildUIComponent;
 
-import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 
@@ -23,8 +23,6 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
     private final CardLayout layout = new CardLayout();
     private final ChildUIComponent center;
     private final LayoutHeader header;
-
-
     private final ChampSelect champSelect;
     private final QueueWindow queue;
     private final StoreWindow store;
@@ -39,13 +37,13 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.add(center = new ChildUIComponent(layout), BorderLayout.CENTER);
         this.center.setBorder(new MatteBorder(2, 0, 0, 0, Color.DARK_GRAY));
 
-        this.center.add("placebo", new JPanel());
+        this.center.add("github", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
         this.center.add("select", champSelect = new ChampSelect(leagueClientUI, chatUI));
         this.center.add("runes", runes = new RuneSelectionPanel(leagueClientUI));
 
-        layout.show(center, "placebo");
+        layout.show(center, "github");
     }
 
     public void showClientComponent(String name) {
