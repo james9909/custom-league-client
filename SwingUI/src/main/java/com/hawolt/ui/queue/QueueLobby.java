@@ -82,7 +82,6 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
         return (SummonerComponent) grid.getComponent(index);
     }
 
-
     public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
@@ -90,7 +89,6 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
         JButton close = new JButton("Return to previous Component");
         close.addActionListener(listener -> layout.show(parent, "modes"));
         add(close, BorderLayout.NORTH);
-
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
         JButton invite = new JButton("Invite another Summoner");
         invite.addActionListener(listener -> {
@@ -114,22 +112,27 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
             }
         });
         component.add(invite, BorderLayout.NORTH);
-
         ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         main = new JComboBox<>(PositionPreference.values());
         main.addActionListener(this);
         roles.add(main);
         other = new JComboBox<>(PositionPreference.values());
         other.addActionListener(this);
+        //TODO revisit
+      /*  try {
+            JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
+            JSONObject data = partiesPositionPreferences.getJSONObject("data");
+            main.setSelectedItem(PositionPreference.valueOf(data.getString("firstPreference")));
+            other.setSelectedItem(PositionPreference.valueOf(data.getString("secondPreference")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
         roles.add(other);
         component.add(roles, BorderLayout.SOUTH);
-
         for (int i = 0; i < 5; i++) grid.add(new SummonerComponent());
         grid.setBackground(Color.YELLOW);
         component.add(grid, BorderLayout.CENTER);
-
         add(component, BorderLayout.CENTER);
-
         ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         JButton start = new JButton("START QUEUE");
         start.addActionListener(listener -> {
@@ -195,8 +198,30 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
         try {
             PositionPreference primary = main.getItemAt(main.getSelectedIndex());
             PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
-            PartiesLedge ledge = leagueClientUI.getLeagueClient().getLedge().getParties();
-            ledge.metadata(primary, secondary);
+            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+            partiesLedge.metadata(primary, secondary);
+            //TODO revisit
+            /*PlayerPreferencesLedge playerPreferencesLedge = leagueClientUI.getLeagueClient().getLedge().getPlayerPreferences();
+            JSONObject playerPrefs = playerPreferencesLedge.getPlayerPreferences();
+            JSONObject partiesPosPref;
+            JSONObject data;
+            try {
+                partiesPosPref = playerPrefs.getJSONObject("partiesPositionPreferences");
+                data = partiesPosPref.getJSONObject("data");
+                data.remove("firstPreference");
+                data.remove("secondPreference");
+            } catch (Exception e2) {
+                partiesPosPref = new JSONObject();
+                data = new JSONObject();
+                partiesPosPref.put("data", data);
+                playerPrefs.put("partiesPositionPreferences", partiesPosPref);
+            }
+            data.put("firstPreference", main.getItemAt(main.getSelectedIndex()).toString());
+            data.put("secondPreference", other.getItemAt(other.getSelectedIndex()).toString());
+            playerPreferencesLedge.setPlayerPreferences(playerPrefs.toString());
+            PlayerPreferencesService.get().getSettings().setPartiesPositionPreferences(partiesPosPref);
+            PlayerPreferencesService.get().writeSettingsFile();*/
+
         } catch (IOException ex) {
             Logger.error(ex);
         }

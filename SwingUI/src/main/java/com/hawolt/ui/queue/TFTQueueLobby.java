@@ -7,7 +7,6 @@ import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.PartiesRegistration;
 import com.hawolt.client.resources.ledge.parties.objects.PartyException;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyAction;
-import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
 import com.hawolt.client.resources.ledge.parties.objects.data.TFTLegend;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
@@ -49,6 +48,32 @@ public class TFTQueueLobby extends ChildUIComponent {
         component.add(invite, BorderLayout.NORTH);
         ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 1, 5, 0));
         JComboBox<TFTLegend> main = new JComboBox<>(TFTLegend.values());
+        main.addActionListener(e -> {
+            AtomicInteger atomicItemId = new AtomicInteger();
+            switch (main.getItemAt(main.getSelectedIndex())) {
+                case PORO -> atomicItemId.set(1);
+                case VEIGAR -> atomicItemId.set(15);
+                case TAHM -> atomicItemId.set(16);
+                case VLADIMIR -> atomicItemId.set(17);
+                case EZREAL -> atomicItemId.set(18);
+                case DRAVEN -> atomicItemId.set(19);
+                case TF -> atomicItemId.set(20);
+                case URF -> atomicItemId.set(21);
+                case ORNN -> atomicItemId.set(22);
+                case CATILYN -> atomicItemId.set(23);
+                case PENGU -> atomicItemId.set(24);
+                case YI -> atomicItemId.set(25);
+                case LEE -> atomicItemId.set(26);
+                case AURELION -> atomicItemId.set(27);
+                case BARD -> atomicItemId.set(28);
+            }
+            leagueClientUI.service.execute(() -> {
+                try {
+                    loadout.setLegend(atomicItemId.get(), leagueClientUI.getLeagueClient().getLedge().getInventoryService().getLegendInstanceId(atomicItemId.get()));
+                } catch (Exception e2) {
+                }
+            });
+        });
         AtomicInteger index = new AtomicInteger();
         try {
             switch (loadout.getLegend()) {
@@ -83,37 +108,12 @@ public class TFTQueueLobby extends ChildUIComponent {
         add(component, BorderLayout.CENTER);
         ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         JButton start = new JButton("START QUEUE");
-        AtomicInteger atomicItemId = new AtomicInteger();
         start.addActionListener(listener -> {
-            switch (main.getItemAt(main.getSelectedIndex())) {
-                case PORO -> atomicItemId.set(1);
-                case VEIGAR -> atomicItemId.set(15);
-                case TAHM -> atomicItemId.set(16);
-                case VLADIMIR -> atomicItemId.set(17);
-                case EZREAL -> atomicItemId.set(18);
-                case DRAVEN -> atomicItemId.set(19);
-                case TF -> atomicItemId.set(20);
-                case URF -> atomicItemId.set(21);
-                case ORNN -> atomicItemId.set(22);
-                case CATILYN -> atomicItemId.set(23);
-                case PENGU -> atomicItemId.set(24);
-                case YI -> atomicItemId.set(25);
-                case LEE -> atomicItemId.set(26);
-                case AURELION -> atomicItemId.set(27);
-                case BARD -> atomicItemId.set(28);
-            }
-            try {
-                loadout.setLegend(atomicItemId.get(), leagueClientUI.getLeagueClient().getLedge().getInventoryService().getLegendInstanceId(atomicItemId.get()));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
             PartiesRegistration registration = partiesLedge.getCurrentRegistration();
             try {
                 if (registration == null) partiesLedge.register();
-                PositionPreference primary = PositionPreference.TOP;
-                PositionPreference secondary = PositionPreference.TOP;
-                partiesLedge.metadata(primary, secondary);
                 partiesLedge.setQueueAction(PartyAction.START);
             } catch (IOException e) {
                 Logger.error(e);

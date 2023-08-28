@@ -1,18 +1,22 @@
 package com.hawolt;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.async.loader.PreferenceLoader;
+import com.hawolt.async.loader.ResourceConsumer;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.async.rms.GameStartListener;
+import com.hawolt.authentication.LocalCookieSupplier;
 import com.hawolt.client.IClientCallback;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.RiotClient;
+import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.misc.ClientConfiguration;
-import com.hawolt.client.settings.client.ClientSettingsService;
-import com.hawolt.client.settings.login.LoginSettings;
-import com.hawolt.client.settings.login.LoginSettingsService;
+import com.hawolt.generic.token.impl.StringTokenSupplier;
 import com.hawolt.logger.Logger;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rtmp.amf.decoder.AMFDecoder;
-import com.hawolt.shutdown.ShutdownHook;
+import com.hawolt.settings.*;
+import com.hawolt.shutdown.ShutdownManager;
 import com.hawolt.ui.MainUI;
 import com.hawolt.ui.chat.ChatSidebar;
 import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
@@ -29,6 +33,7 @@ import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.EventListener;
 import com.hawolt.xmpp.event.EventType;
 import com.hawolt.xmpp.event.objects.other.PlainData;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,10 +48,12 @@ import java.util.concurrent.Executors;
  * Author: Twitter @hawolt
  **/
 
-public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCallback, WindowStateListener {
+public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCallback, WindowStateListener, ResourceConsumer<JSONObject, byte[]> {
     public static final ExecutorService service = ExecutorManager.registerService("pool", Executors.newCachedThreadPool());
+    private ShutdownManager shutdownManager;
     private LeagueClient leagueClient;
     private RiotClient riotClient;
+    private SettingService settingService;
 
     public LeagueClientUI(String title) {
         super(title);
@@ -62,34 +69,45 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private LoginUI loginUI;
     private MainUI mainUI;
 
-    @Override
-    public void onClient(LeagueClient client) {
-        buildUI(leagueClient = client);
-        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(client)));
-        client.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
+    private void configure(boolean remember) {
+        ResourceLoader.loadResource("local", new PreferenceLoader(leagueClient), true, this);
+        if (!remember) return;
+        this.settingService.write(
+                SettingType.PLAYER,
+                "cookies",
+                leagueClient.getVirtualRiotClientInstance().getCookieSupplier().getCurrentCookieState()
+        );
     }
 
-    private void buildUI(LeagueClient client) {
-        VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
-        mainUI = new MainUI(this);
-        ChildUIComponent temporary = new ChildUIComponent(new BorderLayout());
-        chatUI = new ChatUI();
-        chatUI.setSupplier(xmppClient);
-        chatUI.setVisible(false);
-        mainUI.addChatComponent(chatUI);
+    private void bootstrap(LeagueClient client) {
+        this.leagueClient = client;
+        this.shutdownManager = new ShutdownManager(client);
+        this.configure(loginUI == null || loginUI.getRememberMe().isSelected());
+    }
 
-        settingsUI = new SettingsUI();
-        settingsUI.setVisible(false);
-        mainUI.addSettingsComponent(settingsUI);
+    @Override
+    public void consume(Object o, JSONObject object) {
+        if (!object.has("partiesPositionPreferences") || object.isNull("partiesPositionPreferences")) {
+            JSONObject partiesPositionPreferences = new JSONObject();
+            JSONObject data = new JSONObject();
+            String firstPreference = "UNSELECTED";
+            String secondPreference = "UNSELECTED";
+            data.put("firstPreference", firstPreference);
+            data.put("secondPreference", secondPreference);
+            partiesPositionPreferences.put("data", data);
+            object.put("partiesPositionPreferences", partiesPositionPreferences);
+        }
+        leagueClient.cache(CacheType.PLAYER_PREFERENCE, object);
+        this.settingService.write(SettingType.PLAYER, "preferences", object);
+        this.buildUI(leagueClient);
+        this.wrap();
+    }
 
-        UserInformation userInformation = client.getVirtualLeagueClient()
-                .getVirtualLeagueClientInstance()
-                .getUserInformation();
-        chatSidebar = new ChatSidebar(userInformation, this);
-        manager = new LayoutManager(this);
-        temporary.add(manager, BorderLayout.CENTER);
-        temporary.add(chatSidebar, BorderLayout.EAST);
-        chatSidebar.configure(userInformation);
+    private void wrap() {
+        this.setVisible(true);
+        this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
+        VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
+        this.chatUI.setSupplier(xmppClient);
         if (leagueClient.getXMPP().getTimestamp() > 0) {
             buildSidebarUI(xmppClient, chatUI);
         } else {
@@ -98,6 +116,30 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                     (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatUI)
             );
         }
+    }
+
+    @Override
+    public void onClient(LeagueClient client) {
+        this.bootstrap(client);
+    }
+
+    private void buildUI(LeagueClient client) {
+        mainUI = new MainUI(this);
+        ChildUIComponent temporary = new ChildUIComponent(new BorderLayout());
+        chatUI = new ChatUI();
+        chatUI.setVisible(false);
+        mainUI.addChatComponent(chatUI);
+        settingsUI = new SettingsUI(this);
+        settingsUI.setVisible(false);
+        mainUI.addSettingsComponent(settingsUI);
+        UserInformation userInformation = client.getVirtualLeagueClient()
+                .getVirtualLeagueClientInstance()
+                .getUserInformation();
+        chatSidebar = new ChatSidebar(userInformation, this);
+        manager = new LayoutManager(this, chatUI);
+        temporary.add(manager, BorderLayout.CENTER);
+        temporary.add(chatSidebar, BorderLayout.EAST);
+        chatSidebar.configure(userInformation);
         mainUI.setMainComponent(temporary);
         mainUI.revalidate();
     }
@@ -148,6 +190,15 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         return mainUI;
     }
 
+    public SettingService getSettingService() {
+        return settingService;
+    }
+
+    public ShutdownManager getShutdownManager() {
+        return shutdownManager;
+    }
+
+
     private void showFailureDialog(String message) {
         JOptionPane.showMessageDialog(
                 this,
@@ -167,6 +218,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
             }
         } else if (throwable instanceof IOException) {
             switch (throwable.getMessage()) {
+                case "PREFERENCE_FAILURE" -> showFailureDialog("Unable to load Player Preference");
                 case "AUTH_FAILURE" -> showFailureDialog("Invalid username or password");
                 case "RATE_LIMITED" -> showFailureDialog("You are being rate limited");
             }
@@ -209,35 +261,35 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         this.riotClient = new RiotClient(configuration, this);
     }
 
-    public static void main(String[] args) {
+    static {
+        // DISABLE LOGGING USER CREDENTIALS
+        StringTokenSupplier.debug = false;
         AMFDecoder.debug = false;
+    }
+
+    public static void main(String[] args) {
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
-
-        try {
-            ClientSettingsService.get().readSettingsFile();
-        } catch (IOException e1) {
-            try {
-                ClientSettingsService.get().writeSettingsFile();
-            } catch (IOException e2) {
-            }
-        }
-
-        try {
-            LoginSettingsService.get().readSettingsFile();
-
-            LoginSettings loginSettings = LoginSettingsService.get().getSettings();
-            ClientConfiguration configuration = leagueClientUI.getConfiguration(
-                    loginSettings.getUsername(),
-                    loginSettings.getPassword()
-            );
+        leagueClientUI.settingService = new SettingManager();
+        ClientSettings clientSettings = leagueClientUI.settingService.getClientSettings();
+        if (clientSettings.isRememberMe()) {
+            UserSettings userSettings = leagueClientUI.settingService.set(clientSettings.getRememberMeUsername());
+            LocalCookieSupplier localCookieSupplier = new LocalCookieSupplier();
+            localCookieSupplier.loadCookieState(userSettings.getCookies());
+            ClientConfiguration configuration = ClientConfiguration.getDefault(localCookieSupplier);
             leagueClientUI.createRiotClient(configuration);
-        } catch (IOException e1) {
-            try {
-                LoginSettingsService.get().deleteSettingsFile();
-            } catch (IOException e2) {
-            }
+        } else {
             leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
+            leagueClientUI.setVisible(true);
         }
-        leagueClientUI.setVisible(true);
+    }
+
+    @Override
+    public void onException(Object o, Exception e) {
+        this.onLoginFlowException(new IOException("PREFERENCE_FAILURE"));
+    }
+
+    @Override
+    public JSONObject transform(byte[] bytes) throws Exception {
+        return new JSONObject(new String(bytes));
     }
 }

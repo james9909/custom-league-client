@@ -1,6 +1,7 @@
 package com.hawolt.ui.chat.window;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.ui.champselect.chat.ChampSelectChatUI;
 import com.hawolt.ui.chat.friendlist.IFriendListComponent;
 import com.hawolt.util.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -29,11 +30,16 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
     private VirtualRiotXMPPClient xmppClient;
     private IFriendListComponent component;
     private String lastOpenedChat;
+    private ChampSelectChatUI champSelectChatUI;
 
     public ChatUI() {
         super(new BorderLayout());
         this.add(header = new ChatWindowHeader(new BorderLayout()), BorderLayout.NORTH);
         this.add(container = new ChildUIComponent(this.layout), BorderLayout.CENTER);
+    }
+
+    public void setCSChatUI(ChampSelectChatUI csui){
+        this.champSelectChatUI = csui;
     }
 
     public void setSupplier(VirtualRiotXMPPClient xmppClient) {
@@ -97,6 +103,10 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
     @Override
     public void onMessageReceived(IncomingMessage incomingMessage) {
         if (component != null) component.onMessage(incomingMessage.getFrom());
+        if (incomingMessage.getType().equals("groupchat")) {
+            champSelectChatUI.onMessageReceived(incomingMessage);
+            return;
+        }
         ChatWindowContent content = getChatContainer(incomingMessage.getFrom());
         content.addMessage(ChatPerspective.OTHER, incomingMessage.getBody());
         boolean isChatOpen = isChatOpened(incomingMessage.getFrom());

@@ -2,6 +2,7 @@ package com.hawolt.async.loader;
 
 import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.client.cache.ExceptionalSupplier;
 import com.hawolt.cryptography.SHA256;
 import com.hawolt.generic.data.Unsafe;
 import com.hawolt.http.layer.IResponse;
@@ -83,6 +84,16 @@ public class ResourceLoader {
 
     public static void loadResource(String uri, ResourceConsumer<?, byte[]> consumer) {
         loadResource(uri, false, consumer);
+    }
+
+    public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, boolean priority, ResourceConsumer<?, byte[]> consumer) {
+        load(uri, priority, consumer, () -> {
+            try {
+                handleConsumption(uri, supplier.get());
+            } catch (Exception e) {
+                handleError(uri, e);
+            }
+        });
     }
 
     public static void loadResource(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {

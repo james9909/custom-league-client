@@ -25,9 +25,14 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.hawolt.league-client-api</groupId>
             <artifactId>VirtualClient</artifactId>
-            <version>7a6cf7aae0</version>
+            <version>c34bc5748a</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>

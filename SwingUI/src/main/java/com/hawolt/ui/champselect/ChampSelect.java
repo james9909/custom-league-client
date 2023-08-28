@@ -14,7 +14,9 @@ import com.hawolt.rtmp.utility.Base64GZIP;
 import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.champselect.header.ChampSelectHeaderUI;
 import com.hawolt.ui.champselect.phase.ChampSelectPhaseUI;
+import com.hawolt.ui.champselect.settings.ChampSelectSetting;
 import com.hawolt.ui.champselect.sidebar.ChampSelectSidebarUI;
+import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.util.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONArray;
@@ -42,10 +44,12 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     private LeagueClientUI leagueClientUI;
     private LeagueRtmpClient rtmpClient;
     private LeagueClient leagueClient;
+    private ChampSelectSetting setting;
 
     public ChampSelect() {
         super(new BorderLayout());
-        this.add(phaseUI = new ChampSelectPhaseUI(null, this), BorderLayout.CENTER);
+        this.setting = new ChampSelectSetting(this, null);
+        this.add(phaseUI = new ChampSelectPhaseUI(null, this, null, this.setting, null), BorderLayout.CENTER);
         this.add(headerUI = new ChampSelectHeaderUI(), BorderLayout.NORTH);
         this.add(teamOneUI = new ChampSelectSidebarUI(), BorderLayout.WEST);
         this.add(teamTwoUI = new ChampSelectSidebarUI(), BorderLayout.EAST);
@@ -53,11 +57,12 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         ResourceLoader.loadResource("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json", this);
     }
 
-    public ChampSelect(LeagueClientUI leagueClientUI) {
+    public ChampSelect(LeagueClientUI leagueClientUI, ChatUI chatUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.leagueClient = leagueClientUI.getLeagueClient();
-        this.add(phaseUI = new ChampSelectPhaseUI(this, this), BorderLayout.CENTER);
+        this.setting = new ChampSelectSetting(this, leagueClient);
+        this.add(phaseUI = new ChampSelectPhaseUI(this, this, leagueClient, this.setting, chatUI), BorderLayout.CENTER);
         this.add(headerUI = new ChampSelectHeaderUI(), BorderLayout.NORTH);
         this.add(teamOneUI = new ChampSelectSidebarUI(), BorderLayout.WEST);
         this.add(teamTwoUI = new ChampSelectSidebarUI(), BorderLayout.EAST);
@@ -88,7 +93,8 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
 
     public void populate(JSONObject object) {
         AudioEngine.play("ChmpSlct_AChampionApproaches.wav");
-
+        //TODO revisit
+        //this.setting.joinCS(leagueClient.getLedge().getParties().getCurrentRegistration().getCurrentParty().getPartyGameMode().getQueueId());
         this.phaseUI.getChatUI().build();
         this.phaseUI.show("pick");
         this.resetChampSelectState();

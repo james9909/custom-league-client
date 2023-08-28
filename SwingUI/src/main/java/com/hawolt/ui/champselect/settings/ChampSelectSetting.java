@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect.settings;
 
+import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.champselect.ChampSelect;
 import com.hawolt.util.panel.ChildUIComponent;
 
@@ -13,10 +14,15 @@ import java.awt.*;
 public class ChampSelectSetting extends ChildUIComponent {
     private final ChampSelectSummonerSpells summonerSpells;
 
-    public ChampSelectSetting(ChampSelect champSelect) {
+    public ChampSelectSetting(ChampSelect champSelect, LeagueClient leagueClient) {
         super(new BorderLayout());
-        this.add(summonerSpells = new ChampSelectSummonerSpells(champSelect), BorderLayout.CENTER);
+        this.add(summonerSpells = new ChampSelectSummonerSpells(champSelect, leagueClient), BorderLayout.CENTER);
     }
+
+    /*
+    public void joinCS(int id){
+        summonerSpells.joinCS(id);
+    }*/
 
     public ChampSelectSummonerSpells getSummonerSpells() {
         return summonerSpells;

@@ -4,7 +4,9 @@ import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
+import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.ChampSelect;
+import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.ui.impl.JHintTextField;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.SmartScroller;
@@ -22,21 +24,22 @@ import java.awt.*;
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectChatUI extends ChildUIComponent implements IMessageListener {
+public class ChampSelectChatUI extends ChildUIComponent{
 
     private final ChampSelect champSelect;
     private final JHintTextField input;
     private final JTextArea area;
     private MatchContext context;
     private LeagueClient client;
+    private ChatUI chatUI;
 
 
-    public ChampSelectChatUI(ChampSelect champSelect) {
+    public ChampSelectChatUI(ChampSelect champSelect, ChatUI chat) {
         super(new BorderLayout());
+        this.chatUI = chat;
         this.champSelect = champSelect;
         if (champSelect != null) {
             this.client = champSelect.getLeagueClient();
-            this.client.getXMPPClient().addHandler(EventType.ON_READY, baseObject -> client.getXMPPClient().addMessageListener(this));
         }
         this.setPreferredSize(new Dimension(0, 225));
         JScrollPane scrollPane = new JScrollPane(area = new JTextArea());
@@ -52,7 +55,7 @@ public class ChampSelectChatUI extends ChildUIComponent implements IMessageListe
             } else {
                 String domain = String.format("champ-select.%s.pvp.net", context.getPayload().getTargetRegion());
                 String jid = String.format("%s@%s", context.getPayload().getChatRoomName(), domain);
-                client.getXMPPClient().sendGroupMessage(jid, input.getText(), null);
+                this.client.getXMPPClient().sendGroupMessage(jid, input.getText(), null);
                 this.input.setText("");
             }
         });
@@ -66,28 +69,23 @@ public class ChampSelectChatUI extends ChildUIComponent implements IMessageListe
         reset();
         //JOIN CHAT
         LeagueClientUI.service.execute(() -> {
-            if (client == null) return;
-            this.context = client.getCachedValue(CacheType.MATCH_CONTEXT);
-            client.getXMPPClient().joinUnprotectedMuc(context.getPayload().getChatRoomName(), context.getPayload().getTargetRegion());
+            if (this.client == null) {
+                return;
+            }
+            this.context = this.client.getCachedValue(CacheType.MATCH_CONTEXT);
+            this.client.getXMPPClient().joinUnprotectedMuc(context.getPayload().getChatRoomName(), context.getPayload().getTargetRegion());
+            this.chatUI.setCSChatUI(this);
         });
     }
 
-    @Override
     public void onMessageReceived(IncomingMessage incomingMessage) {
         String source = incomingMessage.getFrom().split("@")[0];
-        if (context == null || !context.getPayload().getChatRoomName().equals(source)) return;
+        if (context == null || !context.getPayload().getChatRoomName().equals(source)) {
+            return;
+        }
         String puuid = incomingMessage.getRC();
         area.append(champSelect.getHiddenName(puuid) + ": " + incomingMessage.getBody() + System.lineSeparator());
         revalidate();
     }
 
-    @Override
-    public void onMessageSent(OutgoingMessage outgoingMessage) {
-
-    }
-
-    @Override
-    public void onFailedMessage(FailedMessage failedMessage) {
-
-    }
 }

@@ -6,7 +6,6 @@ import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.PartiesRegistration;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyRole;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyType;
-import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.logger.Logger;
 import com.hawolt.rms.data.subject.service.IServiceMessageListener;
@@ -27,7 +26,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,13 +41,15 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     private final CardLayout layout = new CardLayout();
     private final LeagueClientUI leagueClientUI;
     private final ChildUIComponent parent;
-    private final QueueLobby lobby;
+    private QueueLobby lobby;
+    private TFTQueueLobby tftLobby;
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
-        this.parent.add("lobby", lobby = new QueueLobby(leagueClientUI, parent, layout));
+        lobby = new QueueLobby(leagueClientUI, parent, layout);
+        tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout);
         LeagueClientUI.service.execute(this);
     }
 
@@ -85,22 +85,22 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             modes.setBorder(new EmptyBorder(5, 5, 5, 5));
             for (String key : map.keySet()) {
                 if (key.contains("TUTORIAL")) continue;
-                    ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
-                    ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-                    for (JSONObject object : map.get(key)) {
-                        System.out.println(object.toString());
-                        String name = object.getString("shortName");
-                        if (name.contains("TUTORIAL")) {
-                            continue;
-                        }
-                        JButton button = new JButton(name);
-                        button.setActionCommand(object.toString());
-                        if (key.contains("CLASSIC")) {
-                            button.addActionListener(e -> goToLobby(e, 0));
-                        } else if (key.contains("TFT")) {
-                            button.addActionListener(e -> goToLobby(e, 1));
-                        }
-                        grid.add(button);
+                ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
+                ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
+                for (JSONObject object : map.get(key)) {
+                    System.out.println(object.toString());
+                    String name = object.getString("shortName");
+                    if (name.contains("TUTORIAL")) {
+                        continue;
+                    }
+                    JButton button = new JButton(name);
+                    button.setActionCommand(object.toString());
+                    if (key.contains("CLASSIC")) {
+                        button.addActionListener(e -> goToLobby(e, 0));
+                    } else if (key.contains("TFT")) {
+                        button.addActionListener(e -> goToLobby(e, 1));
+                    }
+                    grid.add(button);
                 }
                 parent.add(grid, BorderLayout.NORTH);
                 modes.add(parent);
@@ -174,7 +174,12 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         }
     }
 
-  public void goToLobby(ActionEvent e, int mode) {
+    public void goToLobby(ActionEvent e, int mode) {
+        if (mode == 0) {
+            this.parent.add("lobby", lobby);
+        } else if (mode == 1) {
+            this.parent.add("lobby", tftLobby);
+        }
         JSONObject json = new JSONObject(e.getActionCommand());
         long queueId = json.getLong("id");
         long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
@@ -190,12 +195,12 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     queueId
             );
             partiesLedge.partytype(PartyType.OPEN);
-            partiesLedge.metadata(PositionPreference.FILL, PositionPreference.UNSELECTED);
-            if (mode == 0) {
-                this.parent.add("lobby", new QueueLobby(leagueClientUI, parent, layout));
-            } else if (mode == 1) {
-                this.parent.add("lobby", new TFTQueueLobby(leagueClientUI, parent, layout));
-            }
+            //TODO revisit
+            /*JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
+            JSONObject data = partiesPositionPreferences.getJSONObject("data");
+            PositionPreference primary = PositionPreference.valueOf(data.getString("firstPreference"));
+            PositionPreference secondary = PositionPreference.valueOf(data.getString("secondPreference"));
+            partiesLedge.metadata(primary, secondary);*/
             layout.show(parent, "lobby");
         } catch (IOException ex) {
             Logger.error(ex);

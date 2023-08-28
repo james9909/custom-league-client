@@ -1,11 +1,13 @@
 package com.hawolt.ui.champselect.phase;
 
+import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.champselect.ChampSelect;
 import com.hawolt.ui.champselect.IChampSelection;
 import com.hawolt.ui.champselect.chat.ChampSelectChatUI;
 import com.hawolt.ui.champselect.phase.ban.ChampSelectBanPhaseUI;
 import com.hawolt.ui.champselect.phase.pick.ChampSelectPickPhaseUI;
 import com.hawolt.ui.champselect.settings.ChampSelectSetting;
+import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.util.panel.ChildUIComponent;
 
 import javax.swing.*;
@@ -26,10 +28,10 @@ public class ChampSelectPhaseUI extends ChildUIComponent {
     private final ChampSelectBanPhaseUI banPhaseUI;
 
     private final ChampSelectSetting setting;
-    private final ChampSelectChatUI chatUI;
+    private final ChampSelectChatUI csChatUI;
     private final JButton dodge;
 
-    public ChampSelectPhaseUI(ChampSelect champSelect, IChampSelection selection) {
+    public ChampSelectPhaseUI(ChampSelect champSelect, IChampSelection selection, LeagueClient leagueClient, ChampSelectSetting settings, ChatUI chatUI) {
         super(new BorderLayout());
         this.add(card, BorderLayout.CENTER);
         this.card.setLayout(layout);
@@ -37,8 +39,9 @@ public class ChampSelectPhaseUI extends ChildUIComponent {
         this.card.add("ban", banPhaseUI = new ChampSelectBanPhaseUI(selection));
 
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
-        component.add(setting = new ChampSelectSetting(champSelect), BorderLayout.NORTH);
-        component.add(chatUI = new ChampSelectChatUI(champSelect), BorderLayout.CENTER);
+        setting = settings;
+        component.add(setting, BorderLayout.NORTH);
+        component.add(csChatUI = new ChampSelectChatUI(champSelect, chatUI), BorderLayout.CENTER);
 
         ChildUIComponent buttons = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         component.add(buttons, BorderLayout.SOUTH);
@@ -70,7 +73,7 @@ public class ChampSelectPhaseUI extends ChildUIComponent {
     }
 
     public ChampSelectChatUI getChatUI() {
-        return chatUI;
+        return csChatUI;
     }
 
     public void configure(ActionListener listener) {

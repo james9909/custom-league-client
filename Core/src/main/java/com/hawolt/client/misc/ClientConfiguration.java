@@ -151,11 +151,10 @@ public class ClientConfiguration {
                 .setGateway(null);
     }
 
-    public static ClientConfiguration getDefault(Platform platform, String token) {
+    public static ClientConfiguration getDefault(ICookieSupplier supplier) {
         try {
             return getDefault()
-                    .setRefreshToken(token)
-                    .setPlatform(platform)
+                    .setSupplier(supplier)
                     .build();
         } catch (IncompleteConfigurationException e) {
             throw new RuntimeException(e);

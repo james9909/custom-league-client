@@ -1,9 +1,8 @@
-package com.hawolt.client;
+package com.hawolt.util;
 
-import com.hawolt.client.settings.client.ClientSettings;
-import com.hawolt.client.settings.client.ClientSettingsService;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.logger.Logger;
+import com.hawolt.settings.SettingService;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -21,8 +20,8 @@ import java.util.concurrent.Executors;
 public class Launcher {
     private static final ExecutorService SERVICE = Executors.newSingleThreadExecutor();
 
-    public static void launch(String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform, String gameMode) {
-        String leagueDirectory = ClientSettingsService.get().getSettings().getString(ClientSettings.Key.GAME_BASE_DIRECTORY.get());
+    public static void launch(SettingService service, String ip, String port, String encryptionKey, String playerId, String gameId, Platform platform, String gameMode) {
+        String leagueDirectory = service.getClientSettings().getByKeyOrDefault("GameBaseDir", "C:\\Riot Games\\League of Legends");
         SERVICE.execute(() -> {
             try {
                 ProcessBuilder builder = new ProcessBuilder(
@@ -65,13 +64,13 @@ public class Launcher {
         });
     }
 
-    public static void launch(Platform platform, JSONObject object) {
+    public static void launch(SettingService service, Platform platform, JSONObject object) {
         String ip = object.getString("serverIp");
         String gameMode = object.getString("gameMode");
         String port = String.valueOf(object.getInt("serverPort"));
         String encryptionKey = object.getString("encryptionKey");
         String gameId = String.valueOf(object.getLong("gameId"));
         String summonerId = String.valueOf(object.getLong("summonerId"));
-        Launcher.launch(ip, port, encryptionKey, summonerId, gameId, platform, gameMode);
+        Launcher.launch(service, ip, port, encryptionKey, summonerId, gameId, platform, gameMode);
     }
 }

@@ -10,21 +10,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created: 11/08/2023 19:53
+ * Created: 28/08/2023 19:29
  * Author: Twitter @hawolt
  **/
 
-public class ShutdownHook implements Runnable, IExceptionCallback {
+public class ShutdownManager implements Runnable, IExceptionCallback {
     private final List<ExceptionalRunnable> list = new LinkedList<>();
 
-
-    public ShutdownHook(LeagueClient client) {
+    public ShutdownManager(LeagueClient client) {
         list.add(new ShutdownLeaveParty(client));
         list.add(new ShutdownPartyRegistration(client));
         list.add(new ShutdownRTMP(client));
         list.add(new ShutdownXMPP(client));
         list.add(new ShutdownRMS(client));
         list.add(new ShutdownServices(client));
+        register();
+    }
+
+    public void register() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this));
     }
 
     @Override

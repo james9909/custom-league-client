@@ -3,6 +3,7 @@ package com.hawolt.ui.layout;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.champselect.ChampSelect;
+import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.ui.queue.QueueWindow;
 import com.hawolt.ui.runes.RuneSelectionPanel;
 import com.hawolt.ui.store.StoreWindow;
@@ -29,7 +30,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
     private final StoreWindow store;
     private final RuneSelectionPanel runes;
 
-    public LayoutManager(LeagueClientUI leagueClientUI) {
+    public LayoutManager(LeagueClientUI leagueClientUI, ChatUI chatUI) {
         super(new BorderLayout());
 
         LeagueClient client = leagueClientUI.getLeagueClient();
@@ -41,7 +42,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.center.add("placebo", new JPanel());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
-        this.center.add("select", champSelect = new ChampSelect(leagueClientUI));
+        this.center.add("select", champSelect = new ChampSelect(leagueClientUI, chatUI));
         this.center.add("runes", runes = new RuneSelectionPanel(leagueClientUI));
 
         layout.show(center, "placebo");
