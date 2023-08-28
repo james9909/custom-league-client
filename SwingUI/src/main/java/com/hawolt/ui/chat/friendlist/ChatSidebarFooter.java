@@ -30,6 +30,6 @@ public class ChatSidebarFooter extends ChildUIComponent {
         add(settingsButton, BorderLayout.EAST);
         JLabel version = new JLabel(Github.getVersion(), SwingConstants.CENTER);
         version.setForeground(Color.WHITE);
-        add(version, BorderLayout.WEST);
+        add(version, BorderLayout.CENTER);
     }
 }
