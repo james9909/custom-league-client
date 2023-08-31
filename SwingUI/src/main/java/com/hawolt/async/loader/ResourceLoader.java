@@ -88,17 +88,17 @@ public class ResourceLoader {
     }
 
     public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        load(uri, priority, consumer, () -> {
+        queue.add(() -> load(uri, priority, consumer, () -> {
             try {
                 handleConsumption(uri, supplier.get());
             } catch (Exception e) {
                 handleError(uri, e);
             }
-        });
+        }));
     }
 
     public static void loadResource(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        load(uri, priority, consumer, () -> {
+        queue.add(() -> load(uri, priority, consumer, () -> {
             Request request = new Request.Builder()
                     .url(uri)
                     .header("User-Agent", StaticConstant.USER_AGENT)
@@ -110,7 +110,7 @@ public class ResourceLoader {
             } catch (IOException e) {
                 handleError(uri, e);
             }
-        });
+        }));
     }
 
     public static void loadLocalResource(String name, ResourceConsumer<?, byte[]> consumer) {
@@ -118,13 +118,13 @@ public class ResourceLoader {
     }
 
     public static void loadLocalResource(String name, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        load(name, priority, consumer, () -> {
+        queue.add(() -> load(name, priority, consumer, () -> {
             try (InputStream stream = RunLevel.get(name)) {
                 handleConsumption(name, Core.read(stream).toByteArray());
             } catch (IOException e) {
                 handleError(name, e);
             }
-        });
+        }));
     }
 
     private static void writeToCache(String o, String hash, byte[] b) {

@@ -9,12 +9,12 @@ public class HtmlBuilder {
 
     public HtmlBuilder() {
         // it'll do html builder
-        this.builder = new StringBuilder("<html><head></head><body>");
+        this.builder = new StringBuilder("<html><head></head><body><div style=\"color:white\">");
         builder.append("<p>");
     }
 
     public String build() {
-        this.builder.append("</body</html>");
+        this.builder.append("</div></body</html>");
         return this.builder.toString();
     }
 

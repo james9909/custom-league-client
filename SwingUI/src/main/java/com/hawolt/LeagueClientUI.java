@@ -12,6 +12,7 @@ import com.hawolt.client.RiotClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.misc.ClientConfiguration;
 import com.hawolt.generic.token.impl.StringTokenSupplier;
+import com.hawolt.io.RunLevel;
 import com.hawolt.logger.Logger;
 import com.hawolt.manifest.RMANCache;
 import com.hawolt.rms.data.subject.service.MessageService;
@@ -36,10 +37,12 @@ import com.hawolt.xmpp.event.EventType;
 import com.hawolt.xmpp.event.objects.other.PlainData;
 import org.json.JSONObject;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,11 +54,17 @@ import java.util.concurrent.Executors;
 
 public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCallback, WindowStateListener, ResourceConsumer<JSONObject, byte[]> {
     public static final ExecutorService service = ExecutorManager.registerService("pool", Executors.newCachedThreadPool());
+    private static BufferedImage logo;
 
     static {
         // DISABLE LOGGING USER CREDENTIALS
         StringTokenSupplier.debug = false;
         AMFDecoder.debug = false;
+        try {
+            logo = ImageIO.read(RunLevel.get("logo.png"));
+        } catch (IOException e) {
+            Logger.error("Failed to load {} logo", StaticConstant.PROJECT);
+        }
     }
 
     private ShutdownManager shutdownManager;
@@ -77,7 +86,9 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     public static void main(String[] args) {
+        RMANCache.preload();
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
+        leagueClientUI.setIconImage(logo);
         leagueClientUI.settingService = new SettingManager();
         ClientSettings clientSettings = leagueClientUI.settingService.getClientSettings();
         if (clientSettings.isRememberMe()) {

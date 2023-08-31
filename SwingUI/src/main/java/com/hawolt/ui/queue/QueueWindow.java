@@ -21,6 +21,7 @@ import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.FlatButton;
+import com.hawolt.util.ui.HighlightType;
 import com.hawolt.util.ui.Label;
 import com.hawolt.util.ui.TextAlign;
 import org.json.JSONArray;
@@ -44,15 +45,17 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     private final CardLayout layout = new CardLayout();
     private final LeagueClientUI leagueClientUI;
     private final ChildUIComponent parent;
-    private QueueLobby lobby;
-    private TFTQueueLobby tftLobby;
+    private final TFTQueueLobby tftLobby;
+    private final QueueLobby lobby;
+
+    private String lastChoice = "CLASSIC";
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
-        lobby = new QueueLobby(leagueClientUI, parent, layout);
-        tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout);
+        this.parent.add("CLASSIC", lobby = new QueueLobby(leagueClientUI, parent, layout));
+        this.parent.add("TFT", tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout));
         LeagueClientUI.service.execute(this);
     }
 
@@ -62,6 +65,10 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
 
     public QueueLobby getLobby() {
         return lobby;
+    }
+
+    public TFTQueueLobby getTftLobby() {
+        return tftLobby;
     }
 
     @Override
@@ -105,14 +112,14 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     if (name.contains("TUTORIAL")) {
                         continue;
                     }
-                    FlatButton button = new FlatButton(name, TextAlign.LEFT);
+                    FlatButton button = new FlatButton(name, TextAlign.LEFT, HighlightType.COMPONENT);
                     button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
 
                     button.setActionCommand(object.toString());
                     if (key.contains("CLASSIC")) {
-                        button.addActionListener(e -> goToLobby(e, 0));
+                        button.addActionListener(e -> goToLobby(e, "CLASSIC"));
                     } else if (key.contains("TFT")) {
-                        button.addActionListener(e -> goToLobby(e, 1));
+                        button.addActionListener(e -> goToLobby(e, "TFT"));
                     }
                     grid.add(button);
                 }
@@ -120,11 +127,11 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 modes.add(parent);
             }
             main.add(modes, BorderLayout.CENTER);
-            FlatButton button = new FlatButton("Show Lobby", TextAlign.CENTER);
+            FlatButton button = new FlatButton("Show Lobby", TextAlign.CENTER, HighlightType.COMPONENT);
             button.setPreferredSize(new Dimension(getWidth() / 5, 30));
-            button.setHorizontalAlignment(getWidth() / 2 - button.getWidth() / 2);
-            button.setVerticalAlignment(getHeight() / 3 - button.getHeight() / 2);
-            button.addActionListener(listener -> layout.show(parent, "lobby"));
+            // button.setHorizontalAlignment(getWidth() / 2 - button.getWidth() / 2);
+            // button.setVerticalAlignment(getHeight() / 3 - button.getHeight() / 2);
+            button.addActionListener(listener -> layout.show(parent, lastChoice));
             main.add(button, BorderLayout.SOUTH);
             this.parent.add("modes", main);
             layout.show(parent, "modes");
@@ -191,36 +198,33 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         }
     }
 
-    public void goToLobby(ActionEvent e, int mode) {
-        if (mode == 0) {
-            this.parent.add("lobby", lobby);
-        } else if (mode == 1) {
-            this.parent.add("lobby", tftLobby);
-        }
-        JSONObject json = new JSONObject(e.getActionCommand());
-        long queueId = json.getLong("id");
-        long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
-        PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
-        try {
-            PartiesRegistration registration = partiesLedge.getCurrentRegistration();
-            if (registration == null) partiesLedge.register();
-            partiesLedge.role(PartyRole.DECLINED);
-            partiesLedge.gamemode(
-                    partiesLedge.getCurrentPartyId(),
-                    maximumParticipantListSize,
-                    0,
-                    queueId
-            );
-            partiesLedge.partytype(PartyType.OPEN);
-            //TODO revisit
+    public void goToLobby(ActionEvent e, String mode) {
+        layout.show(parent, lastChoice = mode);
+        LeagueClientUI.service.execute(() -> {
+            JSONObject json = new JSONObject(e.getActionCommand());
+            long queueId = json.getLong("id");
+            long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
+            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+            try {
+                PartiesRegistration registration = partiesLedge.getCurrentRegistration();
+                if (registration == null) partiesLedge.register();
+                partiesLedge.role(PartyRole.DECLINED);
+                partiesLedge.gamemode(
+                        partiesLedge.getCurrentPartyId(),
+                        maximumParticipantListSize,
+                        0,
+                        queueId
+                );
+                partiesLedge.partytype(PartyType.OPEN);
+                //TODO revisit
             /*JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
             JSONObject data = partiesPositionPreferences.getJSONObject("data");
             PositionPreference primary = PositionPreference.valueOf(data.getString("firstPreference"));
             PositionPreference secondary = PositionPreference.valueOf(data.getString("secondPreference"));
             partiesLedge.metadata(primary, secondary);*/
-            layout.show(parent, "lobby");
-        } catch (IOException ex) {
-            Logger.error(ex);
-        }
+            } catch (IOException ex) {
+                Logger.error(ex);
+            }
+        });
     }
 }

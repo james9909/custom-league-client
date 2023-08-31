@@ -5,6 +5,7 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.StoreLedge;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
+import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONArray;
@@ -42,14 +43,14 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
                     .map(Object::toString)
                     .map(Long::parseLong)
                     .toList();
-           /* pane.addTab(
+            pane.addTab(
                     InventoryType.CHAMPION.name(),
                     new StorePage(
                             client,
                             list,
                             StoreSortProperty.values()
                     )
-            );*/
+            );
             //  pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client));
         } catch (Exception e) {
             Logger.error(e);
@@ -75,6 +76,7 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
         try {
             List<StoreItem> list = store.catalogV1();
             Map<InventoryType, StorePage> map = new HashMap<>();
+            Map<InventoryType, List<StoreItem>> matches = new HashMap<>();
             for (StoreItem item : list) {
                 InventoryType type = item.getInventoryType();
                 if (!map.containsKey(type)) map.put(type, getTabByName(type.name()));
@@ -82,9 +84,16 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
                 if (page == null) continue;
                 if (!cache.containsKey(type)) cache.put(type, new ArrayList<>());
                 cache.get(type).add(item);
-                page.append(item);
+                if (!matches.containsKey(type)) matches.put(type, new ArrayList<>());
+                matches.get(type).add(item);
+            }
+            for (InventoryType type : matches.keySet()) {
+                StorePage page = map.get(type);
+                if (page == null) continue;
+                page.append(matches.get(type));
             }
             revalidate();
+            repaint();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

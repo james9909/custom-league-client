@@ -4,20 +4,21 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortOrder;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
+import com.hawolt.logger.Logger;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.ui.impl.JHintTextField;
 import com.hawolt.util.AudioEngine;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,8 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         JComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(1, 2));
+        inputPanel.setBackground(ColorPalette.BACKGROUND_COLOR);
+        inputPanel.setLayout(new GridLayout(1, 2, 5, 0));
         inputPanel.add(sortBox);
         JHintTextField search = new JHintTextField("Search...");
 
@@ -116,12 +118,22 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     }
 
     public void append(StoreItem item) {
-        if (owned.contains(item.getItemId())) return;
-        JSONObject object = item.asJSON();
-        long itemId = object.getLong("itemId");
-        StoreElement element = new StoreElement(client, this, item);
-        map.put(itemId, element);
-        grid.add(element);
+        append(Collections.singletonList(item));
+    }
+
+    public void append(List<StoreItem> items) {
+        try {
+            for (StoreItem item : items) {
+                if (owned.contains(item.getItemId())) continue;
+                JSONObject object = item.asJSON();
+                long itemId = object.getLong("itemId");
+                StoreElement element = new StoreElement(client, this, item);
+                map.put(itemId, element);
+                grid.add(element);
+            }
+        } catch (Exception e) {
+            Logger.error(e);
+        }
         updateElements();
     }
 

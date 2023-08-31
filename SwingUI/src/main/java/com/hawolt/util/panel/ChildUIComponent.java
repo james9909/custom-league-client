@@ -15,7 +15,7 @@ public class ChildUIComponent extends JPanel {
     }
 
     public ChildUIComponent(LayoutManager layout) {
-        setLayout(layout);
         setBackground(ColorPalette.BACKGROUND_COLOR);
+        setLayout(layout);
     }
 }

@@ -51,7 +51,8 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.add(password);
         this.add(login);
         this.add(rememberMe);
-        this.add(optimizeRAM);
+        //TODO add this later
+        //this.add(optimizeRAM);
         this.setPreferredSize(new Dimension(300, 200));
         this.login.addActionListener(this);
         this.container.add(this);

@@ -2,11 +2,16 @@ package com.hawolt.ui.github;
 
 import com.hawolt.generic.util.Network;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.ScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class ReleaseWindow extends ChildUIComponent {
@@ -15,7 +20,12 @@ public class ReleaseWindow extends ChildUIComponent {
     public ReleaseWindow() {
         super(new BorderLayout());
 
-        JScrollPane pane = new JScrollPane(changelog = new JTextPane());
+        ScrollPane pane = new ScrollPane(changelog = new JTextPane());
+        changelog.setBackground(ColorPalette.BACKGROUND_COLOR);
+
+        StyledDocument document = changelog.getStyledDocument();
+        Style style = changelog.addStyle("", null);
+        StyleConstants.setForeground(style, Color.WHITE);
 
         changelog.setEditable(false);
         changelog.setContentType("text/html");
