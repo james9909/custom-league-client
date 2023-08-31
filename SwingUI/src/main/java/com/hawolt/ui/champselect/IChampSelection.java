@@ -1,6 +1,6 @@
 package com.hawolt.ui.champselect;
 
-import com.hawolt.objects.Champion;
+import com.hawolt.client.resources.communitydragon.champion.Champion;
 
 import java.util.Map;
 

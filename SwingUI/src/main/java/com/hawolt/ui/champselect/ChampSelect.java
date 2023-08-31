@@ -6,7 +6,7 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.logger.Logger;
-import com.hawolt.objects.Champion;
+import com.hawolt.client.resources.communitydragon.champion.Champion;
 import com.hawolt.rtmp.LeagueRtmpClient;
 import com.hawolt.rtmp.amf.TypedObject;
 import com.hawolt.rtmp.io.RtmpPacket;

@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.github.hawolt.league-client-api</groupId>
             <artifactId>VirtualClient</artifactId>
-            <version>8627ad0c0c</version>
+            <version>7644fad21f</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>

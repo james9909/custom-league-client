@@ -3,7 +3,7 @@ package com.hawolt.async.loader;
 import com.hawolt.StaticConstant;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.client.cache.ExceptionalSupplier;
-import com.hawolt.cryptography.SHA256;
+import com.hawolt.cryptography.MD5;
 import com.hawolt.generic.data.Unsafe;
 import com.hawolt.http.layer.IResponse;
 import com.hawolt.http.layer.impl.OkHttpResponse;
@@ -49,6 +49,7 @@ public class ResourceLoader {
             if (assets == null) return;
             for (File file : assets) {
                 try {
+                    Logger.info("FROM CACHE {}", file.getName());
                     cache.put(file.getName(), Files.readAllBytes(file.toPath()));
                 } catch (IOException e) {
                     Logger.error("Failed to load file '{}' from local cache", file.getName());
@@ -66,7 +67,7 @@ public class ResourceLoader {
     }
 
     private static void load(String path, boolean priority, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
-        String hash = SHA256.hash(path);
+        String hash = MD5.hash(path);
         if (cache.containsKey(hash)) {
             try {
                 consumer.consume(path, Unsafe.cast(consumer.transform(cache.get(hash))));
@@ -132,6 +133,7 @@ public class ResourceLoader {
             try {
                 if (!directory.toFile().exists()) Files.createDirectories(directory);
                 Path target = directory.resolve(hash);
+                if (target.toFile().exists()) return;
                 Files.write(
                         target,
                         b,
@@ -147,7 +149,7 @@ public class ResourceLoader {
     }
 
     private static void handleConsumption(String o, byte[] b) {
-        String hash = SHA256.hash(o);
+        String hash = MD5.hash(o);
         writeToCache(o, hash, b);
         if (!pending.containsKey(hash)) Logger.error("attempt to load unknown value '{}' from cache", o);
         List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(hash));

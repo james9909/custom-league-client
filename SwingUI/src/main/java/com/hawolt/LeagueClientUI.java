@@ -13,6 +13,7 @@ import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.misc.ClientConfiguration;
 import com.hawolt.generic.token.impl.StringTokenSupplier;
 import com.hawolt.logger.Logger;
+import com.hawolt.manifest.RMANCache;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rtmp.amf.decoder.AMFDecoder;
 import com.hawolt.settings.*;
@@ -129,6 +130,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         this.setVisible(true);
         this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
         VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
+        RMANCache.purge();
         this.chatUI.setSupplier(xmppClient);
         if (leagueClient.getXMPP().getTimestamp() > 0) {
             buildSidebarUI(xmppClient, chatUI);

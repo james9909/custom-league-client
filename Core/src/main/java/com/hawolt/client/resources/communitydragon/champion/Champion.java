@@ -1,4 +1,4 @@
-package com.hawolt.objects;
+package com.hawolt.client.resources.communitydragon.champion;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,6 +12,14 @@ import java.util.List;
  **/
 
 public class Champion {
+    public static Champion DUMMY = new Champion(
+            new JSONObject()
+                    .put("id", -1)
+                    .put("name", "None")
+                    .put("alias", "None")
+                    .put("roles", new JSONArray())
+    );
+
     private final List<String> roles = new ArrayList<>();
     private final String name, alias;
     private final int id;

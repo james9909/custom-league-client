@@ -24,7 +24,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
     private final JPasswordField password;
     private final ILoginCallback callback;
     private final SettingService service;
-    private final JCheckBox rememberMe;
+    private final JCheckBox rememberMe, optimizeRAM;
     private final JButton login;
 
 
@@ -39,6 +39,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.login = new JButton("Login");
         this.login.setActionCommand("REGULAR");
         this.rememberMe = new JCheckBox("Remember Me");
+        this.optimizeRAM = new JCheckBox("RAM Optimization (Slow)");
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setForeground(Color.WHITE);
         JLabel passwordLabel = new JLabel("Password");
@@ -50,6 +51,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.add(password);
         this.add(login);
         this.add(rememberMe);
+        this.add(optimizeRAM);
         this.setPreferredSize(new Dimension(300, 200));
         this.login.addActionListener(this);
         this.container.add(this);

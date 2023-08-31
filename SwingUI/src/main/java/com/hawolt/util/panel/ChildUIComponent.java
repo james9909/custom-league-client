@@ -11,6 +11,9 @@ import java.awt.*;
  **/
 
 public class ChildUIComponent extends JPanel {
+    public ChildUIComponent() {
+    }
+
     public ChildUIComponent(LayoutManager layout) {
         setLayout(layout);
         setBackground(ColorPalette.BACKGROUND_COLOR);

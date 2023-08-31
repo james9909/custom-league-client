@@ -13,6 +13,8 @@ import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -45,6 +47,22 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         add(component, BorderLayout.NORTH);
         component.add(grid, BorderLayout.NORTH);
         JScrollPane scrollPane = new JScrollPane(component);
+        //TODO revisit this is good
+        /*scrollPane.getViewport().addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Rectangle visibleRect = grid.getVisibleRect();
+                for (Component child : grid.getComponents()) {
+                    Rectangle childBounds = child.getBounds();
+                    if (childBounds.intersects(visibleRect)) {
+                        System.out.println("INTERSECT");
+                    } else {
+                        System.out.println("NO INTERSECT");
+                    }
+                }
+            }
+        });
+        */
         scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         add(scrollPane, BorderLayout.CENTER);
@@ -91,6 +109,10 @@ public class StorePage extends ChildUIComponent implements IStorePage {
             updateElements();
         });
         return sortBox;
+    }
+
+    public ChildUIComponent getGrid() {
+        return grid;
     }
 
     public void append(StoreItem item) {

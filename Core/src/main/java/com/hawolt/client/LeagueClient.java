@@ -66,6 +66,7 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
     private void cache() {
         ExecutorService service = Executors.newCachedThreadPool();
         service.execute(new CachedValueLoader<>(CacheType.INVENTORY_TOKEN, () -> ledge.getInventoryService().getInventoryToken(), this));
+        service.execute(new CachedValueLoader<>(CacheType.CHAMPION_DATA, () -> ledge.getInventoryService().getInventoryToken(), this));
         service.shutdown();
     }
 

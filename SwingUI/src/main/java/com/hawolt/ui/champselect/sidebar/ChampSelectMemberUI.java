@@ -4,7 +4,7 @@ import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.io.Core;
 import com.hawolt.logger.Logger;
-import com.hawolt.objects.Champion;
+import com.hawolt.client.resources.communitydragon.champion.Champion;
 import com.hawolt.objects.Spell;
 import com.hawolt.ui.champselect.AlliedMember;
 import com.hawolt.ui.champselect.IChampSelection;
