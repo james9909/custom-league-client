@@ -43,7 +43,7 @@ public class RunePanel extends JPanel implements IRuneSelection {
     @Override
     public void onSelection(int componentIndex, boolean selection) {
         if (!secondary || !selection) return;
-        if(previous == componentIndex) return;
+        if (previous == componentIndex) return;
         int resetTarget = last;
         this.last = previous;
         this.previous = componentIndex;

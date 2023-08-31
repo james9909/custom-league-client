@@ -16,10 +16,10 @@ import java.util.Arrays;
  **/
 
 public class ChampSelectSelectionUI extends ChildUIComponent implements ChampSelectSelectionCallback {
-    private ChampSelectSelectionComponent[] components;
     private final IChampSelection selection;
-    private int selectedComponentId = -1;
     private final ChampSelectPhase phase;
+    private ChampSelectSelectionComponent[] components;
+    private int selectedComponentId = -1;
     private long selectedChampionId;
 
     public ChampSelectSelectionUI(ChampSelectPhase phase, IChampSelection selection) {

@@ -22,14 +22,12 @@ import java.awt.event.ActionListener;
 public class ChampSelectPhaseUI extends ChildUIComponent {
     private final CardLayout layout = new CardLayout();
     private final JPanel card = new JPanel();
-    private String current;
-
     private final ChampSelectPickPhaseUI pickPhaseUI;
     private final ChampSelectBanPhaseUI banPhaseUI;
-
     private final ChampSelectSetting setting;
     private final ChampSelectChatUI csChatUI;
     private final JButton dodge;
+    private String current;
 
     public ChampSelectPhaseUI(ChampSelect champSelect, IChampSelection selection, LeagueClient leagueClient, ChampSelectSetting settings, ChatUI chatUI) {
         super(new BorderLayout());

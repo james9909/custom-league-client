@@ -41,47 +41,6 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
     private final LeagueClientUI leagueClientUI;
     private ScheduledFuture<?> future;
 
-    @Override
-    public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
-        JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
-        PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
-        String puuid = registration.getPUUID();
-        CurrentParty party = registration.getCurrentParty();
-        if (party == null) return;
-        Logger.error(party);
-        List<PartyParticipant> list = party.getPlayers();
-        list.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
-            SummonerLedge summonerLedge = leagueClientUI.getLeagueClient().getLedge().getSummoner();
-            try {
-                getSummonerComponentAt(0).update(self, summonerLedge.resolveSummonerByPUUD(puuid));
-                list.remove(self);
-                int memberPosition = 1;
-                for (PartyParticipant participant : list) {
-                    Summoner summoner = summonerLedge.resolveSummonerByPUUD(participant.getPUUID());
-                    if (participant.getRole().equals("MEMBER") || participant.getRole().equals("LEADER")) {
-                        getSummonerComponentAt(memberPosition++).update(participant, summoner);
-                    }
-                }
-                for (int i = memberPosition; i < 5; i++) {
-                    getSummonerComponentAt(i).update(null, null);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            revalidate();
-        });
-    }
-
-    private SummonerComponent getSummonerComponentAt(int id) {
-        int index;
-        if (id == 0) index = 2;
-        else if (id == 1) index = 1;
-        else if (id == 2) index = 3;
-        else if (id == 3) index = 0;
-        else index = 4;
-        return (SummonerComponent) grid.getComponent(index);
-    }
-
     public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
@@ -191,6 +150,47 @@ public class QueueLobby extends ChildUIComponent implements ActionListener, ISer
         });
         bottom.add(stop);
         add(bottom, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
+        JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
+        PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
+        String puuid = registration.getPUUID();
+        CurrentParty party = registration.getCurrentParty();
+        if (party == null) return;
+        Logger.error(party);
+        List<PartyParticipant> list = party.getPlayers();
+        list.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
+            SummonerLedge summonerLedge = leagueClientUI.getLeagueClient().getLedge().getSummoner();
+            try {
+                getSummonerComponentAt(0).update(self, summonerLedge.resolveSummonerByPUUD(puuid));
+                list.remove(self);
+                int memberPosition = 1;
+                for (PartyParticipant participant : list) {
+                    Summoner summoner = summonerLedge.resolveSummonerByPUUD(participant.getPUUID());
+                    if (participant.getRole().equals("MEMBER") || participant.getRole().equals("LEADER")) {
+                        getSummonerComponentAt(memberPosition++).update(participant, summoner);
+                    }
+                }
+                for (int i = memberPosition; i < 5; i++) {
+                    getSummonerComponentAt(i).update(null, null);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            revalidate();
+        });
+    }
+
+    private SummonerComponent getSummonerComponentAt(int id) {
+        int index;
+        if (id == 0) index = 2;
+        else if (id == 1) index = 1;
+        else if (id == 2) index = 3;
+        else if (id == 3) index = 0;
+        else index = 4;
+        return (SummonerComponent) grid.getComponent(index);
     }
 
     @Override

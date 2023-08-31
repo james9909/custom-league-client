@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
 
 public class ChampSelectTimerUI extends JPanel {
     private final static Color outline = new Color(122, 138, 153);
+    private final static Font font = new Font("Arial", Font.BOLD, 30);
     private String text;
     private int state;
+    private double currentTotalTimeMillis, currentTimeRemainingMillis, timestamp;
 
     public ChampSelectTimerUI() {
         this.setBackground(Color.BLACK);
@@ -23,8 +25,6 @@ public class ChampSelectTimerUI extends JPanel {
         ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("champ-select-timer-ui");
         scheduler.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);
     }
-
-    private double currentTotalTimeMillis, currentTimeRemainingMillis, timestamp;
 
     public void update(long currentTotalTimeMillis, long currentTimeRemainingMillis) {
         this.currentTimeRemainingMillis = currentTimeRemainingMillis;
@@ -57,8 +57,6 @@ public class ChampSelectTimerUI extends JPanel {
 
         }
     }
-
-    private final static Font font = new Font("Arial", Font.BOLD, 30);
 
     @Override
     protected void paintComponent(Graphics g) {

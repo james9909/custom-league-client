@@ -4,17 +4,12 @@ import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
-import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.ChampSelect;
 import com.hawolt.ui.chat.window.ChatUI;
 import com.hawolt.ui.impl.JHintTextField;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.SmartScroller;
-import com.hawolt.xmpp.event.EventType;
-import com.hawolt.xmpp.event.handler.message.IMessageListener;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.FailedMessage;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.OutgoingMessage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +19,7 @@ import java.awt.*;
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectChatUI extends ChildUIComponent{
+public class ChampSelectChatUI extends ChildUIComponent {
 
     private final ChampSelect champSelect;
     private final JHintTextField input;

@@ -1,6 +1,5 @@
 package com.hawolt.ui.champselect.header;
 
-import com.hawolt.logger.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

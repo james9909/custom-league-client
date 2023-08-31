@@ -1,6 +1,5 @@
 package com.hawolt.ui.chat.window;
 
-import com.hawolt.LeagueClientUI;
 import com.hawolt.ui.champselect.chat.ChampSelectChatUI;
 import com.hawolt.ui.chat.friendlist.IFriendListComponent;
 import com.hawolt.util.AudioEngine;
@@ -38,7 +37,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
         this.add(container = new ChildUIComponent(this.layout), BorderLayout.CENTER);
     }
 
-    public void setCSChatUI(ChampSelectChatUI csui){
+    public void setCSChatUI(ChampSelectChatUI csui) {
         this.champSelectChatUI = csui;
     }
 

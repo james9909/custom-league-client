@@ -18,11 +18,14 @@ import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.chat.friendlist.ChatSidebarEssentials;
 import com.hawolt.ui.queue.pop.QueueDialog;
 import com.hawolt.util.AudioEngine;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.FlatButton;
+import com.hawolt.util.ui.Label;
+import com.hawolt.util.ui.TextAlign;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -83,18 +86,28 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             ChildUIComponent main = new ChildUIComponent(new BorderLayout());
             ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
             modes.setBorder(new EmptyBorder(5, 5, 5, 5));
+            main.setBackground(ColorPalette.BACKGROUND_COLOR);
+            modes.setBackground(ColorPalette.BACKGROUND_COLOR);
             for (String key : map.keySet()) {
                 if (key.contains("TUTORIAL")) continue;
                 ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
                 ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-                JLabel label = new JLabel(key);
+                parent.setBackground(ColorPalette.BACKGROUND_COLOR);
+                grid.setBackground(ColorPalette.BACKGROUND_COLOR);
+
+                //Mode label
+                Label label = new Label(key, TextAlign.CENTER, true);
+
                 grid.add(label);
+
                 for (JSONObject object : map.get(key)) {
                     String name = object.getString("shortName");
                     if (name.contains("TUTORIAL")) {
                         continue;
                     }
-                    JButton button = new JButton(name);
+                    FlatButton button = new FlatButton(name, TextAlign.LEFT);
+                    button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
+
                     button.setActionCommand(object.toString());
                     if (key.contains("CLASSIC")) {
                         button.addActionListener(e -> goToLobby(e, 0));
@@ -107,7 +120,10 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 modes.add(parent);
             }
             main.add(modes, BorderLayout.CENTER);
-            JButton button = new JButton("Show Lobby");
+            FlatButton button = new FlatButton("Show Lobby", TextAlign.CENTER);
+            button.setPreferredSize(new Dimension(getWidth() / 5, 30));
+            button.setHorizontalAlignment(getWidth() / 2 - button.getWidth() / 2);
+            button.setVerticalAlignment(getHeight() / 3 - button.getHeight() / 2);
             button.addActionListener(listener -> layout.show(parent, "lobby"));
             main.add(button, BorderLayout.SOUTH);
             this.parent.add("modes", main);

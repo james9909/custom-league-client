@@ -89,18 +89,6 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
         return Unsafe.cast(cache.get(type));
     }
 
-    public void setRMS(RMSHandler rms) {
-        this.rms = rms;
-    }
-
-    public void setXMPP(XMPPHandler xmpp) {
-        this.xmpp = xmpp;
-    }
-
-    public void setRTMP(RTMPHandler rtmp) {
-        this.rtmp = rtmp;
-    }
-
     public IVirtualLeagueClientInstance getVirtualLeagueClientInstance() {
         return virtualLeagueClientInstance;
     }
@@ -133,6 +121,10 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
         return rms;
     }
 
+    public void setRMS(RMSHandler rms) {
+        this.rms = rms;
+    }
+
     public VirtualRiotMessageClient getRMSClient() {
         return rms.getVirtualRiotMessageClient();
     }
@@ -141,12 +133,20 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
         return xmpp;
     }
 
+    public void setXMPP(XMPPHandler xmpp) {
+        this.xmpp = xmpp;
+    }
+
     public VirtualRiotXMPPClient getXMPPClient() {
         return xmpp.getVirtualRiotXMPPClient();
     }
 
     public RTMPHandler getRTMP() {
         return rtmp;
+    }
+
+    public void setRTMP(RTMPHandler rtmp) {
+        this.rtmp = rtmp;
     }
 
     public LeagueRtmpClient getRTMPClient() {

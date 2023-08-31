@@ -26,10 +26,11 @@ import java.util.List;
 
 public class ChampSelectSummonerSpells extends ChildUIComponent implements ActionListener, ResourceConsumer<JSONArray, byte[]> {
     private final ISpellChangedListener spellChangedListener;
-    private JComboBox<Spell> spell1, spell2;
     Integer queueId;
     LeagueClient leagueClient;
     Spell[] spells;
+    private JComboBox<Spell> spell1, spell2;
+    private List<Long> temporaryWhiteList = Arrays.asList(1L, 3L, 4L, 6L, 7L, 11L, 12L, 13L, 14L, 21L);
 
     public ChampSelectSummonerSpells(ISpellChangedListener spellChangedListener, LeagueClient client) {
         super(new GridLayout(0, 2, 5, 0));
@@ -81,11 +82,6 @@ public class ChampSelectSummonerSpells extends ChildUIComponent implements Actio
         }
     }
 
-    @Override
-    public void onException(Object o, Exception e) {
-
-    }
-
     /*
     public void joinCS(int id) {
         this.queueId = id;
@@ -125,7 +121,10 @@ public class ChampSelectSummonerSpells extends ChildUIComponent implements Actio
         }
     }*/
 
-    private List<Long> temporaryWhiteList = Arrays.asList(1L, 3L, 4L, 6L, 7L, 11L, 12L, 13L, 14L, 21L);
+    @Override
+    public void onException(Object o, Exception e) {
+
+    }
 
     @Override
     public void consume(Object o, JSONArray array) {

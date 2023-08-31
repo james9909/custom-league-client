@@ -36,13 +36,31 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
 
     private final static Color opaque = new Color(255, 255, 255, 50);
     private final static GaussianFilter filter = new GaussianFilter(5);
+    private static Map<Long, Spell> cache = new HashMap<>();
 
-    private final Map<String, ChampSelectMemberSprite> sprites = new HashMap<>();
-    private int championId, teamId, summonerId, cellId;
-    private final String nameVisibilityType;
+    static {
+        try {
+            String resource = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json";
+            HttpsURLConnection connection = (HttpsURLConnection) new URL(resource).openConnection();
+            connection.setRequestProperty("User-Agent", "Sentinel");
+            try (InputStream stream = connection.getInputStream()) {
+                JSONArray array = new JSONArray(Core.read(stream).toString());
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject reference = array.getJSONObject(i);
+                    Spell spell = new Spell(reference);
+                    cache.put(spell.getId(), spell);
+                }
+            }
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
     protected final JSONObject object;
+    private final Map<String, ChampSelectMemberSprite> sprites = new HashMap<>();
+    private final String nameVisibilityType;
+    private int championId, teamId, summonerId, cellId;
     private boolean completed;
-
     private AlliedMember member;
     private IChampSelection selection;
 
@@ -83,26 +101,6 @@ public class ChampSelectMemberUI extends ChampSelectBlankMemberUI implements Res
 
     public String getNameVisibilityType() {
         return nameVisibilityType;
-    }
-
-    private static Map<Long, Spell> cache = new HashMap<>();
-
-    static {
-        try {
-            String resource = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json";
-            HttpsURLConnection connection = (HttpsURLConnection) new URL(resource).openConnection();
-            connection.setRequestProperty("User-Agent", "Sentinel");
-            try (InputStream stream = connection.getInputStream()) {
-                JSONArray array = new JSONArray(Core.read(stream).toString());
-                for (int i = 0; i < array.length(); i++) {
-                    JSONObject reference = array.getJSONObject(i);
-                    Spell spell = new Spell(reference);
-                    cache.put(spell.getId(), spell);
-                }
-            }
-        } catch (Exception e) {
-            Logger.error(e);
-        }
     }
 
     public void updateAlliedMember(AlliedMember member) {

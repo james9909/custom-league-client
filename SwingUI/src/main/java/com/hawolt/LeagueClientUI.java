@@ -50,10 +50,23 @@ import java.util.concurrent.Executors;
 
 public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCallback, WindowStateListener, ResourceConsumer<JSONObject, byte[]> {
     public static final ExecutorService service = ExecutorManager.registerService("pool", Executors.newCachedThreadPool());
+
+    static {
+        // DISABLE LOGGING USER CREDENTIALS
+        StringTokenSupplier.debug = false;
+        AMFDecoder.debug = false;
+    }
+
     private ShutdownManager shutdownManager;
     private LeagueClient leagueClient;
     private RiotClient riotClient;
     private SettingService settingService;
+    private ChatSidebar chatSidebar;
+    private LayoutManager manager;
+    private ChatUI chatUI;
+    private SettingsUI settingsUI;
+    private LoginUI loginUI;
+    private MainUI mainUI;
 
     public LeagueClientUI(String title) {
         super(title);
@@ -62,12 +75,21 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
-    private ChatSidebar chatSidebar;
-    private LayoutManager manager;
-    private ChatUI chatUI;
-    private SettingsUI settingsUI;
-    private LoginUI loginUI;
-    private MainUI mainUI;
+    public static void main(String[] args) {
+        LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
+        leagueClientUI.settingService = new SettingManager();
+        ClientSettings clientSettings = leagueClientUI.settingService.getClientSettings();
+        if (clientSettings.isRememberMe()) {
+            UserSettings userSettings = leagueClientUI.settingService.set(clientSettings.getRememberMeUsername());
+            LocalCookieSupplier localCookieSupplier = new LocalCookieSupplier();
+            localCookieSupplier.loadCookieState(userSettings.getCookies());
+            ClientConfiguration configuration = ClientConfiguration.getDefault(localCookieSupplier);
+            leagueClientUI.createRiotClient(configuration);
+        } else {
+            leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
+            leagueClientUI.setVisible(true);
+        }
+    }
 
     private void configure(boolean remember) {
         ResourceLoader.loadResource("local", new PreferenceLoader(leagueClient), true, this);
@@ -198,7 +220,6 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         return shutdownManager;
     }
 
-
     private void showFailureDialog(String message) {
         JOptionPane.showMessageDialog(
                 this,
@@ -259,28 +280,6 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     private void createRiotClient(ClientConfiguration configuration) {
         this.riotClient = new RiotClient(configuration, this);
-    }
-
-    static {
-        // DISABLE LOGGING USER CREDENTIALS
-        StringTokenSupplier.debug = false;
-        AMFDecoder.debug = false;
-    }
-
-    public static void main(String[] args) {
-        LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
-        leagueClientUI.settingService = new SettingManager();
-        ClientSettings clientSettings = leagueClientUI.settingService.getClientSettings();
-        if (clientSettings.isRememberMe()) {
-            UserSettings userSettings = leagueClientUI.settingService.set(clientSettings.getRememberMeUsername());
-            LocalCookieSupplier localCookieSupplier = new LocalCookieSupplier();
-            localCookieSupplier.loadCookieState(userSettings.getCookies());
-            ClientConfiguration configuration = ClientConfiguration.getDefault(localCookieSupplier);
-            leagueClientUI.createRiotClient(configuration);
-        } else {
-            leagueClientUI.loginUI = LoginUI.show(leagueClientUI);
-            leagueClientUI.setVisible(true);
-        }
     }
 
     @Override

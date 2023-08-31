@@ -18,14 +18,13 @@ import java.io.ByteArrayInputStream;
 
 public class ChampSelectBanComponent extends JPanel implements ResourceConsumer<BufferedImage, byte[]> {
     private final static String preset = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/%s.png";
+    private final static Color outline = new Color(122, 138, 153);
     private BufferedImage image;
     private int championId;
 
     public ChampSelectBanComponent() {
         setBackground(Color.BLACK);
     }
-
-    private final static Color outline = new Color(122, 138, 153);
 
     @Override
     protected void paintComponent(Graphics g) {

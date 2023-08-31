@@ -28,10 +28,6 @@ public class LoginUI extends MainUIComponent implements ActionListener {
     private final JButton login;
 
 
-    public static LoginUI show(LeagueClientUI leagueClientUI) {
-        return new LoginUI(leagueClientUI);
-    }
-
     private LoginUI(LeagueClientUI clientUI) {
         super(clientUI);
         this.setLayout(new GridLayout(0, 1, 0, 5));
@@ -44,7 +40,9 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.login.setActionCommand("REGULAR");
         this.rememberMe = new JCheckBox("Remember Me");
         JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setForeground(Color.WHITE);
         JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setForeground(Color.WHITE);
 
         this.add(usernameLabel);
         this.add(username);
@@ -74,6 +72,10 @@ public class LoginUI extends MainUIComponent implements ActionListener {
 
         this.callback = clientUI;
         this.init();
+    }
+
+    public static LoginUI show(LeagueClientUI leagueClientUI) {
+        return new LoginUI(leagueClientUI);
     }
 
     public void toggle(boolean state) {

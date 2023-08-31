@@ -40,11 +40,13 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     private final ChampSelectSidebarUI teamOneUI, teamTwoUI;
     private final ChampSelectHeaderUI headerUI;
     private final ChampSelectPhaseUI phaseUI;
-
+    private final Map<Integer, Champion> cache = new HashMap<>();
     private LeagueClientUI leagueClientUI;
     private LeagueRtmpClient rtmpClient;
     private LeagueClient leagueClient;
     private ChampSelectSetting setting;
+    private Map<String, Integer> actions = new HashMap<>();
+    private int currentActionSetIndex, localPlayerCellId, ownTeamId;
 
     public ChampSelect() {
         super(new BorderLayout());
@@ -56,7 +58,6 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
         this.phaseUI.configure(this);
         ResourceLoader.loadResource("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json", this);
     }
-
     public ChampSelect(LeagueClientUI leagueClientUI, ChatUI chatUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
@@ -77,9 +78,6 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
     public LeagueClient getLeagueClient() {
         return leagueClient;
     }
-
-    private Map<String, Integer> actions = new HashMap<>();
-    private int currentActionSetIndex, localPlayerCellId, ownTeamId;
 
     private ChampSelectSidebarUI getOwnSidebarUI() {
         return ownTeamId == 1 ? teamOneUI : teamTwoUI;
@@ -297,9 +295,6 @@ public class ChampSelect extends ChildUIComponent implements PacketCallback, ICh
             }
         });
     }
-
-    private final Map<Integer, Champion> cache = new HashMap<>();
-
 
     @Override
     public Map<Integer, Champion> getChampionCache() {

@@ -26,32 +26,6 @@ public class SettingUIComponent extends ChildUIComponent {
         super(layout);
     }
 
-    public void save() {
-        Object[] listeners = onSave.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ActionListener.class) {
-                ((ActionListener) listeners[i + 1]).actionPerformed(null);
-            }
-        }
-    }
-
-    public void close() {
-        Object[] listeners = onClose.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ActionListener.class) {
-                ((ActionListener) listeners[i + 1]).actionPerformed(null);
-            }
-        }
-    }
-
-    private void addOnSaveActionListener(ActionListener listener) {
-        onSave.add(ActionListener.class, listener);
-    }
-
-    private void addOnQuitActionListener(ActionListener listener) {
-        onClose.add(ActionListener.class, listener);
-    }
-
     public static ChildUIComponent createTagComponent(String name) {
         ChildUIComponent result = new ChildUIComponent(new BorderLayout());
         result.setPreferredSize(new Dimension(10, 32));
@@ -119,5 +93,31 @@ public class SettingUIComponent extends ChildUIComponent {
         });
 
         return result;
+    }
+
+    public void save() {
+        Object[] listeners = onSave.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ActionListener.class) {
+                ((ActionListener) listeners[i + 1]).actionPerformed(null);
+            }
+        }
+    }
+
+    public void close() {
+        Object[] listeners = onClose.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ActionListener.class) {
+                ((ActionListener) listeners[i + 1]).actionPerformed(null);
+            }
+        }
+    }
+
+    private void addOnSaveActionListener(ActionListener listener) {
+        onSave.add(ActionListener.class, listener);
+    }
+
+    private void addOnQuitActionListener(ActionListener listener) {
+        onClose.add(ActionListener.class, listener);
     }
 }

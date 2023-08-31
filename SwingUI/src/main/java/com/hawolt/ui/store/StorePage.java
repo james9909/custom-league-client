@@ -60,7 +60,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         JComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(1,2));
+        inputPanel.setLayout(new GridLayout(1, 2));
         inputPanel.add(sortBox);
         JHintTextField search = new JHintTextField("Search...");
 

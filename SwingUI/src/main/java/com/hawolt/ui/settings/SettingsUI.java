@@ -3,7 +3,6 @@ package com.hawolt.ui.settings;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.settings.SettingService;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.virtual.misc.DynamicObject;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
