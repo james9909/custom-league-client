@@ -28,6 +28,7 @@ import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
 import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.virtual.client.RiotClientException;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
@@ -143,14 +144,11 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
         RMANCache.purge();
         this.chatUI.setSupplier(xmppClient);
-        if (leagueClient.getXMPP().getTimestamp() > 0) {
-            buildSidebarUI(xmppClient, chatUI);
-        } else {
-            xmppClient.addHandler(
-                    EventType.ON_READY,
-                    (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatUI)
-            );
-        }
+        xmppClient.addHandler(
+                EventType.ON_READY,
+                (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatUI)
+        );
+        xmppClient.connect();
     }
 
     @Override
@@ -171,7 +169,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                 .getVirtualLeagueClientInstance()
                 .getUserInformation();
         chatSidebar = new ChatSidebar(userInformation, this);
-        manager = new LayoutManager(this, chatUI);
+        manager = new LayoutManager(this);
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
         chatSidebar.configure(userInformation);
@@ -182,10 +180,11 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatUI chatWindow) {
         chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
+        xmppClient.addMessageListener(getLayoutManager().getChampSelect());
+        xmppClient.addMessageListener(chatWindow);
         friendlist.onEvent(xmppClient.getFriendList());
         xmppClient.addPresenceListener(friendlist);
         xmppClient.addFriendListener(friendlist);
-        xmppClient.addMessageListener(chatWindow);
         friendlist.revalidate();
     }
 
@@ -245,16 +244,28 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     @Override
     public void onLoginFlowException(Throwable throwable) {
         Logger.error("Failed to initialize Client: {}", throwable.getMessage());
-        if (throwable instanceof LeagueException e) {
+        if (throwable instanceof RiotClientException e) {
+            switch (e.getMessage()) {
+                case "ERROR_TYPE_IS_NULL" -> showFailureDialog("Login errored but the error returned is null");
+                case "CAPTCHA_NOT_SUCCESSFUL" -> showFailureDialog("Our Captcha was denied");
+                case "UNKNOWN_RESPONSE" -> showFailureDialog("Unable to tell what is wrong");
+                case "MISSING_TYPE" -> showFailureDialog("Unable to tell login stage type");
+                case "AUTH_FAILURE" -> showFailureDialog("Invalid username or password");
+                case "RATE_LIMITED" -> showFailureDialog("You are being rate limited");
+                case "UNKNOWN" -> showFailureDialog("If you see this Riot is burning");
+                case "CLOUDFLARE" -> showFailureDialog("Temporary Cloudflare block");
+                default -> showFailureDialog("Unhandled RiotClientException");
+            }
+        } else if (throwable instanceof LeagueException e) {
             switch (e.getType()) {
                 case NO_LEAGUE_ACCOUNT -> showFailureDialog("No League account connected");
                 case NO_SUMMONER_NAME -> showFailureDialog("No name set for summoner");
+                default -> showFailureDialog("Unhandled LeagueClientException");
             }
         } else if (throwable instanceof IOException) {
             switch (throwable.getMessage()) {
                 case "PREFERENCE_FAILURE" -> showFailureDialog("Unable to load Player Preference");
-                case "AUTH_FAILURE" -> showFailureDialog("Invalid username or password");
-                case "RATE_LIMITED" -> showFailureDialog("You are being rate limited");
+                default -> showFailureDialog("Unhandled IOException");
             }
         } else {
             showFailureDialog("Unknown Error during login");
