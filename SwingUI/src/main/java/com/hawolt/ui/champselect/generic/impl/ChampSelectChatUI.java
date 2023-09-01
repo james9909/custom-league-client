@@ -1,11 +1,11 @@
 package com.hawolt.ui.champselect.generic.impl;
 
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
-import com.hawolt.ui.champselect.LHintTextField;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
 import com.hawolt.ui.champselect.util.TeamMemberFunction;
+import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.ScrollPane;
 import com.hawolt.util.ui.SmartScroller;
