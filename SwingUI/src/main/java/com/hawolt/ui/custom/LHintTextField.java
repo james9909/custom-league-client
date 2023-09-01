@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect;
+package com.hawolt.ui.custom;
 
 import com.hawolt.util.ColorPalette;
 

@@ -3,8 +3,13 @@ package com.hawolt.ui.login;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.settings.SettingService;
 import com.hawolt.settings.SettingType;
-import com.hawolt.ui.impl.JHintTextField;
+import com.hawolt.ui.custom.LHintPasswordTextField;
+import com.hawolt.ui.custom.LHintTextField;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.MainUIComponent;
+import com.hawolt.util.ui.FlatButton;
+import com.hawolt.util.ui.HighlightType;
+import com.hawolt.util.ui.TextAlign;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,11 +25,11 @@ import java.awt.event.KeyEvent;
  **/
 
 public class LoginUI extends MainUIComponent implements ActionListener {
-    private final JHintTextField username;
-    private final JPasswordField password;
+    private final LHintPasswordTextField password;
+    private final LHintTextField username;
     private final ILoginCallback callback;
     private final SettingService service;
-    private final JCheckBox rememberMe, optimizeRAM;
+    private final JCheckBox rememberMe;
     private final JButton login;
 
 
@@ -34,12 +39,13 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         this.service = clientUI.getSettingService();
-        this.username = new JHintTextField("");
-        this.password = new JPasswordField();
-        this.login = new JButton("Login");
+        this.username = new LHintTextField("username");
+        this.password = new LHintPasswordTextField("password");
+        this.login = new FlatButton("Login", TextAlign.CENTER, HighlightType.COMPONENT);
         this.login.setActionCommand("REGULAR");
         this.rememberMe = new JCheckBox("Remember Me");
-        this.optimizeRAM = new JCheckBox("RAM Optimization (Slow)");
+        this.rememberMe.setForeground(Color.WHITE);
+        this.rememberMe.setBackground(ColorPalette.BACKGROUND_COLOR);
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setForeground(Color.WHITE);
         JLabel passwordLabel = new JLabel("Password");
