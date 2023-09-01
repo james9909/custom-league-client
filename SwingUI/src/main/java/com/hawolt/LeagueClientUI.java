@@ -1,6 +1,7 @@
 package com.hawolt;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.async.gsm.ActiveGameInformation;
 import com.hawolt.async.loader.PreferenceLoader;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
@@ -141,6 +142,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private void wrap() {
         this.setVisible(true);
         this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
+        LeagueClientUI.service.execute(new ActiveGameInformation(this));
         VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
         RMANCache.purge();
         this.chatUI.setSupplier(xmppClient);
