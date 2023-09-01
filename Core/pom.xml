@@ -32,12 +32,12 @@
         <dependency>
             <groupId>com.github.hawolt.league-client-api</groupId>
             <artifactId>VirtualClient</artifactId>
-            <version>7644fad21f</version>
+            <version>92821aa453</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>
             <artifactId>riot-xmpp</artifactId>
-            <version>main-SNAPSHOT</version>
+            <version>ee85a75d5e</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>
