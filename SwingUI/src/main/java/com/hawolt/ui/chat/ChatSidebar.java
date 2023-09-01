@@ -11,6 +11,7 @@ import com.hawolt.util.ui.ScrollPane;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**
@@ -30,6 +31,7 @@ public class ChatSidebar extends ChildUIComponent {
         this.setBackground(Color.RED);
         this.add(profile = new ChatSidebarProfile(information, new BorderLayout()), BorderLayout.NORTH);
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
+        this.setBorder(new MatteBorder(0, 2, 0, 0, Color.DARK_GRAY));
         component.setBackground(ColorPalette.BACKGROUND_COLOR);
         list = new ChatSidebarFriendlist(leagueClientUI.getChatUI(), leagueClientUI);
         component.add(list, BorderLayout.NORTH);
