@@ -39,27 +39,32 @@ public class ResourceLoader {
     private static final Map<String, List<ResourceConsumer<?, byte[]>>> pending = new HashMap<>();
     private static final LinkedList<Runnable> queue = new LinkedList<>();
     private static final Map<String, byte[]> cache = new HashMap<>();
+    private static final Object lock = new Object();
 
     static {
-        ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("resource-loader");
-        scheduler.execute(() -> {
+        ScheduledExecutorService executor = ExecutorManager.getScheduledService("cache-loader");
+        executor.execute(() -> {
             File directory = ResourceLoader.directory.toFile();
             if (!directory.exists()) return;
             File[] assets = directory.listFiles();
             if (assets == null) return;
             for (File file : assets) {
                 try {
-                    Logger.info("FROM CACHE {}", file.getName());
+                    Logger.debug("FROM CACHE {}", file.getName());
                     cache.put(file.getName(), Files.readAllBytes(file.toPath()));
                 } catch (IOException e) {
                     Logger.error("Failed to load file '{}' from local cache", file.getName());
                 }
             }
         });
+        executor.shutdown();
+        ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("resource-loader");
         scheduler.scheduleWithFixedDelay(() -> {
-            if (queue.isEmpty()) return;
-            service.execute(queue.remove(0));
-        }, 0, 20, TimeUnit.MILLISECONDS);
+            synchronized (lock) {
+                if (queue.isEmpty()) return;
+                service.execute(queue.remove(0));
+            }
+        }, 0, 1, TimeUnit.MILLISECONDS);
     }
 
     private static <T> T convert(Object in) {
@@ -79,7 +84,9 @@ public class ResourceLoader {
         } else {
             pending.put(hash, new ArrayList<>());
             pending.get(hash).add(consumer);
-            queue.add(priority ? 0 : queue.size(), runnable);
+            synchronized (lock) {
+                queue.add(priority ? 0 : queue.size(), runnable);
+            }
         }
     }
 
@@ -87,30 +94,35 @@ public class ResourceLoader {
         loadResource(uri, false, consumer);
     }
 
-    public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        queue.add(() -> load(uri, priority, consumer, () -> {
-            try {
-                handleConsumption(uri, supplier.get());
-            } catch (Exception e) {
-                handleError(uri, e);
-            }
-        }));
+    public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier,
+                                    boolean priority, ResourceConsumer<?, byte[]> consumer) {
+        synchronized (lock) {
+            queue.add(priority ? 0 : queue.size(), () -> load(uri, priority, consumer, () -> {
+                try {
+                    handleConsumption(uri, supplier.get());
+                } catch (Exception e) {
+                    handleError(uri, e);
+                }
+            }));
+        }
     }
 
     public static void loadResource(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        queue.add(() -> load(uri, priority, consumer, () -> {
-            Request request = new Request.Builder()
-                    .url(uri)
-                    .header("User-Agent", StaticConstant.USER_AGENT)
-                    .get()
-                    .build();
-            try {
-                IResponse response = OkHttpResponse.from(request);
-                handleConsumption(uri, response.response());
-            } catch (IOException e) {
-                handleError(uri, e);
-            }
-        }));
+        synchronized (lock) {
+            queue.add(priority ? 0 : queue.size(), () -> load(uri, priority, consumer, () -> {
+                Request request = new Request.Builder()
+                        .url(uri)
+                        .header("User-Agent", StaticConstant.USER_AGENT)
+                        .get()
+                        .build();
+                try {
+                    IResponse response = OkHttpResponse.from(request);
+                    handleConsumption(uri, response.response());
+                } catch (IOException e) {
+                    handleError(uri, e);
+                }
+            }));
+        }
     }
 
     public static void loadLocalResource(String name, ResourceConsumer<?, byte[]> consumer) {
@@ -118,13 +130,15 @@ public class ResourceLoader {
     }
 
     public static void loadLocalResource(String name, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        queue.add(() -> load(name, priority, consumer, () -> {
-            try (InputStream stream = RunLevel.get(name)) {
-                handleConsumption(name, Core.read(stream).toByteArray());
-            } catch (IOException e) {
-                handleError(name, e);
-            }
-        }));
+        synchronized (lock) {
+            queue.add(priority ? 0 : queue.size(), () -> load(name, priority, consumer, () -> {
+                try (InputStream stream = RunLevel.get(name)) {
+                    handleConsumption(name, Core.read(stream).toByteArray());
+                } catch (IOException e) {
+                    handleError(name, e);
+                }
+            }));
+        }
     }
 
     private static void writeToCache(String o, String hash, byte[] b) {
