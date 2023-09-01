@@ -9,8 +9,8 @@ import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.Label;
 import com.hawolt.util.ui.HighlightType;
+import com.hawolt.util.ui.Label;
 import com.hawolt.util.ui.TextAlign;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
@@ -53,6 +53,7 @@ public class ChatSidebarFriend extends FlatButton {
         this.xmppClient = xmppClient;
         this.friend = friend;
         this.leagueClientUI = leagueClientUI;
+        this.setFont(new Font("Dialog", Font.BOLD, 18));
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 clickEvent(evt);
@@ -65,19 +66,10 @@ public class ChatSidebarFriend extends FlatButton {
     }
 
     public void setLastKnownPresence(AbstractPresence lastKnownPresence) {
-        ConnectionStatus previous = this.connectionStatus;
         this.connectionStatus = lastKnownPresence instanceof OfflinePresence ?
                 ConnectionStatus.OFFLINE : lastKnownPresence instanceof MobilePresence ?
                 ConnectionStatus.MOBILE : ConnectionStatus.ONLINE;
         this.lastKnownPresence = lastKnownPresence;
-        /*
-            if (previous != null && previous != this.connectionStatus) {
-                switch (connectionStatus) {
-                    case OFFLINE -> AudioEngine.play("friend_logout.wav");
-                    case ONLINE -> AudioEngine.play("friend_login.wav");
-                }
-            }
-         */
         this.repaint();
     }
 
@@ -175,23 +167,36 @@ public class ChatSidebarFriend extends FlatButton {
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics2D.fill(new RoundRectangle2D.Float(computedX, computedY, width, height, 360, 360));
 
-
-        if (getComponentCount() > 0) {
-            System.out.println("Removing notification");
-            remove(0);
-        }
-
         if (counter == 0) return;
 
-        Label messageNotification = new Label(String.valueOf(counter), TextAlign.CENTER, true);
-        messageNotification.setBackground(ColorPalette.MESSAGE_NOTIFICATION);
+        FontMetrics metrics = graphics2D.getFontMetrics();
+        int notificationWidth = metrics.stringWidth(String.valueOf(counter));
+        int widthMargin = 8, heightMargin = 2, notificationOffset = 30;
+        int computedWidth = notificationWidth + (widthMargin << 1);
+        int computedHeight = metrics.getAscent() + (heightMargin << 1);
+        int rectangleX = dimension.width - widthMargin - computedWidth - notificationOffset;
+        int rectangleY = (dimension.height >> 1) - (computedHeight >> 1);
 
-        width = getHeight() / 2;
-        height = getHeight() / 2;
-        computedX = getWidth() - width * 2 - getWidth() / 20;
-        computedY = getHeight() / 2 - height / 2;
-        messageNotification.setBounds(computedX, computedY, width, height);
-        messageNotification.drawTextStandalone(graphics2D);
+        graphics2D.setColor(Color.BLACK);
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics2D.fill(new RoundRectangle2D.Float(rectangleX + 1, rectangleY + 1, computedWidth, computedHeight, 5, 5));
+
+        graphics2D.setColor(new Color(255, 175, 79));
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics2D.fill(new RoundRectangle2D.Float(rectangleX, rectangleY, computedWidth, computedHeight, 5, 5));
+
+        drawHighlightedText(graphics2D, new Rectangle(rectangleX, rectangleY, computedWidth, computedHeight), String.valueOf(counter));
+    }
+
+    private void drawHighlightedText(Graphics2D g, Rectangle rectangle, String text) {
+        FontMetrics metrics = g.getFontMetrics();
+        int width = metrics.stringWidth(text);
+        int x = rectangle.x + (rectangle.width >> 1) - (width >> 1);
+        int y = rectangle.y + (rectangle.height >> 1) + (metrics.getAscent() >> 1) - 1;
+        g.setColor(Color.BLACK);
+        g.drawString(text, x + 1, y + 1);
+        g.setColor(Color.WHITE);
+        g.drawString(text, x, y);
     }
 
     private String parsedQueueType(String type) {
@@ -208,7 +213,7 @@ public class ChatSidebarFriend extends FlatButton {
             returnString = " - Practice Tool";
 
         if (type.contains("TFT")) {
-            if (returnString.equals("")) {
+            if (returnString.isEmpty()) {
                 if (type.contains("TURBO"))
                     returnString = " - Hyper Roll";
                 else if (type.contains("DOUBLE"))
