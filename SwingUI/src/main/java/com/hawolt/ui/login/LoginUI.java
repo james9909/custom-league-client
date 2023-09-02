@@ -7,9 +7,9 @@ import com.hawolt.ui.custom.LHintPasswordTextField;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.MainUIComponent;
-import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.HighlightType;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -41,7 +41,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.service = clientUI.getSettingService();
         this.username = new LHintTextField("username");
         this.password = new LHintPasswordTextField("password");
-        this.login = new FlatButton("Login", TextAlign.CENTER, HighlightType.COMPONENT);
+        this.login = new LFlatButton("Login", LTextAlign.CENTER, LHighlightType.COMPONENT);
         this.login.setActionCommand("REGULAR");
         this.rememberMe = new JCheckBox("Remember Me");
         this.rememberMe.setForeground(Color.WHITE);

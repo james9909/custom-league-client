@@ -8,10 +8,10 @@ import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.HighlightType;
-import com.hawolt.util.ui.Label;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
@@ -34,7 +34,7 @@ import java.io.IOException;
  * Author: Twitter @hawolt
  **/
 
-public class ChatSidebarFriend extends FlatButton {
+public class ChatSidebarFriend extends LFlatButton {
     private final VirtualRiotXMPPClient xmppClient;
     private final GenericFriend friend;
 
@@ -48,7 +48,7 @@ public class ChatSidebarFriend extends FlatButton {
 
     public ChatSidebarFriend(VirtualRiotXMPPClient xmppClient, GenericFriend friend, LeagueClientUI leagueClientUI) {
         super();
-        setHighlightType(HighlightType.COMPONENT);
+        setHighlightType(LHighlightType.COMPONENT);
         this.setPreferredSize(new Dimension(0, 50));
         this.xmppClient = xmppClient;
         this.friend = friend;
@@ -152,7 +152,7 @@ public class ChatSidebarFriend extends FlatButton {
             else if (parsedStatus.contains("Away"))
                 color = ColorPalette.FRIEND_DND;
         }
-        Label statusLabel = new Label(parsedStatus, TextAlign.LEFT, true);
+        LLabel statusLabel = new LLabel(parsedStatus, LTextAlign.LEFT, true);
         statusLabel.setForeground(color);
         statusLabel.setFontSize(12);
         statusLabel.setBounds(getWidth() / 20, 5, getWidth(), getHeight() / 6);

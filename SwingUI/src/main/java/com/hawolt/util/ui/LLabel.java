@@ -4,18 +4,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Area;
 
-public class Label extends JPanel {
+public class LLabel extends JPanel {
     private String text;
-    private TextAlign textAlign;
+    private LTextAlign textAlign;
     private boolean useShadow;
 
-    public Label(String text, TextAlign align) {
+    public LLabel(String text, LTextAlign align) {
         this.text = text;
         textAlign = align;
         init();
     }
 
-    public Label(String text, TextAlign align, boolean shadow) {
+    public LLabel(String text, LTextAlign align, boolean shadow) {
         this.text = text;
         textAlign = align;
         useShadow = shadow;
@@ -62,25 +62,14 @@ public class Label extends JPanel {
                 x = getBounds().x + getBounds().width - metrics.stringWidth(text);
                 break;
         }
-        y = getBounds().y + getBounds().height / 2 + (metrics.getAscent() - metrics.getDescent() - metrics.getLeading()) / 2;
+        y = getBounds().y + getBounds().height / 2 + PaintHelper.getFontHeight(metrics) / 2;
+
         if (useShadow)
-            drawShadowText(g2d, x, y);
+            PaintHelper.drawShadowText(g2d, text, x, y, getForeground());
         else
-            drawText(g2d, x, y);
+            PaintHelper.drawText(g2d, text, x, y, getForeground());
 
         g2d.dispose();
-    }
-
-    private void drawText(Graphics g, int x, int y) {
-        g.setColor(getForeground());
-        g.drawString(text, x, y);
-    }
-
-    private void drawShadowText(Graphics g, int x, int y) {
-        g.setColor(Color.BLACK);
-        g.drawString(text, x + 1, y + 1);
-        g.setColor(getForeground());
-        g.drawString(text, x, y);
     }
 
     public void drawTextStandalone(Graphics g) {

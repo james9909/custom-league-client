@@ -3,8 +3,8 @@ package com.hawolt.ui.queue;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.Label;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.border.MatteBorder;
 import java.awt.*;
@@ -39,12 +39,12 @@ public class QueueState extends ChildUIComponent {
         long elapsed = System.currentTimeMillis() - currentTimeMillis;
         String total = convertMStoTimestamp(elapsed);
 
-        Label elapsedLabel = new Label(total, TextAlign.RIGHT, true);
+        LLabel elapsedLabel = new LLabel(total, LTextAlign.RIGHT, true);
         elapsedLabel.setBounds(0, 0, getWidth(), getHeight());
         elapsedLabel.setFontSize(25);
         elapsedLabel.drawTextStandalone(graphics2D);
 
-        Label estimateLabel = new Label(String.format("Ø %s", estimate), TextAlign.LEFT, true);
+        LLabel estimateLabel = new LLabel(String.format("Ø %s", estimate), LTextAlign.LEFT, true);
         estimateLabel.setBounds(0, 0, getWidth(), getHeight());
         estimateLabel.setFontSize(25);
         estimateLabel.drawTextStandalone(graphics2D);

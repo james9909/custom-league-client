@@ -7,7 +7,7 @@ import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
 import com.hawolt.ui.champselect.util.TeamMemberFunction;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.ui.ScrollPane;
+import com.hawolt.util.ui.LScrollPane;
 import com.hawolt.util.ui.SmartScroller;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
 
@@ -33,7 +33,7 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     public ChampSelectChatUI() {
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        ScrollPane scrollPane = new ScrollPane(document = new JTextArea());
+        LScrollPane scrollPane = new LScrollPane(document = new JTextArea());
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         SmartScroller.configure(scrollPane);
         this.document.setBackground(ColorPalette.BACKGROUND_COLOR);

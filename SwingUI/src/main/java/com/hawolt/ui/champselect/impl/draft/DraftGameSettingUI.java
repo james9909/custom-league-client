@@ -8,9 +8,9 @@ import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.HighlightType;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class DraftGameSettingUI extends ChampSelectUIComponent {
     private final Debouncer debouncer = new Debouncer();
     private final JComboBox<Spell> spellOne, spellTwo;
-    private final FlatButton submit, runes;
+    private final LFlatButton submit, runes;
 
     //TODO find a data source for this
     private static final List<Integer> temporaryWhiteList = Arrays.asList(1, 3, 4, 6, 7, 11, 12, 13, 14, 21);
@@ -57,8 +57,8 @@ public class DraftGameSettingUI extends ChampSelectUIComponent {
         spellUI.setBorder(new EmptyBorder(5, 5, 5, 5));
         add(spellUI, BorderLayout.EAST);
         ChildUIComponent buttonUI = new ChildUIComponent(new GridLayout(0, 3, 5, 0));
-        buttonUI.add(submit = new FlatButton("Submit Choice", TextAlign.CENTER, HighlightType.COMPONENT));
-        buttonUI.add(runes = new FlatButton("Configure Runes", TextAlign.CENTER, HighlightType.COMPONENT));
+        buttonUI.add(submit = new LFlatButton("Submit Choice", LTextAlign.CENTER, LHighlightType.COMPONENT));
+        buttonUI.add(runes = new LFlatButton("Configure Runes", LTextAlign.CENTER, LHighlightType.COMPONENT));
         LHintTextField filter = new LHintTextField("Search...");
         filter.getDocument().addDocumentListener(new DocumentListener() {
             private void forward(String text) {
@@ -105,11 +105,11 @@ public class DraftGameSettingUI extends ChampSelectUIComponent {
         return spellTwo.getItemAt(spellTwo.getSelectedIndex());
     }
 
-    public FlatButton getSubmitButton() {
+    public LFlatButton getSubmitButton() {
         return submit;
     }
 
-    public FlatButton getRuneButton() {
+    public LFlatButton getRuneButton() {
         return runes;
     }
 }

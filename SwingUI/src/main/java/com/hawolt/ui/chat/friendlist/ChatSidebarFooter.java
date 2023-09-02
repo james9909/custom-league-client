@@ -4,10 +4,10 @@ import com.hawolt.ui.github.Github;
 import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.HighlightType;
-import com.hawolt.util.ui.Label;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +21,7 @@ public class ChatSidebarFooter extends ChildUIComponent {
         this.setPreferredSize(new Dimension(0, HEIGHT));
         this.setBackground(ColorPalette.BACKGROUND_COLOR);
 
-        FlatButton settingsButton = new FlatButton("⚙", TextAlign.CENTER, HighlightType.COMPONENT);
+        LFlatButton settingsButton = new LFlatButton("⚙", LTextAlign.CENTER, LHighlightType.COMPONENT);
         settingsButton.setBorder(BorderFactory.createEmptyBorder());
         settingsButton.setFont(font);
         settingsButton.setPreferredSize(new Dimension(HEIGHT, HEIGHT));
@@ -33,7 +33,7 @@ public class ChatSidebarFooter extends ChildUIComponent {
             }
         });
         add(settingsButton, BorderLayout.EAST);
-        Label version = new Label(Github.getVersion(), TextAlign.CENTER, true);
+        LLabel version = new LLabel(Github.getVersion(), LTextAlign.CENTER, true);
         add(version, BorderLayout.CENTER);
     }
 }

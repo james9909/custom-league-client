@@ -9,7 +9,7 @@ import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.ScrollPane;
+import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -34,7 +34,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     public ChampSelectSelectionUI(ChampSelectType type, ChampSelectChoice callback) {
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        ScrollPane scrollPane = new ScrollPane(component);
+        LScrollPane scrollPane = new LScrollPane(component);
         component.setBackground(ColorPalette.BACKGROUND_COLOR);
         component.setLayout(new GridLayout(0, 5, 5, 5));
         component.setBorder(new EmptyBorder(5, 0, 0, 0));
