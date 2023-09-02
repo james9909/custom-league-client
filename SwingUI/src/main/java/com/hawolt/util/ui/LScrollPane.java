@@ -9,8 +9,8 @@ import java.util.Objects;
 
 public class LScrollPane extends JScrollPane {
     public LScrollPane(Component view) {
-        getVerticalScrollBar().setUI(new LScrollBar());
-        getHorizontalScrollBar().setUI(new LScrollBar());
+        getVerticalScrollBar().setUI(new LScrollBarUI());
+        getHorizontalScrollBar().setUI(new LScrollBarUI());
         setBorder(new EmptyBorder(0, 0, 0, 0));
         setViewportView(view);
         setBackground(ColorPalette.BACKGROUND_COLOR);

@@ -24,7 +24,7 @@ public class LLabel extends JPanel {
 
     private void init() {
         setBackground(new Color(0, 0, 0, 0));
-        setFont(new Font("Arial", Font.BOLD, 18));
+        setFont(new Font("Dialog", Font.BOLD, 18));
         setForeground(Color.WHITE);
     }
 

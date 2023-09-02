@@ -1,5 +1,6 @@
 package com.hawolt.ui.chat.friendlist;
 
+import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.ui.impl.JHintTextField;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -20,14 +21,14 @@ import java.awt.*;
 
 public class ChatSidebarFriendEssentials extends ChildUIComponent implements DocumentListener {
     private final IFriendListComponent component;
-    private final JHintTextField input;
+    private final LHintTextField input;
 
     public ChatSidebarFriendEssentials(VirtualRiotXMPPClient xmppClient, IFriendListComponent component) {
         super(new BorderLayout(5, 0));
         this.setBorder(new EmptyBorder(5, 0, 0, 0));
         this.setBackground(ColorPalette.BACKGROUND_COLOR);
         this.component = component;
-        input = new JHintTextField("Name");
+        input = new LHintTextField("Name");
         add(input, BorderLayout.CENTER);
         input.getDocument().addDocumentListener(this);
         LFlatButton add = new LFlatButton("ADD", LTextAlign.CENTER, LHighlightType.COMPONENT);

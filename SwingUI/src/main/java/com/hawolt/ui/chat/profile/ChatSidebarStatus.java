@@ -1,6 +1,8 @@
 package com.hawolt.ui.chat.profile;
 
 import com.hawolt.util.AudioEngine;
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.ui.LComboBox;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 
 import javax.swing.*;
@@ -16,7 +18,9 @@ public class ChatSidebarStatus extends JComponent {
 
     public ChatSidebarStatus() {
         this.setLayout(new BorderLayout());
-        JComboBox<ChatStatus> box = new JComboBox<>(ChatStatus.values());
+        LComboBox<ChatStatus> box = new LComboBox<>(ChatStatus.values());
+        box.setBackground(ColorPalette.ACCENT_COLOR);
+        box.setOptionBackground(ColorPalette.BACKGROUND_COLOR);
         box.setSelectedItem(ChatStatus.OFFLINE);
         box.addItemListener(listener -> {
             if (xmppClient == null) return;

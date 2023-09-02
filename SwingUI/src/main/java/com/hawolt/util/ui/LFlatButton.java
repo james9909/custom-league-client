@@ -45,7 +45,7 @@ public class LFlatButton extends JButton {
         setBorder(new EmptyBorder(8, 8, 8, 8));
         setForeground(Color.WHITE); //Set text to white
 
-        setFont(new Font("Arial", Font.BOLD, 18));
+        setFont(new Font("Dialog", Font.BOLD, 18));
 
         selectedColor = ColorPalette.BUTTON_SELECTION_COLOR;
 

@@ -78,7 +78,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
 
     @NotNull
     private JPanel createInputPanel(StoreSortProperty[] properties) {
-        JComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
+        LComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
 
         JPanel inputPanel = new JPanel();
         inputPanel.setBackground(ColorPalette.BACKGROUND_COLOR);
@@ -99,8 +99,9 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     }
 
     @NotNull
-    private JComboBox<StoreSortOption> createStoreSortOptionJComboBox(StoreSortProperty[] properties) {
-        JComboBox<StoreSortOption> sortBox = new JComboBox<StoreSortOption>();
+    private LComboBox<StoreSortOption> createStoreSortOptionJComboBox(StoreSortProperty[] properties) {
+        LComboBox<StoreSortOption> sortBox = new LComboBox<StoreSortOption>();
+        //sortBox.setLabelText("Sort By");
         for (StoreSortProperty property : properties) {
             sortBox.addItem(new StoreSortOption(property, StoreSortOrder.ASCENDING));
             sortBox.addItem(new StoreSortOption(property, StoreSortOrder.DESCENDING));
