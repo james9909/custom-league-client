@@ -68,9 +68,11 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     public DraftQueueLobby getDraftLobby() {
         Component[] components = this.parent.getComponents();
         boolean alreadyShown = false;
-        for(int i = 0; i < components.length; i++) {
-            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby")) alreadyShown = true;
-            if(components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby")) this.parent.remove(i);
+        for (int i = 0; i < components.length; i++) {
+            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby"))
+                alreadyShown = true;
+            if (components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby"))
+                this.parent.remove(i);
         }
         if (!alreadyShown) {
             this.parent.add("lobby", lobby);
@@ -82,9 +84,11 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     public TFTQueueLobby getTftLobby() {
         Component[] components = this.parent.getComponents();
         boolean alreadyShown = false;
-        for(int i = 0; i < components.length; i++) {
-            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby")) alreadyShown = true;
-            if (components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby")) this.parent.remove(i);
+        for (int i = 0; i < components.length; i++) {
+            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby"))
+                alreadyShown = true;
+            if (components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby"))
+                this.parent.remove(i);
         }
         if (!alreadyShown) {
             this.parent.add("lobby", tftLobby);
@@ -225,7 +229,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             layout.show(parent, "lobby");
         }
         if (!init) {
-            FlatButton button = new FlatButton("Show Lobby", TextAlign.CENTER);
+            LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER);
             button.setPreferredSize(new Dimension(getWidth() / 5, 30));
             button.setHorizontalAlignment(SwingConstants.CENTER);
             button.setVerticalAlignment(SwingConstants.CENTER);
