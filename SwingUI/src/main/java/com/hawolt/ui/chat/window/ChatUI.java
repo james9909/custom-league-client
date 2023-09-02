@@ -28,6 +28,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
     private VirtualRiotXMPPClient xmppClient;
     private IFriendListComponent component;
     private String lastOpenedChat;
+    private ChatWindowContent content;
 
     public ChatUI() {
         super(new BorderLayout());
@@ -44,7 +45,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
     }
 
     private void addChat(String jid) {
-        ChatWindowContent content = new ChatWindowContent(jid, xmppClient, new BorderLayout());
+        this.content = new ChatWindowContent(jid, xmppClient, new BorderLayout());
         this.container.add(jid, content);
         this.map.put(jid, content);
         this.revalidate();
@@ -82,6 +83,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
         this.layout.show(container, lastOpenedChat);
         getChatContainer(friend.getJID()).drain();
         AudioEngine.play("join_chat.wav");
+        this.content.getInput().grabFocus();
     }
 
     @Override

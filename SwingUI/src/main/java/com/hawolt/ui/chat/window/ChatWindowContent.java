@@ -22,7 +22,11 @@ public class ChatWindowContent extends ChildUIComponent {
     private final Object lock = new Object();
     private final JHintTextField input;
     private final JScrollPane pane;
-
+    
+    public JHintTextField getInput () {
+        return input;
+    }
+    
     public ChatWindowContent(String jid, VirtualRiotXMPPClient xmppClient, LayoutManager layout) {
         super(layout);
         history.setLayout(new BoxLayout(history, BoxLayout.Y_AXIS));
