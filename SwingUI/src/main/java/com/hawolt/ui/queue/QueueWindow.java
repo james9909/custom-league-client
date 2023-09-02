@@ -27,6 +27,7 @@ import com.hawolt.util.ui.LTextAlign;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -45,17 +46,18 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     private final CardLayout layout = new CardLayout();
     private final LeagueClientUI leagueClientUI;
     private final ChildUIComponent parent;
+    private final DraftQueueLobby lobby;
     private final TFTQueueLobby tftLobby;
-    private final QueueLobby lobby;
+    Boolean init = false;
 
-    private String lastChoice = "CLASSIC";
+    ChildUIComponent main = new ChildUIComponent(new BorderLayout());
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
-        this.parent.add("CLASSIC", lobby = new QueueLobby(leagueClientUI, parent, layout));
-        this.parent.add("TFT", tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout));
+        lobby = new DraftQueueLobby(leagueClientUI, parent, layout);
+        tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout);
         LeagueClientUI.service.execute(this);
     }
 
@@ -63,11 +65,30 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         layout.show(parent, name);
     }
 
-    public QueueLobby getLobby() {
+    public DraftQueueLobby getDraftLobby() {
+        Component[] components = this.parent.getComponents();
+        boolean alreadyShown = false;
+        for(int i = 0; i < components.length; i++) {
+            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby")) alreadyShown = true;
+            if(components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby")) this.parent.remove(i);
+        }
+        if (!alreadyShown) {
+            this.parent.add("lobby", lobby);
+        }
         return lobby;
     }
 
+
     public TFTQueueLobby getTftLobby() {
+        Component[] components = this.parent.getComponents();
+        boolean alreadyShown = false;
+        for(int i = 0; i < components.length; i++) {
+            if (!alreadyShown && components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.TFTQueueLobby")) alreadyShown = true;
+            if (components[i].getClass().getCanonicalName().equals("com.hawolt.ui.queue.DraftQueueLobby")) this.parent.remove(i);
+        }
+        if (!alreadyShown) {
+            this.parent.add("lobby", tftLobby);
+        }
         return tftLobby;
     }
 
@@ -90,7 +111,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
                 map.get(gameMode).add(object);
             }
-            ChildUIComponent main = new ChildUIComponent(new BorderLayout());
             ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
             modes.setBorder(new EmptyBorder(5, 5, 5, 5));
             main.setBackground(ColorPalette.BACKGROUND_COLOR);
@@ -112,7 +132,9 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     if (name.contains("TUTORIAL")) {
                         continue;
                     }
+
                     LFlatButton button = new LFlatButton(name, LTextAlign.LEFT, LHighlightType.COMPONENT);
+
                     button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
 
                     button.setActionCommand(object.toString());
@@ -127,12 +149,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 modes.add(parent);
             }
             main.add(modes, BorderLayout.CENTER);
-            LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER, LHighlightType.COMPONENT);
-            button.setPreferredSize(new Dimension(getWidth() / 5, 30));
-            // button.setHorizontalAlignment(getWidth() / 2 - button.getWidth() / 2);
-            // button.setVerticalAlignment(getHeight() / 3 - button.getHeight() / 2);
-            button.addActionListener(listener -> layout.show(parent, lastChoice));
-            main.add(button, BorderLayout.SOUTH);
+
             this.parent.add("modes", main);
             layout.show(parent, "modes");
             revalidate();
@@ -199,32 +216,46 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     }
 
     public void goToLobby(ActionEvent e, String mode) {
-        layout.show(parent, lastChoice = mode);
-        LeagueClientUI.service.execute(() -> {
-            JSONObject json = new JSONObject(e.getActionCommand());
-            long queueId = json.getLong("id");
-            long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
-            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
-            try {
-                PartiesRegistration registration = partiesLedge.getCurrentRegistration();
-                if (registration == null) partiesLedge.register();
-                partiesLedge.role(PartyRole.DECLINED);
-                partiesLedge.gamemode(
-                        partiesLedge.getCurrentPartyId(),
-                        maximumParticipantListSize,
-                        0,
-                        queueId
-                );
-                partiesLedge.partytype(PartyType.OPEN);
-                //TODO revisit
+        Logger.error("goTo Lobby mode: " + mode);
+        if (mode.equals("CLASSIC")) {
+            this.parent.add("lobby", lobby);
+            layout.show(parent, "lobby");
+        } else if (mode.equals("TFT")) {
+            this.parent.add("lobby", tftLobby);
+            layout.show(parent, "lobby");
+        }
+        if (!init) {
+            FlatButton button = new FlatButton("Show Lobby", TextAlign.CENTER);
+            button.setPreferredSize(new Dimension(getWidth() / 5, 30));
+            button.setHorizontalAlignment(SwingConstants.CENTER);
+            button.setVerticalAlignment(SwingConstants.CENTER);
+            button.addActionListener(listener -> layout.show(parent, "lobby"));
+            main.add(button, BorderLayout.SOUTH);
+            init = true;
+        }
+        JSONObject json = new JSONObject(e.getActionCommand());
+        long queueId = json.getLong("id");
+        long maximumParticipantListSize = json.getLong("maximumParticipantListSize");
+        PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+        try {
+            PartiesRegistration registration = partiesLedge.getCurrentRegistration();
+            if (registration == null) partiesLedge.register();
+            partiesLedge.role(PartyRole.DECLINED);
+            partiesLedge.gamemode(
+                    partiesLedge.getCurrentPartyId(),
+                    maximumParticipantListSize,
+                    0,
+                    queueId
+            );
+            partiesLedge.partytype(PartyType.OPEN);
+            //TODO revisit
             /*JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
             JSONObject data = partiesPositionPreferences.getJSONObject("data");
             PositionPreference primary = PositionPreference.valueOf(data.getString("firstPreference"));
             PositionPreference secondary = PositionPreference.valueOf(data.getString("secondPreference"));
             partiesLedge.metadata(primary, secondary);*/
-            } catch (IOException ex) {
-                Logger.error(ex);
-            }
-        });
+        } catch (IOException ex) {
+            Logger.error(ex);
+        }
     }
 }

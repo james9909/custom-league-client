@@ -2,6 +2,7 @@ package com.hawolt.ui.queue;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.resources.ledge.parties.objects.AvailableParty;
 import com.hawolt.client.resources.ledge.parties.objects.Party;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyRole;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
@@ -42,9 +43,15 @@ public class GameInvite extends ChildUIComponent implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         LeagueClient client = leagueClientUI.getLeagueClient();
         try {
+            int queueId = ((AvailableParty) party).getPartyGameMode().getQueueId();
             client.getLedge().getParties().role(party.getPartyId(), PartyRole.MEMBER);
-            leagueClientUI.getLayoutManager().getQueue().getLobby().actionPerformed(null);
-            leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
+            if (queueId == 1100 || queueId == 1090 || queueId == 1130 || queueId == 1160) {
+                leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
+                leagueClientUI.getLayoutManager().getQueue().showClientComponent("tftLobby");
+            } else {
+                leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
+                leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
+            }
             leagueClientUI.getLayoutManager().showClientComponent("play");
         } catch (IOException ex) {
             Logger.error(ex);

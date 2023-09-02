@@ -1,9 +1,11 @@
 package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.LedgeEndpoint;
 import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.PartyException;
+import com.hawolt.client.resources.ledge.parties.objects.data.PartyRole;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
@@ -28,6 +30,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
+import java.util.Base64;
 
 /**
  * Created: 08/08/2023 18:15
@@ -42,9 +45,11 @@ public class ChatSidebarFriend extends LFlatButton {
     private ConnectionStatus connectionStatus;
     private Runnable runnable;
     private int counter;
-    private LeagueClientUI leagueClientUI;
+    private final LeagueClientUI leagueClientUI;
 
     private String name;
+    String status;
+    JSONObject lolRaw;
 
     public ChatSidebarFriend(VirtualRiotXMPPClient xmppClient, GenericFriend friend, LeagueClientUI leagueClientUI) {
         super();
@@ -100,33 +105,78 @@ public class ChatSidebarFriend extends LFlatButton {
         String parsedStatus = "";
         if (lastKnownPresence != null) {
             JSONObject raw = lastKnownPresence.getRaw();
-
             if (raw.has("games") && raw.getJSONObject("games").has("league_of_legends")) {
-                JSONObject lolRaw = new JSONObject(raw.getJSONObject("games").getJSONObject("league_of_legends").getString("p"));
+                try {
+                    lolRaw = new JSONObject(raw.getJSONObject("games").getJSONObject("league_of_legends").getString("p"));
 
-                String status = lolRaw.getString("gameStatus");
-                String mode = lolRaw.getString("gameQueueType");
-                mode = mode == null ? "" : mode;
-                //parse status
-                if (status.equals("outOfGame")) {
-                    parsedStatus = "Online";
-                    if (!mode.equals(""))
-                        parsedStatus = "In Lobby " + parsedQueueType(mode);
-                } else if (status.contains("hosting")) {
-                    parsedStatus = "In Lobby" + parsedQueueType(mode);
-                } else if (status.equals("championSelect"))
-                    parsedStatus = "In Champ Select" + parsedQueueType(mode);
-                else if (status.equals("inQueue"))
-                    parsedStatus = "In Queue" + parsedQueueType(mode);
-                else if (status.equals("inGame")) {
-                    parsedStatus = "In Game" + parsedQueueType(mode);
-                    if (!mode.contains("TFT"))
-                        parsedStatus += " - " + lolRaw.getString("skinname");
+
+                    status = lolRaw.getString("gameStatus");
+                    if(lolRaw.get("gameQueueType")!=JSONObject.NULL) {
+                        String mode = lolRaw.getString("gameQueueType");
+
+                        mode = mode == null ? "" : mode;
+                        //parse status
+                        if (status.equals("outOfGame")) {
+                            parsedStatus = "Online";
+                            if (!mode.equals(""))
+                                parsedStatus = "In Lobby " + parsedQueueType(mode);
+                        } else if (status.contains("hosting") && lolRaw.has("pty")) {
+                            if (lolRaw.getString("pty").contains("partyId")) {
+                                parsedStatus = "In Open Lobby" + parsedQueueType(mode);
+                            } else {
+                                parsedStatus = "In Closed Lobby" + parsedQueueType(mode);
+                            }
+                        } else if (status.contains("hosting")){
+                            parsedStatus = "In full Lobby (I guess?)" + parsedQueueType(mode);
+                        }
+                        else if (status.equals("championSelect"))
+                            parsedStatus = "In Champ Select" + parsedQueueType(mode);
+                        else if (status.equals("inQueue"))
+                            parsedStatus = "In Queue" + parsedQueueType(mode);
+                        else if (status.equals("inGame")) {
+                            parsedStatus = "In Game" + parsedQueueType(mode);
+                            parsedStatus += " - " + lolRaw.getString("skinname");
+                        }
+                    } else {
+                        String mode = lolRaw.getString("gameMode");
+
+                        mode = mode == null ? "" : mode;
+                        //parse status
+                        if (status.equals("outOfGame")) {
+                            parsedStatus = "Online";
+                            if (!mode.equals(""))
+                                parsedStatus = "In Lobby " + parsedQueueType(mode);
+                        } else if (status.contains("hosting") && lolRaw.has("pty")) {
+                            if (lolRaw.getString("pty").contains("partyId")) {
+                                parsedStatus = "In Open Lobby" + parsedQueueType(mode);
+                            } else {
+                                parsedStatus = "In Closed Lobby" + parsedQueueType(mode);
+                            }
+                        } else if (status.contains("hosting")){
+                            parsedStatus = "In full Lobby (I guess?)" + parsedQueueType(mode);
+                        }
+                        else if (status.equals("championSelect"))
+                            parsedStatus = "In Champ Select" + parsedQueueType(mode);
+                        else if (status.equals("inQueue"))
+                            parsedStatus = "In Queue" + parsedQueueType(mode);
+                        else if (status.equals("inGame")) {
+                            parsedStatus = "In Game" + parsedQueueType(mode);
+                        }
+                    }
+
+                    if (raw.getString("show").contains("away"))
+                        parsedStatus = "Away";
+                } catch (Exception e) {
+                    Logger.error(e);
+                    Logger.error(lolRaw);
                 }
-                if (raw.getString("show").contains("away"))
-                    parsedStatus = "Away";
             } else if (raw.has("games") && raw.getJSONObject("games").has("valorant")) {
-                parsedStatus = "Valorant";
+                    JSONObject data = new JSONObject(new String(Base64.getDecoder().decode(raw.getJSONObject("games").getJSONObject("valorant").getString("p"))));
+                    if (data.getString("sessionLoopState").equals("INGAME")) {
+                        parsedStatus = "In a Valorant game";
+                    } else {
+                        parsedStatus = "Valorant idle";
+                    }
             }
         }
         setText(name);
@@ -134,17 +184,11 @@ public class ChatSidebarFriend extends LFlatButton {
         Color color;
         if (connectionStatus == null) color = ColorPalette.FRIEND_OFFLINE;
         else {
-            switch (connectionStatus) {
-                case OFFLINE:
-                    color = ColorPalette.FRIEND_OFFLINE;
-                    break;
-                case UNKNOWN:
-                    color = ColorPalette.FRIEND_DND;
-                    break;
-                default:
-                    color = ColorPalette.FRIEND_ONLINE;
-                    break;
-            }
+            color = switch (connectionStatus) {
+                case OFFLINE -> ColorPalette.FRIEND_OFFLINE;
+                case UNKNOWN -> ColorPalette.FRIEND_DND;
+                default -> ColorPalette.FRIEND_ONLINE;
+            };
             if (parsedStatus.contains("Champ") || parsedStatus.contains("Queue") || parsedStatus.contains("Game"))
                 color = ColorPalette.FRIEND_IN_GAME;
             else if (parsedStatus.contains("Valorant"))
@@ -244,6 +288,32 @@ public class ChatSidebarFriend extends LFlatButton {
             this.repaint();
         } else if (SwingUtilities.isRightMouseButton(e)) {
             JPopupMenu menu = new JPopupMenu();
+            if (status != null) {
+                if (lolRaw.has("pty"))
+                if (status.contains("hosting") && lolRaw.getString("pty").contains("partyId")) {
+                    JMenuItem join = new JMenuItem(new AbstractAction("Join Lobby") {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            String party = lolRaw.getString("pty").substring(lolRaw.getString("pty").lastIndexOf("partyId") + 10, lolRaw.getString("pty").lastIndexOf("queueId") - 3);
+                            LeagueClient client = leagueClientUI.getLeagueClient();
+                            try {
+                                client.getLedge().getParties().role(party, PartyRole.MEMBER);
+                                leagueClientUI.getLayoutManager().showClientComponent("play");
+                                if (lolRaw.getString("gameMode").equals("TFT")) {
+                                    leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
+                                    leagueClientUI.getLayoutManager().getQueue().showClientComponent("tftLobby");
+                                } else {
+                                    leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
+                                    leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
+                                }
+                            } catch (IOException ex) {
+                                Logger.error(ex);
+                            }
+                        }
+                    });
+                    menu.add(join);
+                }
+            }
             JMenuItem invite = new JMenuItem(new AbstractAction("Invite Friend") {
                 @Override
                 public void actionPerformed(ActionEvent e) {

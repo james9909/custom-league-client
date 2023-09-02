@@ -1,5 +1,6 @@
 package com.hawolt.client.resources.ledge.parties.objects;
 
+import com.hawolt.logger.Logger;
 import org.json.JSONObject;
 
 /**
@@ -13,6 +14,7 @@ public class Party {
     protected final int partyVersion;
 
     public Party(JSONObject object) {
+        Logger.error(object);
         this.puuid = object.getString("puuid");
         this.platformId = object.getString("platformId");
         this.accountId = object.getLong("accountId");

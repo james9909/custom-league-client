@@ -2,9 +2,7 @@ package com.hawolt.ui.queue;
 
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
-import com.hawolt.client.resources.ledge.parties.objects.PartyMember;
 import com.hawolt.client.resources.ledge.parties.objects.PartyParticipant;
-import com.hawolt.client.resources.ledge.parties.objects.PartyParticipantMetadata;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -21,13 +19,14 @@ import java.io.ByteArrayInputStream;
  **/
 
 public class SummonerComponent extends ChildUIComponent implements ResourceConsumer<BufferedImage, byte[]> {
-    private static final String CD_PP_BASE = "https://raw.communitydragon.org/latest/game/assets/ux/summonericons/profileicon%s.png";
-    private static final Dimension IMAGE_DIMENSION = new Dimension(128, 128);
-    private static final Font NAME_FONT = new Font("Dialog", Font.BOLD, 24);
-    private static final Font ROLE_FONT = new Font("Arial", Font.BOLD, 16);
-    private PartyParticipant participant;
-    private BufferedImage image;
-    private Summoner summoner;
+
+    public static final String CD_PP_BASE = "https://raw.communitydragon.org/latest/game/assets/ux/summonericons/profileicon%s.png";
+    public static final Dimension IMAGE_DIMENSION = new Dimension(128, 128);
+    public static final Font NAME_FONT = new Font("Arial", Font.BOLD, 24);
+    public PartyParticipant participant;
+    public BufferedImage image;
+    public Summoner summoner;
+
 
     public SummonerComponent() {
         super(null);
@@ -77,26 +76,8 @@ public class SummonerComponent extends ChildUIComponent implements ResourceConsu
         int nameX = centeredX - (width >> 1);
         g.drawString(name, nameX, centeredY - (IMAGE_DIMENSION.height >> 1) - 20);
 
-        PartyMember member = (PartyMember) participant;
-        if (member == null) return;
-        PartyParticipantMetadata metadata = member.getParticipantMetadata();
-        if (metadata == null) return;
-        graphics2D.setFont(ROLE_FONT);
-        int positionY = centeredY + (IMAGE_DIMENSION.height >> 1) + 40;
-        paintRoleSelection(graphics2D, centeredX, positionY, metadata.getPrimaryPreference(), 0);
-        paintRoleSelection(graphics2D, centeredX, positionY, metadata.getSecondaryPreference(), 1);
     }
 
-    private void paintRoleSelection(Graphics2D graphics2D, int centeredX, int positionY, String role, int index) {
-        FontMetrics metrics = graphics2D.getFontMetrics();
-        graphics2D.setColor(Color.DARK_GRAY);
-        int additionalSpacing = 5, gapSpacing = 6;
-        int x = gapSpacing + (index * centeredX);
-        graphics2D.fillRoundRect(x, positionY - metrics.getAscent() - additionalSpacing, centeredX - (gapSpacing << 1), 18 + (additionalSpacing << 1), 10, 10);
-        int primaryX = (centeredX - (index == 0 ? (centeredX >> 1) : (-1 * (centeredX >> 1)))) - (metrics.stringWidth(role) >> 1);
-        graphics2D.setColor(Color.WHITE);
-        graphics2D.drawString(role, primaryX, positionY);
-    }
 
     @Override
     public void onException(Object o, Exception e) {
