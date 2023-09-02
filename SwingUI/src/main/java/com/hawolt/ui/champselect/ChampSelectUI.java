@@ -58,12 +58,12 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
         this.addRenderInstance(DraftChampSelectUI.INSTANCE);
         this.addRenderInstance(AbstractRenderInstance.INSTANCE);
         this.main.add("blank", new ChildUIComponent(null));
-        this.hide();
+        this.showBlankPanel();
         if (leagueClient == null) return;
         leagueClient.getRTMPClient().setDefaultCallback(this);
     }
 
-    public void hide() {
+    public void showBlankPanel() {
         this.layout.show(main, "blank");
     }
 
