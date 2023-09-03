@@ -20,12 +20,12 @@ public class SkinSource implements CommunityDragonSource<SkinIndex> {
     private SkinIndex cache;
 
     @Override
-    public String getSource() {
+    public String getSource(String... args) {
         return "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/skins.json";
     }
 
     @Override
-    public SkinIndex get() {
+    public SkinIndex get(String... args) {
         if (cache != null) return cache;
         Request request = new Request.Builder()
                 .url(getSource())

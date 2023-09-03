@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -42,6 +43,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
     public int queueId;
     public ChildUIComponent grid;
     public ChildUIComponent component = new ChildUIComponent(new BorderLayout());
+
     protected abstract void createSpecificComponents(ChildUIComponent component);
 
     protected abstract void createGrid(ChildUIComponent component);
@@ -79,7 +81,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
             }
         });
         component.add(invite, BorderLayout.NORTH);
-        LeagueClientUI.service.execute(()-> createSpecificComponents(component));
+        LeagueClientUI.service.execute(() -> createSpecificComponents(component));
 
         add(component, BorderLayout.CENTER);
         ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
@@ -109,9 +111,9 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
         String puuid = registration.getPUUID();
         CurrentParty party = registration.getCurrentParty();
-
         if (party == null) return;
-        Logger.error(party);
+        PartyRestriction restriction = party.getPartyRestriction();
+        if (restriction != null) handleGatekeeperRestriction(restriction.getRestrictionList());
         List<PartyParticipant> list = party.getPlayers();
         list.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
             SummonerLedge summonerLedge = leagueClientUI.getLeagueClient().getLedge().getSummoner();
@@ -150,13 +152,34 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         }
     }
 
+    private void handleGatekeeperRestriction(List<GatekeeperRestriction> restrictions) {
+        List<GatekeeperRestriction> sorted = restrictions.stream()
+                .sorted(((o1, o2) -> Long.compare(o2.getRemainingMillis(), o1.getRemainingMillis())))
+                .toList();
+        GatekeeperRestriction gatekeeperRestriction = sorted.get(0);
+        Logger.debug("Restriction: {}", gatekeeperRestriction);
+        leagueClientUI.getChatSidebar().getEssentials().toggleQueueState(
+                System.currentTimeMillis(),
+                gatekeeperRestriction.getRemainingMillis(),
+                true
+        );
+        future = scheduler.schedule(() -> {
+            try {
+                leagueClientUI.getLeagueClient().getLedge().getParties().resume();
+            } catch (IOException e) {
+                Logger.error(e);
+            }
+        }, gatekeeperRestriction.getRemainingMillis(), TimeUnit.MILLISECONDS);
+
+    }
+
     abstract public SummonerComponent getSummonerComponentAt(int id);
 
     @Override
     public void actionPerformed(ActionEvent e) {
     }
 
-    public void startQueue(){
+    public void startQueue() {
         PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
         PartiesRegistration registration = partiesLedge.getCurrentRegistration();
         try {
@@ -171,29 +194,13 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
             List<GatekeeperRestriction> indirect = restriction != null ?
                     restriction.getRestrictionList() : new ArrayList<>();
             if (direct.isEmpty() && indirect.isEmpty()) return;
-            List<GatekeeperRestriction> sorted = Stream.of(direct, indirect)
-                    .flatMap(Collection::stream)
-                    .sorted(((o1, o2) -> Long.compare(o2.getRemainingMillis(), o1.getRemainingMillis())))
-                    .toList();
-            GatekeeperRestriction gatekeeperRestriction = sorted.get(0);
-            Logger.debug("Restriction: {}", gatekeeperRestriction);
-            leagueClientUI.getChatSidebar().getEssentials().toggleQueueState(
-                    System.currentTimeMillis(),
-                    gatekeeperRestriction.getRemainingMillis(),
-                    true
+            handleGatekeeperRestriction(
+                    Stream.of(direct, indirect).flatMap(Collection::stream).collect(Collectors.toList())
             );
-            future = scheduler.schedule(() -> {
-                try {
-                    partiesLedge.resume();
-                } catch (IOException e) {
-                    Logger.error(e);
-                }
-            }, gatekeeperRestriction.getRemainingMillis(), TimeUnit.MILLISECONDS);
         } catch (IOException e) {
             Logger.error(e);
         }
     }
-
 
 
 }

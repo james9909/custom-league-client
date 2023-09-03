@@ -1,7 +1,10 @@
 package com.hawolt.ui.champselect;
 
+import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
+import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
+import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.util.ActionObject;
 import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
 import org.json.JSONArray;
@@ -17,7 +20,7 @@ import java.util.function.Function;
  * Author: Twitter @hawolt
  **/
 
-public interface ChampSelectIndex {
+public interface ChampSelectContext {
     long getGameId();
 
     int getQueueId();
@@ -70,9 +73,9 @@ public interface ChampSelectIndex {
 
     LeagueClient getLeagueClient();
 
-    JSONArray getCells(ChampSelectTeamType type);
+    LeagueClientUI getLeagueClientUI();
 
-    <T> T getCells(ChampSelectTeamType type, Function<JSONArray, T> function);
+    JSONArray getCells(ChampSelectTeamType type);
 
     void cache(String puuid, String name);
 
@@ -82,5 +85,13 @@ public interface ChampSelectIndex {
 
     List<ActionObject> getCurrent();
 
+    <T> T getCells(ChampSelectTeamType type, Function<JSONArray, T> function);
+
     void filterChampion(String champion);
+
+    PacketCallback getPacketCallback();
+
+    void quitChampSelect();
+
+    ChampSelectRuneSelection getRuneSelectionPanel();
 }

@@ -33,7 +33,7 @@ public class DraftSelectSidebarUI extends ChampSelectSidebarUI {
 
     @Override
     public void init() {
-        if (index == null) return;
+        if (context == null) return;
         super.init();
         for (ChampSelectBanElement element : elements) {
             element.update(-1);
@@ -42,9 +42,9 @@ public class DraftSelectSidebarUI extends ChampSelectSidebarUI {
 
     @Override
     public void update() {
-        if (index == null) return;
+        if (context == null) return;
         super.update();
-        List<ActionObject> list = index.getBanSelection(type);
+        List<ActionObject> list = context.getBanSelection(type);
         for (ActionObject object : list) {
             int normalizedActorCellId = object.getActorCellId() % 5;
             elements[normalizedActorCellId].update(object);

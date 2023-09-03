@@ -28,7 +28,7 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     private final JTextArea document;
     private final JTextField input;
 
-    private MatchContext context;
+    private MatchContext matchContext;
 
     public ChampSelectChatUI() {
         this.setLayout(new BorderLayout());
@@ -46,13 +46,13 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
         this.add(input = new LHintTextField("Send a message..."), BorderLayout.SOUTH);
         this.setPreferredSize(new Dimension(0, 200));
         this.input.addActionListener(listener -> {
-            if (context == null) {
+            if (matchContext == null) {
                 document.append("> You are currently not in a chatroom." + System.lineSeparator());
                 this.input.setText("");
             } else {
-                String domain = String.format("champ-select.%s.pvp.net", context.getPayload().getTargetRegion());
-                String jid = String.format("%s@%s", context.getPayload().getChatRoomName(), domain);
-                index.getLeagueClient().getXMPPClient().sendGroupMessage(jid, input.getText(), null);
+                String domain = String.format("champ-select.%s.pvp.net", matchContext.getPayload().getTargetRegion());
+                String jid = String.format("%s@%s", matchContext.getPayload().getChatRoomName(), domain);
+                context.getLeagueClient().getXMPPClient().sendGroupMessage(jid, input.getText(), null);
                 this.input.setText("");
             }
         });
@@ -60,9 +60,9 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
 
     public void push(IncomingMessage incomingMessage) {
         String source = incomingMessage.getFrom().split("@")[0];
-        if (context == null || !context.getPayload().getChatRoomName().equals(source)) return;
+        if (matchContext == null || !matchContext.getPayload().getChatRoomName().equals(source)) return;
         String puuid = incomingMessage.getRC();
-        Arrays.stream(index.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE))
+        Arrays.stream(context.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE))
                 .map(o -> (ChampSelectTeamMember) o)
                 .filter(o -> puuid.equalsIgnoreCase(o.getPUUID()))
                 .findAny()
@@ -72,7 +72,7 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     private final List<String> cache = new ArrayList<>();
 
     private void handle(ChampSelectTeamMember member, IncomingMessage incomingMessage) {
-        Map<String, String> resolver = index.getPUUIDResolver();
+        Map<String, String> resolver = context.getPUUIDResolver();
         if (!cache.isEmpty()) forward(resolver);
         if (!resolver.containsKey(member.getPUUID()) || !cache.isEmpty()) {
             cache.add(0, member.getPUUID() + incomingMessage.getBody());
@@ -101,6 +101,6 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
 
     public void setMatchContext(MatchContext context) {
         this.document.setText("");
-        this.context = context;
+        this.matchContext = context;
     }
 }

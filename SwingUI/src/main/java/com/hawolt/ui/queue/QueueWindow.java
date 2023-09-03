@@ -97,69 +97,65 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     }
 
     @Override
-    public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
-        try {
-            TypedObject data = typedObject.getTypedObject("data");
-            TypedObject message = data.getTypedObject("flex.messaging.messages.AcknowledgeMessage");
-            String body = Base64GZIP.unzipBase64(message.getString("body"));
-            JSONArray array = new JSONArray(body);
-            Map<String, List<JSONObject>> map = new HashMap<>();
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject object = array.getJSONObject(i);
-                String state = object.getString("queueState");
-                String shortName = object.getString("shortName");
-                if (!shortName.contains("DRAFT") && !shortName.contains("RANKED-FLEX") && !shortName.contains("RANKED-SOLO") && !shortName.contains("TFT"))
-                    continue;
-                if ("OFF".equals(state)) continue;
-                String gameMode = object.getString("gameMode");
-                if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
-                map.get(gameMode).add(object);
-            }
-            ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
-            modes.setBorder(new EmptyBorder(5, 5, 5, 5));
-            main.setBackground(ColorPalette.BACKGROUND_COLOR);
-            modes.setBackground(ColorPalette.BACKGROUND_COLOR);
-            for (String key : map.keySet()) {
-                if (key.contains("TUTORIAL")) continue;
-                ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
-                ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-                parent.setBackground(ColorPalette.BACKGROUND_COLOR);
-                grid.setBackground(ColorPalette.BACKGROUND_COLOR);
-
-                //Mode label
-                LLabel label = new LLabel(key, LTextAlign.CENTER, true);
-
-                grid.add(label);
-
-                for (JSONObject object : map.get(key)) {
-                    String name = object.getString("shortName");
-                    if (name.contains("TUTORIAL")) {
-                        continue;
-                    }
-
-                    LFlatButton button = new LFlatButton(name, LTextAlign.LEFT, LHighlightType.COMPONENT);
-
-                    button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
-
-                    button.setActionCommand(object.toString());
-                    if (key.contains("CLASSIC")) {
-                        button.addActionListener(e -> goToLobby(e, "CLASSIC"));
-                    } else if (key.contains("TFT")) {
-                        button.addActionListener(e -> goToLobby(e, "TFT"));
-                    }
-                    grid.add(button);
-                }
-                parent.add(grid, BorderLayout.NORTH);
-                modes.add(parent);
-            }
-            main.add(modes, BorderLayout.CENTER);
-
-            this.parent.add("modes", main);
-            layout.show(parent, "modes");
-            revalidate();
-        } catch (IOException e) {
-            Logger.error(e);
+    public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) throws Exception {
+        TypedObject data = typedObject.getTypedObject("data");
+        TypedObject message = data.getTypedObject("flex.messaging.messages.AcknowledgeMessage");
+        String body = Base64GZIP.unzipBase64(message.getString("body"));
+        JSONArray array = new JSONArray(body);
+        Map<String, List<JSONObject>> map = new HashMap<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+            String state = object.getString("queueState");
+            String shortName = object.getString("shortName");
+            if (!shortName.contains("DRAFT") && !shortName.contains("RANKED-FLEX") && !shortName.contains("RANKED-SOLO") && !shortName.contains("TFT"))
+                continue;
+            if ("OFF".equals(state)) continue;
+            String gameMode = object.getString("gameMode");
+            if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
+            map.get(gameMode).add(object);
         }
+        ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
+        modes.setBorder(new EmptyBorder(5, 5, 5, 5));
+        main.setBackground(ColorPalette.BACKGROUND_COLOR);
+        modes.setBackground(ColorPalette.BACKGROUND_COLOR);
+        for (String key : map.keySet()) {
+            if (key.contains("TUTORIAL")) continue;
+            ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
+            ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
+            parent.setBackground(ColorPalette.BACKGROUND_COLOR);
+            grid.setBackground(ColorPalette.BACKGROUND_COLOR);
+
+            //Mode label
+            LLabel label = new LLabel(key, LTextAlign.CENTER, true);
+
+            grid.add(label);
+
+            for (JSONObject object : map.get(key)) {
+                String name = object.getString("shortName");
+                if (name.contains("TUTORIAL")) {
+                    continue;
+                }
+
+                LFlatButton button = new LFlatButton(name, LTextAlign.LEFT, LHighlightType.COMPONENT);
+
+                button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
+
+                button.setActionCommand(object.toString());
+                if (key.contains("CLASSIC")) {
+                    button.addActionListener(e -> goToLobby(e, "CLASSIC"));
+                } else if (key.contains("TFT")) {
+                    button.addActionListener(e -> goToLobby(e, "TFT"));
+                }
+                grid.add(button);
+            }
+            parent.add(grid, BorderLayout.NORTH);
+            modes.add(parent);
+        }
+        main.add(modes, BorderLayout.CENTER);
+
+        this.parent.add("modes", main);
+        layout.show(parent, "modes");
+        revalidate();
     }
 
     @Override
@@ -181,14 +177,16 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
             if (!info.has("backwardsTransitionReason")) return;
             switch (info.getString("backwardsTransitionReason")) {
-                case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {
-                    leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
-                    try {
-                        leagueClientUI.getLeagueClient().getLedge().getParties().ready();
-                    } catch (IOException e) {
-                        Logger.error(e);
-                    }
+                case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION", "PLAYER_LEFT_CHAMPION_SELECT" -> {
+                    leagueClientUI.getLayoutManager().getChampSelect().showBlankPanel();
                 }
+                //case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {}
+            }
+            leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+            try {
+                leagueClientUI.getLeagueClient().getLedge().getParties().ready();
+            } catch (IOException e) {
+                Logger.error(e);
             }
         } else if (payload.has("phaseName")) {
             String phaseName = payload.getString("phaseName");

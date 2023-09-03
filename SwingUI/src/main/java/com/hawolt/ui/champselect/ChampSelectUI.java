@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect;
 
+import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.logger.Logger;
@@ -8,10 +9,13 @@ import com.hawolt.rtmp.io.RtmpPacket;
 import com.hawolt.rtmp.utility.Base64GZIP;
 import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
-import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
+import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
+import com.hawolt.ui.champselect.impl.blank.BlankChampSelectUI;
 import com.hawolt.ui.champselect.impl.draft.DraftChampSelectUI;
 import com.hawolt.ui.champselect.util.*;
+import com.hawolt.ui.runes.IncompleteRunePageException;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.version.local.LocalLeagueFileVersion;
 import com.hawolt.xmpp.event.handler.message.IMessageListener;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.FailedMessage;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
@@ -33,7 +37,7 @@ import java.util.stream.Collectors;
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex, PacketCallback, IMessageListener {
+public class ChampSelectUI extends ChildUIComponent implements ChampSelectContext, PacketCallback, IMessageListener {
 
     private final Map<Integer, String> QUEUE_RENDERER_MAPPING = new HashMap<>();
     private final Set<AbstractRenderInstance> instances = new HashSet<>();
@@ -47,20 +51,42 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
     protected Map<Integer, List<ActionObject>> actionSetMapping = new ConcurrentHashMap<>();
     protected String teamId, subphase, teamChatRoomId, phaseName, contextId, filter;
     protected long currentTotalTimeMillis, currentTimeRemainingMillis, gameId;
+    protected ChampSelectRuneSelection runeSelection;
     protected int[] championsAvailableForBan;
+    protected LeagueClientUI leagueClientUI;
     protected LeagueClient leagueClient;
     protected JSONObject cells;
 
-    public ChampSelectUI(LeagueClient leagueClient) {
+    public ChampSelectUI(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
-        this.leagueClient = leagueClient;
         this.add(main, BorderLayout.CENTER);
+        if (leagueClientUI == null) return;
+        this.leagueClientUI = leagueClientUI;
+        this.leagueClient = leagueClientUI.getLeagueClient();
+        LocalLeagueFileVersion leagueFileVersion = leagueClient.getVirtualLeagueClientInstance().getLocalLeagueFileVersion();
+        String value = leagueFileVersion.getVersionValue(leagueClient.getPlayerPlatform(), "LeagueClientUxRender.exe");
+        String[] versions = value.split("\\.");
+        String patch = String.format("%s.%s.1", versions[0], versions[1]);
+        this.leagueClient.getRTMPClient().setDefaultCallback(this);
+        this.runeSelection = new ChampSelectRuneSelection(patch);
+        this.runeSelection.getSaveButton().addActionListener(listener -> setRuneSelection());
+        this.addRenderInstance(BlankChampSelectUI.INSTANCE);
         this.addRenderInstance(DraftChampSelectUI.INSTANCE);
-        this.addRenderInstance(AbstractRenderInstance.INSTANCE);
-        this.main.add("blank", new ChildUIComponent(null));
         this.showBlankPanel();
-        if (leagueClient == null) return;
-        leagueClient.getRTMPClient().setDefaultCallback(this);
+    }
+
+    private void setRuneSelection() {
+        LeagueClientUI.service.execute(() -> {
+            try {
+                JSONObject runes = this.runeSelection.getSelectedRunes();
+                leagueClient.getLedge().getPerks().setRunesForCurrentRegistration(runes);
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page set");
+            } catch (IncompleteRunePageException e) {
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page incomplete");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Failed to save Rune Page");
+            }
+        });
     }
 
     public void showBlankPanel() {
@@ -73,30 +99,28 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
+        if (typedObject == null || !typedObject.containsKey("data")) return;
+        TypedObject data = typedObject.getTypedObject("data");
+        if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;
+        TypedObject message = data.getTypedObject("flex.messaging.messages.AsyncMessage");
+        if (message == null || !message.containsKey("body")) return;
+        TypedObject body = message.getTypedObject("body");
+        if (body == null || !body.containsKey("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse")) {
+            return;
+        }
+        TypedObject response = body.getTypedObject("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse");
+        if (response == null || !response.containsKey("payload")) return;
         try {
-            if (typedObject == null || !typedObject.containsKey("data")) return;
-            TypedObject data = typedObject.getTypedObject("data");
-            if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;
-            TypedObject message = data.getTypedObject("flex.messaging.messages.AsyncMessage");
-            if (message == null || !message.containsKey("body")) return;
-            TypedObject body = message.getTypedObject("body");
-            if (body == null || !body.containsKey("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse"))
-                return;
-            TypedObject response = body.getTypedObject("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse");
-            if (response == null || !response.containsKey("payload")) return;
-            try {
-                Object object = response.get("payload");
-                if (object == null) return;
-                configure(new JSONObject(Base64GZIP.unzipBase64(object.toString())));
-            } catch (IOException e) {
-                Logger.error(e);
-            }
-        } catch (Exception e) {
+            Object object = response.get("payload");
+            if (object == null) return;
+            configure(new JSONObject(Base64GZIP.unzipBase64(object.toString())));
+        } catch (IOException e) {
             Logger.error(e);
         }
     }
 
     private void addRenderInstance(AbstractRenderInstance instance) {
+        instance.setGlobalRunePanel(runeSelection);
         int[] queueIds = instance.getSupportedQueueIds();
         for (int id : queueIds) {
             QUEUE_RENDERER_MAPPING.put(id, instance.getCardName());
@@ -152,26 +176,16 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
         this.update(this);
     }
 
-    private void update(ChampSelectIndex index) {
-        if (index.getCounter() == 2) {
-            String card = QUEUE_RENDERER_MAPPING.getOrDefault(index.getQueueId(), "blank");
+    private void update(ChampSelectContext context) {
+        if (context.getCounter() == 2) {
+            String card = QUEUE_RENDERER_MAPPING.getOrDefault(context.getQueueId(), "blank");
             Logger.debug("[champ-select] switch to card {}", card);
             layout.show(main, card);
         }
-        this.configure(main, index);
-        this.repaint();
-    }
-
-    private void configure(JComponent main, ChampSelectIndex index) {
-        Component[] components = main.getComponents();
-        for (Component component : components) {
-            if (component == null) continue;
-            if (!(component instanceof JComponent child)) continue;
-            if ((child instanceof ChampSelectUIComponent champSelectUIComponent)) {
-                champSelectUIComponent.configure(index);
-            }
-            configure(child, index);
+        for (AbstractRenderInstance instance : instances) {
+            instance.delegate(context);
         }
+        this.repaint();
     }
 
     @Override
@@ -243,6 +257,11 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
     @Override
     public LeagueClient getLeagueClient() {
         return leagueClient;
+    }
+
+    @Override
+    public LeagueClientUI getLeagueClientUI() {
+        return null;
     }
 
     @Override
@@ -372,6 +391,21 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectIndex,
         for (AbstractRenderInstance instance : instances) {
             instance.invokeChampionFilter(champion);
         }
+    }
+
+    @Override
+    public PacketCallback getPacketCallback() {
+        return this;
+    }
+
+    @Override
+    public void quitChampSelect() {
+        this.showBlankPanel();
+    }
+
+    @Override
+    public ChampSelectRuneSelection getRuneSelectionPanel() {
+        return runeSelection;
     }
 
 

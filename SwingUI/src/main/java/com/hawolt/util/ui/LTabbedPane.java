@@ -4,68 +4,63 @@ import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.metal.MetalTabbedPaneUI;
 import javax.swing.text.View;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Area;
 import java.util.HashMap;
 
-public class LTabbedPane extends JTabbedPane
-{
-    HashMap<Integer,Boolean> tabHoverMap = new HashMap<Integer, Boolean>();
+public class LTabbedPane extends JTabbedPane {
+    private static final Font regular = new Font("Dialog", Font.BOLD, 18);
+    HashMap<Integer, Boolean> tabHoverMap = new HashMap<Integer, Boolean>();
 
-    public LTabbedPane()
-    {
+    public LTabbedPane() {
         super();
-        init();
+        init(regular);
     }
 
-    public LTabbedPane(int tabPlacement)
-    {
+    public LTabbedPane(Font font) {
+        init(font);
+    }
+
+    public LTabbedPane(int tabPlacement) {
         super(tabPlacement);
-        init();
+        init(regular);
     }
 
-    public LTabbedPane(int tabPlacement, int tabLayoutPolicy)
-    {
-        super(tabPlacement,tabLayoutPolicy);
-        init();
+    public LTabbedPane(int tabPlacement, int tabLayoutPolicy) {
+        super(tabPlacement, tabLayoutPolicy);
+        init(regular);
     }
 
-    private void init(){
+    private void init(Font font) {
         setBackground(ColorPalette.BACKGROUND_COLOR);
-        setBorder(new EmptyBorder(0,0,0,0));
+        setBorder(new EmptyBorder(0, 0, 0, 0));
         setUI(new LTabbedUI(LHighlightType.BOTTOM));
-        setFont(new Font("Dialog", Font.BOLD, 18));
+        setFont(font);
         setForeground(Color.WHITE);
 
         //Look for better solutions to find out if mouse is hovering tab
-        addMouseMotionListener(new MouseMotionAdapter()
-        {
+        addMouseMotionListener(new MouseMotionAdapter() {
             @Override
-            public void mouseMoved(MouseEvent e)
-            {
-                for (int i = 0; i < getTabCount(); i++){
-                    tabHoverMap.put(i,getBoundsAt(i).contains(e.getPoint()) && isEnabledAt(i));
+            public void mouseMoved(MouseEvent e) {
+                for (int i = 0; i < getTabCount(); i++) {
+                    tabHoverMap.put(i, getBoundsAt(i).contains(e.getPoint()) && isEnabledAt(i));
                     repaint();
                 }
             }
         });
     }
 
-    public class LTabbedUI extends MetalTabbedPaneUI
-    {
+    public class LTabbedUI extends MetalTabbedPaneUI {
 
         private LHighlightType highlightType;
         private int selectedIndicatorSize = 5;
 
-        public LTabbedUI(LHighlightType highlight){
+        public LTabbedUI(LHighlightType highlight) {
             highlightType = highlight;
         }
 
@@ -82,8 +77,7 @@ public class LTabbedPane extends JTabbedPane
         protected void paintTabBorder(Graphics grphcs, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
             Graphics2D g2d = (Graphics2D) grphcs.create();
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if(isSelected || (tabHoverMap.containsKey(tabIndex) && tabHoverMap.get(tabIndex)))
-            {
+            if (isSelected || (tabHoverMap.containsKey(tabIndex) && tabHoverMap.get(tabIndex))) {
                 switch (highlightType) {
                     case LEFT:
                         w = selectedIndicatorSize;
@@ -134,10 +128,10 @@ public class LTabbedPane extends JTabbedPane
                             fg = selectedFG;
                         }
                     }
-                    PaintHelper.drawShadowText(g2d,title,textRect.x, textRect.y + PaintHelper.getFontHeight(metrics),fg);
+                    PaintHelper.drawShadowText(g2d, title, textRect.x, textRect.y + PaintHelper.getFontHeight(metrics), fg);
 
                 } else { // tab disabled
-                    PaintHelper.drawShadowText(g2d,title,textRect.x, textRect.y + PaintHelper.getFontHeight(metrics),getForegroundAt(tabIndex).darker());
+                    PaintHelper.drawShadowText(g2d, title, textRect.x, textRect.y + PaintHelper.getFontHeight(metrics), getForegroundAt(tabIndex).darker());
                 }
             }
         }

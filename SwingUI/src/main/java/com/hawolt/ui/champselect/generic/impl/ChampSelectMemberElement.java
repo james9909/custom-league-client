@@ -11,7 +11,7 @@ import com.hawolt.client.resources.communitydragon.spell.SpellIndex;
 import com.hawolt.client.resources.communitydragon.spell.SpellSource;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.logger.Logger;
-import com.hawolt.ui.champselect.ChampSelectIndex;
+import com.hawolt.ui.champselect.ChampSelectContext;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
@@ -54,17 +54,25 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     @Override
     public void run() {
         if (!(member instanceof ChampSelectTeamMember teamMember)) return;
-        LeagueClient client = index.getLeagueClient();
-        this.name = String.valueOf(teamMember.getSummonerId());
-        if (client != null) {
-            SummonerLedge summonerLedge = client.getLedge().getSummoner();
-            try {
-                this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
-            } catch (IOException e) {
-                Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
+        LeagueClient client = context.getLeagueClient();
+        this.name = switch (teamMember.getNameVisibilityType()) {
+            case "HIDDEN" -> getHiddenName();
+            case "UNHIDDEN" -> {
+                if (client != null) {
+                    SummonerLedge summonerLedge = client.getLedge().getSummoner();
+                    try {
+                        yield summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
+                    } catch (IOException e) {
+                        Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
+                        yield String.valueOf(teamMember.getSummonerId());
+                    }
+                } else {
+                    yield String.valueOf(teamMember.getSummonerId());
+                }
             }
-        }
-        index.cache(teamMember.getPUUID(), name);
+            default -> String.valueOf(teamMember.getSummonerId());
+        };
+        context.cache(teamMember.getPUUID(), name);
     }
 
     private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
@@ -203,13 +211,13 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
             this.updateSpellOne(teamMember);
             this.updateSpellTwo(teamMember);
             this.updateSkin(teamMember);
-            if (index != null && isPicking()) {
-                index.getCurrent()
+            if (context != null && isPicking()) {
+                context.getCurrent()
                         .stream()
                         .filter(actionObject -> actionObject.getActorCellId() == member.getCellId())
                         .findAny()
                         .ifPresent(actionObject -> {
-                            if (index.getCurrentActionSetIndex() > 0) {
+                            if (context.getCurrentActionSetIndex() > 0) {
                                 updateChamp(actionObject.getChampionId());
                             }
                         });
@@ -223,7 +231,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (index == null) return;
+        if (context == null) return;
 
         Dimension dimension = getSize();
 
@@ -238,7 +246,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
 
         //INDICATE STATUS NOT LOCKED IN
-        if (!isLockedIn() || index.getCurrentActionSetIndex() <= 0) {
+        if (!isLockedIn() || context.getCurrentActionSetIndex() <= 0) {
             g.setColor(HIGHLIGHTER);
             g.fillRect(0, 0, dimension.width, dimension.height);
         }
@@ -340,13 +348,13 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
 
 
     private boolean isSelf() {
-        return member.getCellId() == index.getLocalPlayerCellId();
+        return member.getCellId() == context.getLocalPlayerCellId();
     }
 
     private boolean isLockedIn() {
-        if (index.isFinalizing()) return true;
-        if (index == null || index.getCurrentActionSetIndex() < 0) return false;
-        return index.getActionSetMapping().values()
+        if (context.isFinalizing()) return true;
+        if (context == null || context.getCurrentActionSetIndex() < 0) return false;
+        return context.getActionSetMapping().values()
                 .stream()
                 .skip(1)
                 .flatMap(Collection::stream)
@@ -354,15 +362,15 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     }
 
     private boolean isPicking() {
-        if (index.isFinalizing()) return false;
-        if (index == null || index.getCurrentActionSetIndex() < 0) return false;
-        return index.getActionSetMapping().get(index.getCurrentActionSetIndex())
+        if (context.isFinalizing()) return false;
+        if (context == null || context.getCurrentActionSetIndex() < 0) return false;
+        return context.getActionSetMapping().get(context.getCurrentActionSetIndex())
                 .stream()
                 .anyMatch(actionObject -> actionObject.getActorCellId() == member.getCellId() && !actionObject.isCompleted());
     }
 
-    public void setIndex(ChampSelectIndex index) {
-        this.index = index;
+    public void setIndex(ChampSelectContext index) {
+        this.context = index;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.hawolt.ui.champselect.generic;
 
-import com.hawolt.ui.champselect.ChampSelectIndex;
+import com.hawolt.ui.champselect.ChampSelectContext;
 import com.hawolt.util.panel.ChildUIComponent;
 
 /**
@@ -9,11 +9,15 @@ import com.hawolt.util.panel.ChildUIComponent;
  **/
 
 public abstract class ChampSelectUIComponent extends ChildUIComponent {
-    protected ChampSelectIndex index;
+    protected ChampSelectContext context;
 
-    public void configure(ChampSelectIndex index) {
-        this.index = index;
-        if (index.getCounter() == 2) {
+    public void configure(ChampSelectContext context) {
+        this.context = context;
+    }
+
+    public void execute() {
+        if (context == null) return;
+        if (context.getCounter() == 2) {
             this.init();
         }
         this.update();

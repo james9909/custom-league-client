@@ -1,14 +1,21 @@
 package com.hawolt.ui.champselect;
 
-import com.hawolt.client.resources.communitydragon.spell.Spell;
+import com.hawolt.LeagueClientUI;
+import com.hawolt.client.LeagueClient;
+import com.hawolt.logger.Logger;
+import com.hawolt.rtmp.LeagueRtmpClient;
 import com.hawolt.ui.champselect.data.ChampSelectType;
+import com.hawolt.ui.champselect.data.GameType;
+import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectChoice;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSelectionElement;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
 
+import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,43 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 
 public abstract class AbstractRenderInstance extends ChampSelectUIComponent implements ChampSelectRenderer, ChampSelectChoice {
-    public static AbstractRenderInstance INSTANCE = new AbstractRenderInstance() {
-
-        @Override
-        protected void push(IncomingMessage incomingMessage) {
-
-        }
-
-        @Override
-        public void invokeChampionFilter(String champion) {
-
-        }
-
-        @Override
-        public void onSummonerSubmission(Spell selectedSpellOne, Spell selectedSpellTwo) {
-
-        }
-
-        @Override
-        public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
-
-        }
-
-        @Override
-        public int[] getSupportedQueueIds() {
-            return new int[0];
-        }
-
-        @Override
-        public String getCardName() {
-            return "blank";
-        }
-
-        @Override
-        public void update() {
-
-        }
-    };
 
     protected final ChildUIComponent component = new ChildUIComponent(new BorderLayout());
 
@@ -68,10 +38,15 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
 
     protected abstract void push(IncomingMessage incomingMessage);
 
+    protected abstract void stopChampSelectTimer();
+
     public abstract void invokeChampionFilter(String champion);
+
+    public abstract void setGlobalRunePanel(ChampSelectRuneSelection selection);
 
     @Override
     public void init() {
+        if (context == null) return;
         for (ChampSelectType type : map.keySet()) {
             ChampSelectSelectionElement element = map.get(type);
             element.setSelected(false);
@@ -82,7 +57,7 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
 
     @Override
     public void onChoice(ChampSelectSelectionElement element) {
-        if (element == null) return;
+        if (context == null || element == null) return;
         if (map.containsKey(element.getType())) {
             ChampSelectSelectionElement champSelectSelectionElement = map.get(element.getType());
             if (champSelectSelectionElement == null) return;
@@ -90,5 +65,56 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
             champSelectSelectionElement.repaint();
         }
         map.put(element.getType(), element);
+    }
+
+    public void dodge(GameType type) {
+        if (context == null) return;
+        LeagueClientUI.service.execute(() -> {
+            LeagueClient client = context.getLeagueClient();
+            LeagueRtmpClient rtmpClient = client.getRTMPClient();
+            LeagueClientUI leagueClientUI = context.getLeagueClientUI();
+            try {
+                switch (type) {
+                    case CLASSIC ->
+                            rtmpClient.getTeamBuilderService().quitGameV2Asynchronous(context.getPacketCallback());
+                    case CUSTOM -> {
+                        Logger.debug("currently not supported");
+                    }
+                }
+                leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
+                context.quitChampSelect();
+                revalidate();
+            } catch (IOException e) {
+                Logger.error("failed to quit game");
+            }
+        });
+    }
+
+    public void delegate(ChampSelectContext context) {
+        this.assign(this, context);
+        this.configure(context);
+        this.update(this);
+    }
+
+    private void assign(JComponent parent, ChampSelectContext context) {
+        Component[] components = parent.getComponents();
+        for (Component component : components) {
+            if (component == null) continue;
+            if ((component instanceof ChampSelectUIComponent champSelectUIComponent)) {
+                champSelectUIComponent.configure(context);
+            }
+            if (component instanceof JComponent child) assign(child, context);
+        }
+    }
+
+    private void update(JComponent parent) {
+        Component[] components = parent.getComponents();
+        for (Component component : components) {
+            if (component == null) continue;
+            if (component instanceof JComponent child) update(child);
+            if ((component instanceof ChampSelectUIComponent champSelectUIComponent)) {
+                champSelectUIComponent.execute();
+            }
+        }
     }
 }
