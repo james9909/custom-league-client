@@ -67,7 +67,7 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         String value = leagueFileVersion.getVersionValue(leagueClient.getPlayerPlatform(), "LeagueClientUxRender.exe");
         String[] versions = value.split("\\.");
         String patch = String.format("%s.%s.1", versions[0], versions[1]);
-        this.leagueClient.getRTMPClient().setDefaultCallback(this);
+        this.leagueClient.getRTMPClient().addDefaultCallback(this);
         this.runeSelection = new ChampSelectRuneSelection(patch);
         this.runeSelection.getSaveButton().addActionListener(listener -> setRuneSelection());
         this.addRenderInstance(BlankChampSelectUI.INSTANCE);

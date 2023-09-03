@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.github.hawolt</groupId>
             <artifactId>league-of-legends-rtmp</artifactId>
-            <version>main-SNAPSHOT</version>
+            <version>c1f6fc2c61</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>
