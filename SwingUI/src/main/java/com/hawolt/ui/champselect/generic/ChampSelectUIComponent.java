@@ -15,9 +15,9 @@ public abstract class ChampSelectUIComponent extends ChildUIComponent {
         this.context = context;
     }
 
-    public void execute() {
+    public void execute(int initialCounter) {
         if (context == null) return;
-        if (context.getCounter() == 2) {
+        if (context.getCounter() == initialCounter) {
             this.init();
         }
         this.update();

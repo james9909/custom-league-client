@@ -2,8 +2,9 @@ package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.ui.chat.window.IChatWindow;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -173,7 +174,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onIncomingFriendRequest(GenericFriend genericFriend) {
         if (this.component == null) return;
-        AudioEngine.play("buddy_invite.wav");
+        AudioEngine.play(Sound.FRIEND_REQUEST);
         addPendingFriendRequest(genericFriend, true);
         component.revalidate();
     }

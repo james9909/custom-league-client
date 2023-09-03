@@ -3,7 +3,6 @@ package com.hawolt.ui.champselect.generic;
 import com.hawolt.async.LazyLoadedImageComponent;
 import com.hawolt.client.resources.communitydragon.rune.BasicRune;
 import com.hawolt.ui.runes.IRuneSelection;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
@@ -49,7 +48,6 @@ public class ChampSelectionRunePanel extends LazyLoadedImageComponent implements
     @Override
     public void mousePressed(MouseEvent e) {
         this.selected = !selected;
-        if (selected) AudioEngine.play("air_event_runedrop_1.wav");
         selection.onSelection(componentIndex, selected);
         repaint();
     }

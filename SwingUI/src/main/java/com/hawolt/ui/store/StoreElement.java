@@ -8,8 +8,9 @@ import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.purchasewidget.CurrencyType;
 import com.hawolt.client.resources.purchasewidget.PurchaseWidget;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONObject;
 
@@ -75,15 +76,14 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
 
     @Override
     public void purchase(CurrencyType currencyType, long price) {
-        AudioEngine.play("air_button_press_1.wav");
         LeagueClientUI.service.execute(() -> {
             try {
                 PurchaseWidget widget = client.getPurchaseWidget();
                 JSONObject response = new JSONObject(widget.purchase(currencyType, InventoryType.CHAMPION, item.getItemId(), price));
                 if (response.has("errorCode")) {
-                    AudioEngine.play("friend_logout.wav");
+                    AudioEngine.play(Sound.ERROR);
                 } else {
-                    AudioEngine.play("openstore.wav");
+                    AudioEngine.play(Sound.SUCCESS);
                     page.removeStoreElement(this);
                     LeagueClientUI.service.execute(
                             new CachedValueLoader<>(

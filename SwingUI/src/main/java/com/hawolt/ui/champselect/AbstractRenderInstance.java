@@ -90,10 +90,11 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
         });
     }
 
-    public void delegate(ChampSelectContext context) {
+    public void delegate(ChampSelectContext context, int initialCounter) {
         this.assign(this, context);
         this.configure(context);
-        this.update(this);
+        this.execute(initialCounter);
+        this.update(this, initialCounter);
     }
 
     private void assign(JComponent parent, ChampSelectContext context) {
@@ -107,13 +108,13 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
         }
     }
 
-    private void update(JComponent parent) {
+    private void update(JComponent parent, int initialCounter) {
         Component[] components = parent.getComponents();
         for (Component component : components) {
             if (component == null) continue;
-            if (component instanceof JComponent child) update(child);
+            if (component instanceof JComponent child) update(child, initialCounter);
             if ((component instanceof ChampSelectUIComponent champSelectUIComponent)) {
-                champSelectUIComponent.execute();
+                champSelectUIComponent.execute(initialCounter);
             }
         }
     }

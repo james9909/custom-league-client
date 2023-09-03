@@ -16,5 +16,6 @@ public class StaticConstant {
     public static final String CLIENT_SETTING_fILE = ".swift-rift-client";
     public static final String PLAYER_SETTING_fILE = ".swift-rift-user";
     public static final String USER_AGENT = "Swift-Rift";
+    public static final long DISCORD_APPLICATION_ID = 1147927098497957940L;
 
 }

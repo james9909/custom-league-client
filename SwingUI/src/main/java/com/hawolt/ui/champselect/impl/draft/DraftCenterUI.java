@@ -1,6 +1,5 @@
 package com.hawolt.ui.champselect.impl.draft;
 
-import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
@@ -8,12 +7,9 @@ import com.hawolt.ui.champselect.generic.impl.ChampSelectChoice;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSelectionUI;
 import com.hawolt.ui.champselect.util.ActionObject;
 import com.hawolt.ui.champselect.util.ChampSelectPhase;
-import com.hawolt.ui.runes.IncompleteRunePageException;
 import com.hawolt.util.panel.ChildUIComponent;
-import org.json.JSONObject;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -84,7 +80,6 @@ public class DraftCenterUI extends ChampSelectUIComponent {
         } else {
             phase = ChampSelectPhase.PICK;
         }
-        if (phase == current) return;
         this.current = phase;
         if (name != null && name.equals("runes")) return;
         toggleCard(current.getName());

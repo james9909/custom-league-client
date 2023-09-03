@@ -3,6 +3,7 @@ package com.hawolt.ui.champselect;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
+import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.logger.Logger;
 import com.hawolt.rtmp.amf.TypedObject;
 import com.hawolt.rtmp.io.RtmpPacket;
@@ -60,16 +61,17 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
     public ChampSelectUI(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.add(main, BorderLayout.CENTER);
-        if (leagueClientUI == null) return;
-        this.leagueClientUI = leagueClientUI;
-        this.leagueClient = leagueClientUI.getLeagueClient();
-        LocalLeagueFileVersion leagueFileVersion = leagueClient.getVirtualLeagueClientInstance().getLocalLeagueFileVersion();
-        String value = leagueFileVersion.getVersionValue(leagueClient.getPlayerPlatform(), "LeagueClientUxRender.exe");
-        String[] versions = value.split("\\.");
-        String patch = String.format("%s.%s.1", versions[0], versions[1]);
-        this.leagueClient.getRTMPClient().addDefaultCallback(this);
-        this.runeSelection = new ChampSelectRuneSelection(patch);
-        this.runeSelection.getSaveButton().addActionListener(listener -> setRuneSelection());
+        if (leagueClientUI != null) {
+            this.leagueClientUI = leagueClientUI;
+            this.leagueClient = leagueClientUI.getLeagueClient();
+            LocalLeagueFileVersion leagueFileVersion = leagueClient.getVirtualLeagueClientInstance().getLocalLeagueFileVersion();
+            String value = leagueFileVersion.getVersionValue(leagueClient.getPlayerPlatform(), "LeagueClientUxRender.exe");
+            String[] versions = value.split("\\.");
+            String patch = String.format("%s.%s.1", versions[0], versions[1]);
+            this.leagueClient.getRTMPClient().addDefaultCallback(this);
+            this.runeSelection = new ChampSelectRuneSelection(patch);
+            this.runeSelection.getSaveButton().addActionListener(listener -> setRuneSelection());
+        }
         this.addRenderInstance(BlankChampSelectUI.INSTANCE);
         this.addRenderInstance(DraftChampSelectUI.INSTANCE);
         this.showBlankPanel();
@@ -113,16 +115,19 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         try {
             Object object = response.get("payload");
             if (object == null) return;
-            configure(new JSONObject(Base64GZIP.unzipBase64(object.toString())));
+            JSONObject payload = new JSONObject(Base64GZIP.unzipBase64(object.toString()));
+            Logger.info("[champ-select] {}", payload);
+            configure(payload);
         } catch (IOException e) {
             Logger.error(e);
         }
     }
 
     private void addRenderInstance(AbstractRenderInstance instance) {
-        instance.setGlobalRunePanel(runeSelection);
+        if (runeSelection != null) instance.setGlobalRunePanel(runeSelection);
         int[] queueIds = instance.getSupportedQueueIds();
         for (int id : queueIds) {
+            Logger.info("[champ-select] register queueId:{} as '{}'", id, instance.getCardName());
             QUEUE_RENDERER_MAPPING.put(id, instance.getCardName());
         }
         this.instances.add(instance);
@@ -130,7 +135,6 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
     }
 
     public void configure(JSONObject object) {
-        Logger.info(object);
         this.gameId = object.getLong("gameId");
         this.queueId = object.getInt("queueId");
         this.counter = object.getInt("counter");
@@ -177,13 +181,21 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
     }
 
     private void update(ChampSelectContext context) {
-        if (context.getCounter() == 2) {
+        int initialCounter;
+        if (leagueClient != null) {
+            MatchContext matchContext = leagueClient.getCachedValue(CacheType.MATCH_CONTEXT);
+            initialCounter = matchContext.getPayload().getCounter() + 1;
+        } else {
+            initialCounter = 2;
+        }
+        if (context.getCounter() == initialCounter) {
             String card = QUEUE_RENDERER_MAPPING.getOrDefault(context.getQueueId(), "blank");
             Logger.debug("[champ-select] switch to card {}", card);
             layout.show(main, card);
+            if (leagueClientUI != null) leagueClientUI.getLayoutManager().showClientComponent("select");
         }
         for (AbstractRenderInstance instance : instances) {
-            instance.delegate(context);
+            instance.delegate(context, initialCounter);
         }
         this.repaint();
     }

@@ -108,6 +108,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
+        if (!payload.has("player") || payload.isNull("player")) return;
         PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
         String puuid = registration.getPUUID();
         CurrentParty party = registration.getCurrentParty();

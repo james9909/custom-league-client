@@ -1,6 +1,5 @@
 package com.hawolt.ui.chat.profile;
 
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.LComboBox;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
@@ -24,7 +23,6 @@ public class ChatSidebarStatus extends JComponent {
         box.setSelectedItem(ChatStatus.OFFLINE);
         box.addItemListener(listener -> {
             if (xmppClient == null) return;
-            AudioEngine.play("air_button_press_1.wav");
             xmppClient.setPresence(box.getItemAt(box.getSelectedIndex()).getStatus(), "", 501);
         });
         this.add(box, BorderLayout.CENTER);

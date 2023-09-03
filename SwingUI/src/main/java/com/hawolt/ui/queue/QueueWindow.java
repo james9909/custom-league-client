@@ -17,8 +17,9 @@ import com.hawolt.rtmp.utility.Base64GZIP;
 import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.chat.friendlist.ChatSidebarEssentials;
 import com.hawolt.ui.queue.pop.QueueDialog;
-import com.hawolt.util.AudioEngine;
+import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -194,10 +195,11 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             if (phaseName.equals("MATCHMAKING")) {
                 JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
                 long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
+                if (payload.getInt("counter") != 0) return;
                 essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
                 revalidate();
             } else if (phaseName.equals("AFK_CHECK")) {
-                AudioEngine.play("matchmakingqueued.wav");
+                AudioEngine.play(Sound.QUEUE_POP);
                 JSONObject afkCheckState = payload.getJSONObject("afkCheckState");
                 long maxAfkMillis = afkCheckState.getLong("maxAfkMillis");
                 QueueDialog dialog = new QueueDialog(Frame.getFrames()[0], "Queue Notification", maxAfkMillis);

@@ -19,7 +19,6 @@ import com.hawolt.ui.champselect.util.ChampSelectMember;
 import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.jhlab.GaussianFilter;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -40,39 +39,33 @@ import java.util.concurrent.TimeUnit;
 public class ChampSelectMemberElement extends ChampSelectUIComponent implements Runnable, DataTypeConverter<byte[], BufferedImage> {
     private static final String SPRITE_PATH = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/%s/%s.jpg";
     private static final Dimension SUMMONER_SPELL_DIMENSION = new Dimension(28, 28);
-    private final static GaussianFilter filter = new GaussianFilter(10);
-
     private final ResourceManager<BufferedImage> manager = new ResourceManager<>(this);
     private final ChampSelectTeamType teamType;
     private final ChampSelectTeam team;
 
     private int championId, indicatorId, skinId, spell1Id, spell2Id;
-    private BufferedImage sprite, spellOne, spellTwo, champion;
+    private BufferedImage sprite, spellOne, spellTwo, clearChampion;
     private ChampSelectMember member;
-    private String name, hero;
+    private String hero, name;
 
     @Override
     public void run() {
         if (!(member instanceof ChampSelectTeamMember teamMember)) return;
         LeagueClient client = context.getLeagueClient();
-        this.name = switch (teamMember.getNameVisibilityType()) {
-            case "HIDDEN" -> getHiddenName();
-            case "UNHIDDEN" -> {
-                if (client != null) {
-                    SummonerLedge summonerLedge = client.getLedge().getSummoner();
-                    try {
-                        yield summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
-                    } catch (IOException e) {
-                        Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
-                        yield String.valueOf(teamMember.getSummonerId());
-                    }
-                } else {
-                    yield String.valueOf(teamMember.getSummonerId());
-                }
-            }
-            default -> String.valueOf(teamMember.getSummonerId());
-        };
-        context.cache(teamMember.getPUUID(), name);
+        if (client == null) return;
+        SummonerLedge summonerLedge = client.getLedge().getSummoner();
+        this.name = String.valueOf(teamMember.getSummonerId());
+        try {
+            this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
+        } catch (IOException e) {
+            Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
+        }
+        switch (teamMember.getNameVisibilityType()) {
+            case "UNHIDDEN" -> context.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
+            case "HIDDEN" -> context.cache(teamMember.getPUUID(), getHiddenName());
+            case "VISIBLE" -> context.cache(teamMember.getPUUID(), name);
+        }
+        this.repaint();
     }
 
     private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
@@ -91,7 +84,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
 
     private void adjust() {
         Dimension dimension = getSize();
-        champion = Scalr.resize(sprite, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_WIDTH, dimension.width);
+        clearChampion = Scalr.resize(sprite, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_WIDTH, dimension.width);
         repaint();
     }
 
@@ -103,14 +96,14 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         this.team = team;
     }
 
-    private void setChampion(int championId) {
+    private void setClearChampion(int championId) {
         ChampionIndex championIndex = ChampionSource.CHAMPION_SOURCE_INSTANCE.get();
         this.hero = championIndex.getChampion(championId).getName();
     }
 
     private void setChampionId(int championId) {
         this.championId = championId;
-        this.setChampion(championId);
+        this.setClearChampion(championId);
         this.updateSprite(championId, championId * 1000);
     }
 
@@ -129,10 +122,10 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         if (this.indicatorId == member.getChampionPickIntent()) return;
         this.indicatorId = member.getChampionPickIntent();
         if (indicatorId != 0) {
-            this.setChampion(indicatorId);
+            this.setClearChampion(indicatorId);
             this.updateSprite(indicatorId, indicatorId * 1000);
         } else if (member.getChampionId() == 0 && !isPicking()) {
-            this.champion = null;
+            this.clearChampion = null;
             this.sprite = null;
         }
     }
@@ -155,8 +148,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
                         skinId
                 ),
                 bufferedImage -> {
-                    BufferedImage crop = Scalr.crop(bufferedImage, 300, 50, 640, 400);
-                    ChampSelectMemberElement.this.sprite = filter.filter(crop, null);
+                    this.sprite = Scalr.crop(bufferedImage, 300, 50, 640, 400);
                     this.adjust();
                 }
         );
@@ -239,10 +231,10 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         g.setColor(isSelf() ? color.brighter() : color);
 
         //DRAW CHAMPION/SKIN IMAGE
-        if (champion != null) {
-            int imageX = (dimension.width >> 1) - (champion.getWidth() >> 1);
-            int imageY = (dimension.height >> 1) - (champion.getHeight() >> 1);
-            g.drawImage(champion, imageX, imageY, null);
+        if (clearChampion != null) {
+            int imageX = (dimension.width >> 1) - (clearChampion.getWidth() >> 1);
+            int imageY = (dimension.height >> 1) - (clearChampion.getHeight() >> 1);
+            g.drawImage(clearChampion, imageX, imageY, null);
         }
 
         //INDICATE STATUS NOT LOCKED IN
@@ -283,15 +275,28 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
                 case PURPLE -> dimension.width - 5 - positionWidth;
             };
             drawTextWithShadow(graphics2D, position, positionX, 5 + metrics.getAscent());
-            String name = switch (member.getNameVisibilityType()) {
-                case "HIDDEN" -> getHiddenName();
-                default -> String.valueOf(this.name != null ? this.name : member.getSummonerId());
+
+            int guidelineY = dimension.height - 7;
+            int baseY = switch (member.getNameVisibilityType()) {
+                case "UNHIDDEN" -> guidelineY - metrics.getAscent() - 7;
+                default -> guidelineY;
             };
-            int nameX = switch (team) {
+            String name = switch (member.getNameVisibilityType()) {
+                case "HIDDEN", "UNHIDDEN" -> getHiddenName();
+                default -> String.valueOf(this.name != null ? this.name : getHiddenName());
+            };
+            int hiddenNameX = switch (team) {
                 case BLUE -> dimension.width - 5 - metrics.stringWidth(name);
                 case PURPLE -> 5;
             };
-            drawTextWithShadow(graphics2D, name, nameX, dimension.height - 7);
+            drawTextWithShadow(graphics2D, name, hiddenNameX, baseY);
+            if (baseY != guidelineY && this.name != null) {
+                int visibleNameX = switch (team) {
+                    case BLUE -> dimension.width - 5 - metrics.stringWidth(this.name);
+                    case PURPLE -> 5;
+                };
+                drawTextWithShadow(graphics2D, this.name, visibleNameX, guidelineY);
+            }
         }
 
         //DRAW CHAMPION NAME

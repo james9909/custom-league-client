@@ -7,7 +7,6 @@ import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.ui.impl.Debouncer;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LComboBox;
@@ -107,7 +106,6 @@ public class StorePage extends ChildUIComponent implements IStorePage {
             sortBox.addItem(new StoreSortOption(property, StoreSortOrder.DESCENDING));
         }
         sortBox.addItemListener(listener -> {
-            AudioEngine.play("air_button_press_1.wav");
             StoreSortOption option = sortBox.getItemAt(sortBox.getSelectedIndex());
             comparator.setProperty(option.property());
             comparator.setOrder(option.order());

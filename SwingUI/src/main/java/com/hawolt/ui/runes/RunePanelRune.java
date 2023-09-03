@@ -1,7 +1,6 @@
 package com.hawolt.ui.runes;
 
 import com.hawolt.async.LazyLoadedImageComponent;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
@@ -47,7 +46,6 @@ public class RunePanelRune extends LazyLoadedImageComponent implements MouseList
     @Override
     public void mousePressed(MouseEvent e) {
         this.selected = !selected;
-        if (selected) AudioEngine.play("air_event_runedrop_1.wav");
         selection.onSelection(componentIndex, selected);
         repaint();
     }

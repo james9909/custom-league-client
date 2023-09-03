@@ -1,7 +1,8 @@
 package com.hawolt.ui.chat.window;
 
 import com.hawolt.ui.chat.friendlist.IFriendListComponent;
-import com.hawolt.util.AudioEngine;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.handler.message.IMessageListener;
@@ -82,7 +83,6 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
         if (!isChatConfigured(lastOpenedChat)) addChat(lastOpenedChat);
         this.layout.show(container, lastOpenedChat);
         getChatContainer(friend.getJID()).drain();
-        AudioEngine.play("join_chat.wav");
         this.content.getInput().grabFocus();
     }
 
@@ -103,7 +103,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
         ChatWindowContent content = getChatContainer(incomingMessage.getFrom());
         content.addMessage(ChatPerspective.OTHER, incomingMessage.getBody());
         boolean isChatOpen = isChatOpened(incomingMessage.getFrom());
-        AudioEngine.play(isChatOpen ? "standard_msg_receive.wav" : "pm_receive.wav");
+        AudioEngine.play(isChatOpen ? Sound.ACTIVE_CHAT_MESSAGE : Sound.INACTIVE_CHAT_MESSAGE);
         if (xmppClient != null) {
             xmppClient.markChatAsRead(incomingMessage.getFrom());
         }

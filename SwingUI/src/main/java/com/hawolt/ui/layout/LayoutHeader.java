@@ -2,8 +2,9 @@ package com.hawolt.ui.layout;
 
 import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.layout.wallet.HeaderWallet;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -42,7 +43,7 @@ public class LayoutHeader extends ChildUIComponent {
 
         button.addActionListener(o -> {
             selectButton.accept(button);
-            AudioEngine.play("openstore.wav");
+            AudioEngine.play(Sound.OPEN_STORE);
             manager.showComponent("store");
         });
         add(button);

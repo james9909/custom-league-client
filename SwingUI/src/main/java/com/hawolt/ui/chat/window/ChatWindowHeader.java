@@ -1,6 +1,7 @@
 package com.hawolt.ui.chat.window;
 
-import com.hawolt.util.AudioEngine;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 
 import javax.swing.*;
@@ -25,7 +26,6 @@ public class ChatWindowHeader extends ChildUIComponent {
         JButton close = new JButton("×");
         this.add(close, BorderLayout.EAST);
         close.addActionListener(listener -> {
-            AudioEngine.play("leave_chat.wav");
             this.getParent().setVisible(false);
         });
     }

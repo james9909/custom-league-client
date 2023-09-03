@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 public class MatchContextPayload {
     private final String chatRoomName, domain, targetRegion;
+    private final int counter;
 
     public MatchContextPayload(JSONObject o) {
         JSONObject afkCheckState = o.getJSONObject("afkCheckState");
@@ -16,6 +17,7 @@ public class MatchContextPayload {
         JSONObject mucJwtDto = afkCheckState.getJSONObject("mucJwtDto");
         this.targetRegion = mucJwtDto.getString("targetRegion");
         this.domain = mucJwtDto.getString("domain");
+        this.counter = o.getInt("counter");
     }
 
     public String getChatRoomName() {
@@ -28,6 +30,10 @@ public class MatchContextPayload {
 
     public String getTargetRegion() {
         return targetRegion;
+    }
+
+    public int getCounter() {
+        return counter;
     }
 
     @Override
