@@ -22,3 +22,5 @@ debug/*
 build/*
 #ignore linux build log
 build.log
+#ignore linux run script
+swift-rift.sh
