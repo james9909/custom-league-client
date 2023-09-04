@@ -28,20 +28,29 @@ public class StoreItemComparator implements Comparator<StoreItem> {
     @Override
     public int compare(StoreItem o1, StoreItem o2) {
         if (this.property == null) return -1;
-        return switch (this.property) {
-            case RIOT_POINT -> compareValues(o1, o2, StoreItem::getRiotPointCost);
-            case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getBlueEssenceCost);
-            case NAME -> compareValues(o1, o2, StoreItem::getName);
-            case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
-        };
+        if (o1.hasDiscount() || o2.hasDiscount()) {
+            return switch (this.property) {
+                case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
+                case RIOT_POINT -> compareValues(o1, o2, StoreItem::getDiscountedCost);
+                case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getBlueEssenceCost);
+                case NAME -> compareValues(o1, o2, StoreItem::getName);
+            };
+        } else {
+            return switch (this.property) {
+                case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
+                case RIOT_POINT -> compareValues(o1, o2, StoreItem::getRiotPointCost);
+                case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getBlueEssenceCost);
+                case NAME -> compareValues(o1, o2, StoreItem::getName);
+            };
+        }
     }
 
     public <R extends Comparable<R>> int compareValues(StoreItem o1, StoreItem o2, Function<StoreItem, R> getValue) {
         R val1 = getValue.apply(o1);
         R val2 = getValue.apply(o2);
         return switch (this.order) {
-            case ASCENDING -> val1.compareTo(val2);
             case DESCENDING -> val2.compareTo(val1);
+            case ASCENDING -> val1.compareTo(val2);
         };
     }
 }

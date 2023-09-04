@@ -46,8 +46,13 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
     private void build() {
         if (item.isBlueEssencePurchaseAvailable() && item.getBlueEssenceCost() > 0)
             buttons.add(new StoreButton(this, CurrencyType.IP, item.getBlueEssenceCost()));
-        if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0)
-            buttons.add(new StoreButton(this, CurrencyType.RP, item.getRiotPointCost()));
+        if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0) {
+            if (item.hasDiscount()) {
+                buttons.add(new StoreButton(this, CurrencyType.RP, item.getDiscountedCost()));
+            } else {
+                buttons.add(new StoreButton(this, CurrencyType.RP, item.getRiotPointCost()));
+            }
+        }
         ChildUIComponent mainComponent = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         ChildUIComponent nameComponent = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         JLabel name = new JLabel(this.item.getName());

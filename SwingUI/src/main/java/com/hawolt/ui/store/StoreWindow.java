@@ -57,7 +57,6 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
         } catch (Exception e) {
             Logger.error(e);
         }
-        //    pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage());
         add(pane, BorderLayout.CENTER);
 
         LeagueClientUI.service.execute(this);

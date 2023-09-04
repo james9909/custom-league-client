@@ -23,7 +23,8 @@ public class StoreItem {
     private boolean active, valid;
     private JSONObject object;
     private long itemId;
-
+    private float discount;
+    private int discountCost;
     private Date releaseDate;
 
     public StoreItem(JSONArray array) {
@@ -37,6 +38,14 @@ public class StoreItem {
         JSONArray prices = item.getJSONArray("prices");
         for (int i = 0; i < prices.length(); i++) {
             list.add(new Price(prices.getJSONObject(i)));
+        }
+        if (item.has("sale")) {
+            JSONObject sale = item.getJSONObject("sale");
+            if (sale.has("prices")) {
+                JSONArray salePrices = sale.getJSONArray("prices");
+                this.discount = salePrices.getJSONObject(0).getFloat("discount");
+                this.discountCost = salePrices.getJSONObject(0).getInt("cost");
+            }
         }
         if (item.has("localizations")) {
             JSONObject localizations = item.getJSONObject("localizations");
@@ -69,6 +78,22 @@ public class StoreItem {
 
     public int getRiotPointCost() {
         return list.stream().filter(price -> price.getCurrency().equals("RP")).mapToInt(Price::getCost).sum();
+    }
+
+    public boolean hasDiscount() {
+        return discount != 0;
+    }
+
+    public float getDiscount() {
+        return discount;
+    }
+
+    public int getDiscountedCost() {
+        if (hasDiscount()) {
+            return discountCost;
+        } else {
+            return getRiotPointCost();
+        }
     }
 
     public boolean isBlueEssencePurchaseAvailable() {

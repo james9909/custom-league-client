@@ -36,6 +36,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     private final LeagueClient client;
     private final ChildUIComponent grid;
     private final List<Long> owned;
+    private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, StoreSortOrder.ASCENDING);
     private final StoreElementComparator comparator;
     private final Debouncer debouncer = new Debouncer();
     private String filter = "";
@@ -70,7 +71,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         add(scrollPane, BorderLayout.CENTER);
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
-        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, StoreSortOrder.ASCENDING);
+        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, StoreSortOrder.DESCENDING);
         JPanel inputPanel = createInputPanel(properties);
         this.add(inputPanel, BorderLayout.NORTH);
     }
@@ -102,8 +103,8 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         LComboBox<StoreSortOption> sortBox = new LComboBox<StoreSortOption>();
         //sortBox.setLabelText("Sort By");
         for (StoreSortProperty property : properties) {
-            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.ASCENDING));
             sortBox.addItem(new StoreSortOption(property, StoreSortOrder.DESCENDING));
+            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.ASCENDING));
         }
         sortBox.addItemListener(listener -> {
             StoreSortOption option = sortBox.getItemAt(sortBox.getSelectedIndex());
@@ -149,6 +150,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         grid.removeAll();
         map.values()
                 .stream()
+                .sorted(this.alphabeticalComparator)
                 .sorted(this.comparator)
                 .filter(champion -> champion.getItem().getName().toLowerCase().contains(filter))
                 .forEach(this.grid::add);
