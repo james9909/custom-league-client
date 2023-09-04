@@ -33,12 +33,16 @@ public class DraftChampSelectHeaderUI extends ChampSelectUIComponent {
         );
     }
 
+    public void reset() {
+        this.timestamp = 0;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Dimension dimension = getSize();
 
-        if (index != null && timestamp != 0L) {
+        if (context != null && timestamp != 0L) {
             double difference = currentTotalTimeMillis - currentTimeRemainingMillis + (System.currentTimeMillis() - timestamp);
             double percentage = difference / currentTotalTimeMillis;
             if (percentage < 0) percentage = 0;
@@ -68,21 +72,21 @@ public class DraftChampSelectHeaderUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        this.currentTimeRemainingMillis = index.getCurrentTimeRemainingMillis();
-        this.currentTotalTimeMillis = index.getCurrentTotalTimeMillis();
+        this.currentTimeRemainingMillis = context.getCurrentTimeRemainingMillis();
+        this.currentTotalTimeMillis = context.getCurrentTotalTimeMillis();
         this.timestamp = System.currentTimeMillis();
-        if (index.isFinalizing()) {
+        if (context.isFinalizing()) {
             this.phase = ChampSelectPhase.FINALIZE;
         } else {
-            switch (index.getCurrentActionSetIndex()) {
+            switch (context.getCurrentActionSetIndex()) {
                 case -1 -> this.phase = ChampSelectPhase.PLAN;
-                case 0 -> index.getOwnBanPhase().ifPresent(actionObject -> {
+                case 0 -> context.getOwnBanPhase().ifPresent(actionObject -> {
                     this.phase = actionObject.isCompleted() ? ChampSelectPhase.PLAN : ChampSelectPhase.BAN;
                 });
                 default -> {
-                    boolean pick = index.getActionSetMapping().get(index.getCurrentActionSetIndex())
+                    boolean pick = context.getActionSetMapping().get(context.getCurrentActionSetIndex())
                             .stream()
-                            .anyMatch(o -> o.getActorCellId() == index.getLocalPlayerCellId() && !o.isCompleted());
+                            .anyMatch(o -> o.getActorCellId() == context.getLocalPlayerCellId() && !o.isCompleted());
                     this.phase = pick ? ChampSelectPhase.PICK : ChampSelectPhase.IDLE;
                 }
             }

@@ -54,6 +54,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
 
     @Override
     public void init() {
+        if (context == null) return;
         this.map.clear();
         this.display.removeAll();
         this.type = getChampSelectTeamType();
@@ -64,7 +65,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
             ExecutorService loader = ExecutorManager.getService("name-loader");
             ChampSelectMemberElement element = new ChampSelectMemberElement(type, team, member);
             map.put(member.getCellId(), element);
-            element.setIndex(index);
+            element.setIndex(context);
             loader.execute(element);
             this.display.add(element);
         }
@@ -73,6 +74,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
+        if (context == null) return;
         for (ChampSelectMember member : get(type)) {
             map.get(member.getCellId()).update(member);
         }
@@ -81,11 +83,11 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
     private ChampSelectMember[] get(ChampSelectTeamType type) {
         switch (type) {
             case ALLIED -> {
-                return index.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE);
+                return context.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE);
 
             }
             case ENEMY -> {
-                return index.getCells(ChampSelectTeamType.ENEMY, MemberFunction.INSTANCE);
+                return context.getCells(ChampSelectTeamType.ENEMY, MemberFunction.INSTANCE);
             }
         }
         return new ChampSelectMember[0];
@@ -93,7 +95,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
 
     @NotNull
     private ChampSelectTeamType getChampSelectTeamType() {
-        ChampSelectTeamMember self = index.getSelf();
+        ChampSelectTeamMember self = context.getSelf();
         int alliedTeamId = self.getTeamId();
         ChampSelectTeamType type;
         switch (team) {

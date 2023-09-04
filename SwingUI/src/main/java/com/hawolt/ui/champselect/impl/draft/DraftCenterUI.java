@@ -1,6 +1,7 @@
 package com.hawolt.ui.champselect.impl.draft;
 
 import com.hawolt.ui.champselect.data.ChampSelectType;
+import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectChoice;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSelectionUI;
@@ -20,7 +21,9 @@ public class DraftCenterUI extends ChampSelectUIComponent {
     private final CardLayout layout = new CardLayout();
     private final ChampSelectSelectionUI pick, ban;
     private final ChildUIComponent main, child, cards;
+    private ChampSelectRuneSelection runeSelection;
     private ChampSelectPhase current;
+    private String name;
 
     public DraftCenterUI(ChampSelectChoice callback) {
         this.setLayout(new BorderLayout());
@@ -52,10 +55,18 @@ public class DraftCenterUI extends ChampSelectUIComponent {
         return child;
     }
 
+    public void toggleCard(String name) {
+        layout.show(cards, this.name = name);
+    }
+
+    public void toggleCurrentPhase() {
+        toggleCard(current.getName());
+    }
+
     @Override
     public void update() {
-        int currentActionSetIndex = index.getCurrentActionSetIndex();
-        Optional<ActionObject> optional = index.getOwnBanPhase();
+        int currentActionSetIndex = context.getCurrentActionSetIndex();
+        Optional<ActionObject> optional = context.getOwnBanPhase();
         boolean isBanComplete = optional.isPresent() && optional.get().isCompleted();
         ChampSelectPhase phase;
         if (currentActionSetIndex < 0) {
@@ -69,7 +80,14 @@ public class DraftCenterUI extends ChampSelectUIComponent {
         } else {
             phase = ChampSelectPhase.PICK;
         }
-        if (phase == current) return;
-        layout.show(cards, (current = phase).getName());
+        this.current = phase;
+        if (name != null && name.equals("runes")) return;
+        toggleCard(current.getName());
+    }
+
+    public void setRuneSelection(String name, ChampSelectRuneSelection runeSelection) {
+        this.runeSelection = runeSelection;
+        this.runeSelection.getCloseButton().addActionListener(listener -> toggleCurrentPhase());
+        this.cards.add(name, runeSelection);
     }
 }

@@ -1,6 +1,7 @@
 package com.hawolt;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.async.gsm.ActiveGameInformation;
 import com.hawolt.async.loader.PreferenceLoader;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
@@ -27,6 +28,8 @@ import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
 import com.hawolt.ui.settings.SettingsUI;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.discord.RichPresence;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.virtual.client.RiotClientException;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
@@ -88,6 +91,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public static void main(String[] args) {
         RMANCache.preload();
+        RichPresence.show();
+        AudioEngine.install();
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
         leagueClientUI.setIconImage(logo);
         leagueClientUI.settingService = new SettingManager();
@@ -141,6 +146,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private void wrap() {
         this.setVisible(true);
         this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
+        LeagueClientUI.service.execute(new ActiveGameInformation(this));
         VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
         RMANCache.purge();
         this.chatUI.setSupplier(xmppClient);

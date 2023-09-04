@@ -21,7 +21,6 @@ public class PartiesRegistration {
     protected CurrentParty currentParty;
 
     public PartiesRegistration(JSONObject o) {
-        Logger.debug("Registration: {}", o);
         this.serverUtcMillis = o.getLong("serverUtcMillis");
         this.eligibilityHash = o.getLong("eligibilityHash");
         this.platformId = o.getString("platformId");
@@ -42,6 +41,11 @@ public class PartiesRegistration {
         if (o.has("currentParty") && !o.isNull("currentParty")) {
             this.currentParty = new CurrentParty(o.getJSONObject("currentParty"));
         }
+        this.debug(o);
+    }
+
+    private void debug(JSONObject o) {
+        Logger.info("[parties-ledge] {}", o);
     }
 
     public String getPlatformId() {

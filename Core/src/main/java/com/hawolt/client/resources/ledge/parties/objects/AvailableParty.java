@@ -1,5 +1,6 @@
 package com.hawolt.client.resources.ledge.parties.objects;
 
+import com.hawolt.logger.Logger;
 import org.json.JSONObject;
 
 /**
@@ -14,6 +15,7 @@ public class AvailableParty extends Party {
 
     public AvailableParty(JSONObject o) {
         super(o);
+        Logger.error(o);
         this.invitedBySummonerId = o.getLong("invitedBySummonerId");
         this.inviteTimestamp = o.getLong("inviteTimestamp");
         this.invitedByPuuid = o.getString("invitedByPuuid");

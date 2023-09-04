@@ -4,7 +4,7 @@ import com.hawolt.generic.util.Network;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.ScrollPane;
+import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,7 +20,7 @@ public class ReleaseWindow extends ChildUIComponent {
     public ReleaseWindow() {
         super(new BorderLayout());
 
-        ScrollPane pane = new ScrollPane(changelog = new JTextPane());
+        LScrollPane pane = new LScrollPane(changelog = new JTextPane());
         changelog.setBackground(ColorPalette.BACKGROUND_COLOR);
 
         StyledDocument document = changelog.getStyledDocument();

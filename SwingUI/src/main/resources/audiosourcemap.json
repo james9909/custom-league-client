@@ -1,0 +1,32 @@
+[
+  {
+    "file": "queue-pop.mp3",
+    "source": "https://pixabay.com/sound-effects/ping-contact-cinematic-trailer-sound-effects-124764/"
+  },
+  {
+    "file": "open-store.mp3",
+    "source": "https://pixabay.com/sound-effects/pickup-money-03-94972/"
+  },
+  {
+    "file": "friend-request.mp3",
+    "source": "https://pixabay.com/sound-effects/beep-6-96243/"
+  },
+  {
+    "file": "msg-1.mp3",
+    "hint": "file has been manually altered",
+    "source": "https://pixabay.com/sound-effects/notifications-sound-127856/"
+  },
+  {
+    "file": "msg-2.mp3",
+    "hint": "file has been manually altered",
+    "source": "https://pixabay.com/sound-effects/notifications-sound-127856/"
+  },
+  {
+    "file": "error.mp3",
+    "source": "https://pixabay.com/sound-effects/error-126627/"
+  },
+  {
+    "file": "success.mp3",
+    "source": "https://pixabay.com/sound-effects/short-success-sound-glockenspiel-treasure-video-game-6346/"
+  }
+]

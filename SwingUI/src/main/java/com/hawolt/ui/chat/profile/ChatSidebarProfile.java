@@ -18,7 +18,7 @@ public class ChatSidebarProfile extends ChildUIComponent {
 
     public ChatSidebarProfile(UserInformation information, LayoutManager layout) {
         super(layout);
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.ACCENT_COLOR);
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
         this.setPreferredSize(new Dimension(0, 90));
         this.add(icon = new ChatSidebarProfileIcon(new BorderLayout()), BorderLayout.WEST);

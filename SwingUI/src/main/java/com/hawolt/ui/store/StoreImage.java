@@ -5,6 +5,7 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
 import org.imgscalr.Scalr;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -68,7 +69,27 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
             int x = (dimension.width >> 1) - (image.getWidth() >> 1);
             int y = (dimension.height >> 1) - (image.getHeight() >> 1);
             g.drawImage(image, x, y, null);
+            if (item.hasDiscount())
+                paintDiscountLabel(g);
         }
+    }
+
+    private void paintDiscountLabel(Graphics g) {
+        super.paintComponent(g);
+        Font font = new Font("Arial", Font.BOLD, 15);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setFont(font);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.RED.darker());
+        g2.fillOval(3,3,42,42);
+        g2.setColor(Color.BLACK);
+        g2.drawOval(2,2,44,44);
+        g2.drawOval(6,6,36,36);
+        g2.setColor(new Color(179, 140, 69));
+        g2.setStroke(new BasicStroke(3));
+        g2.drawOval(4,4,40,40);
+        g2.setColor(Color.WHITE);
+        g2.drawString("-" + Math.round(item.getDiscount() * 100) + "%", 7, 30);
     }
 
     @Override

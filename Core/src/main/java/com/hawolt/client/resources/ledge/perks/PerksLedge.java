@@ -6,8 +6,10 @@ import com.hawolt.client.resources.ledge.parties.objects.PartiesRegistration;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
 import com.hawolt.virtual.leagueclient.userinfo.child.UserInformationLeagueAccount;
-import okhttp3.*;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -54,12 +56,8 @@ public class PerksLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .post(RequestBody.create(escape(runes.toString()), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                return body.string();
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return response.asString();
     }
 
     @Override

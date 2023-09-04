@@ -20,7 +20,7 @@ public class ChatSidebarSummoner extends ChildUIComponent {
     public ChatSidebarSummoner(UserInformation information, LayoutManager layout) {
         super(layout);
         this.setBorder(new EmptyBorder(0, 5, 0, 0));
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.ACCENT_COLOR);
         add(name = new ChatSidebarName());
         add(bar = new ChatSidebarXP(information));
         add(status = new ChatSidebarStatus());

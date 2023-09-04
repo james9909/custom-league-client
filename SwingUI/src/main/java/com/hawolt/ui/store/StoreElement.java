@@ -8,8 +8,9 @@ import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.purchasewidget.CurrencyType;
 import com.hawolt.client.resources.purchasewidget.PurchaseWidget;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONObject;
 
@@ -45,8 +46,13 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
     private void build() {
         if (item.isBlueEssencePurchaseAvailable() && item.getBlueEssenceCost() > 0)
             buttons.add(new StoreButton(this, CurrencyType.IP, item.getBlueEssenceCost()));
-        if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0)
-            buttons.add(new StoreButton(this, CurrencyType.RP, item.getRiotPointCost()));
+        if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0) {
+            if (item.hasDiscount()) {
+                buttons.add(new StoreButton(this, CurrencyType.RP, item.getDiscountedCost()));
+            } else {
+                buttons.add(new StoreButton(this, CurrencyType.RP, item.getRiotPointCost()));
+            }
+        }
         ChildUIComponent mainComponent = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         ChildUIComponent nameComponent = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         JLabel name = new JLabel(this.item.getName());
@@ -75,15 +81,14 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
 
     @Override
     public void purchase(CurrencyType currencyType, long price) {
-        AudioEngine.play("air_button_press_1.wav");
         LeagueClientUI.service.execute(() -> {
             try {
                 PurchaseWidget widget = client.getPurchaseWidget();
                 JSONObject response = new JSONObject(widget.purchase(currencyType, InventoryType.CHAMPION, item.getItemId(), price));
                 if (response.has("errorCode")) {
-                    AudioEngine.play("friend_logout.wav");
+                    AudioEngine.play(Sound.ERROR);
                 } else {
-                    AudioEngine.play("openstore.wav");
+                    AudioEngine.play(Sound.SUCCESS);
                     page.removeStoreElement(this);
                     LeagueClientUI.service.execute(
                             new CachedValueLoader<>(

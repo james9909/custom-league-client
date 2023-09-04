@@ -12,7 +12,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScrollBar extends BasicScrollBarUI {
+public class LScrollBarUI extends BasicScrollBarUI {
     private final int scrollSize = 14;
     private final MouseAdapter mouseEvent;
     private float animate;
@@ -20,7 +20,7 @@ public class ScrollBar extends BasicScrollBarUI {
     private boolean hover;
     private boolean press;
 
-    public ScrollBar() {
+    public LScrollBarUI() {
         mouseEvent = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -54,7 +54,7 @@ public class ScrollBar extends BasicScrollBarUI {
     }
 
     public static ComponentUI createUI(JComponent c) {
-        return new ScrollBar();
+        return new LScrollBarUI();
     }
 
     @Override

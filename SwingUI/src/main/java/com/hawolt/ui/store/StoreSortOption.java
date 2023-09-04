@@ -8,8 +8,8 @@ public record StoreSortOption(StoreSortProperty property, StoreSortOrder order) 
     @Override
     public String toString() {
         String suffix = switch (this.order) {
-            case ASCENDING -> "↑";
             case DESCENDING -> "↓";
+            case ASCENDING -> "↑";
         };
         return String.format("%s %s", this.property, suffix);
     }

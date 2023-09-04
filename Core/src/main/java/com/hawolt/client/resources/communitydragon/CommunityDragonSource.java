@@ -6,7 +6,7 @@ package com.hawolt.client.resources.communitydragon;
  **/
 
 public interface CommunityDragonSource<T> {
-    String getSource();
+    String getSource(String... args);
 
-    T get();
+    T get(String... args);
 }

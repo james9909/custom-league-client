@@ -35,9 +35,9 @@ public class ChampSelectDebugUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        this.queueId.setText(String.format("Queue ID: %s", index.getQueueId()));
-        this.counter.setText(String.format("COUNTER: %s", index.getCounter()));
-        this.phaseName.setText(String.format("PHASE: %s - %s", index.getPhaseName(), index.getSubphase()));
+        this.queueId.setText(String.format("Queue ID: %s", context.getQueueId()));
+        this.counter.setText(String.format("COUNTER: %s", context.getCounter()));
+        this.phaseName.setText(String.format("PHASE: %s - %s", context.getPhaseName(), context.getSubphase()));
     }
 
 }

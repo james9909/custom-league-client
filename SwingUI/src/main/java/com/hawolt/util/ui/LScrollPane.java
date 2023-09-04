@@ -7,10 +7,10 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Objects;
 
-public class ScrollPane extends JScrollPane {
-    public ScrollPane(Component view) {
-        getVerticalScrollBar().setUI(new com.hawolt.util.ui.ScrollBar());
-        getHorizontalScrollBar().setUI(new com.hawolt.util.ui.ScrollBar());
+public class LScrollPane extends JScrollPane {
+    public LScrollPane(Component view) {
+        getVerticalScrollBar().setUI(new LScrollBarUI());
+        getHorizontalScrollBar().setUI(new LScrollBarUI());
         setBorder(new EmptyBorder(0, 0, 0, 0));
         setViewportView(view);
         setBackground(ColorPalette.BACKGROUND_COLOR);

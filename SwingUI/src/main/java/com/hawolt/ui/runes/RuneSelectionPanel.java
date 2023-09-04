@@ -6,6 +6,10 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTabbedPane;
+import com.hawolt.util.ui.LTextAlign;
 import com.hawolt.version.local.LocalLeagueFileVersion;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,10 +30,10 @@ import java.util.List;
 
 public class RuneSelectionPanel extends ChildUIComponent implements ActionListener, ResourceConsumer<JSONArray, byte[]> {
     private final String DD_RUNES = "http://ddragon.leagueoflegends.com/cdn/%s/data/en_US/runesReforged.json";
-    private final JTabbedPane main, secondary;
+    private final LTabbedPane main, secondary;
     private final ChildUIComponent right;
     private final LeagueClient client;
-    private final JButton button;
+    private final LFlatButton button;
     private int selected = -1;
     private RunePanel extra;
 
@@ -37,9 +41,9 @@ public class RuneSelectionPanel extends ChildUIComponent implements ActionListen
         super(new BorderLayout());
         ChildUIComponent panel = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         this.add(panel, BorderLayout.CENTER);
-        this.main = new JTabbedPane();
+        this.main = new LTabbedPane();
         panel.add(main);
-        this.secondary = new JTabbedPane();
+        this.secondary = new LTabbedPane();
         this.right = new ChildUIComponent(new BorderLayout());
         this.right.add(secondary, BorderLayout.CENTER);
         panel.add(right);
@@ -48,7 +52,7 @@ public class RuneSelectionPanel extends ChildUIComponent implements ActionListen
         String value = leagueFileVersion.getVersionValue(client.getPlayerPlatform(), "LeagueClientUxRender.exe");
         String[] versions = value.split("\\.");
         String patch = String.format("%s.%s.1", versions[0], versions[1]);
-        this.button = new JButton("Set Runes");
+        this.button = new LFlatButton("Set Runes", LTextAlign.CENTER, LHighlightType.COMPONENT);
         this.button.addActionListener(this);
         this.add(button, BorderLayout.SOUTH);
         ResourceLoader.loadResource(String.format(DD_RUNES, patch), this);

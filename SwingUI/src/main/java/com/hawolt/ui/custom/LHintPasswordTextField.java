@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect;
+package com.hawolt.ui.custom;
 
 import com.hawolt.util.ColorPalette;
 
@@ -11,10 +11,10 @@ import java.awt.*;
  * Author: Twitter @hawolt
  **/
 
-public class LHintTextField extends JTextField {
+public class LHintPasswordTextField extends JPasswordField {
     private final String hint;
 
-    public LHintTextField(String hint) {
+    public LHintPasswordTextField(String hint) {
         this.hint = hint;
         this.setForeground(Color.WHITE);
         this.setCaretColor(Color.WHITE);

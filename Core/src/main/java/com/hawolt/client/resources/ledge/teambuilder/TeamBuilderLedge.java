@@ -6,7 +6,9 @@ import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
-import okhttp3.*;
+import com.hawolt.http.layer.IResponse;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -40,14 +42,10 @@ public class TeamBuilderLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .post(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                MatchContext context = new MatchContext(new JSONObject(body.string()));
-                client.cache(CacheType.MATCH_CONTEXT, context);
-                return context;
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        MatchContext context = new MatchContext(new JSONObject(response.asString()));
+        client.cache(CacheType.MATCH_CONTEXT, context);
+        return context;
     }
 
     @Override

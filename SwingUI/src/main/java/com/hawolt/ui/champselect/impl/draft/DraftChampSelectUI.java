@@ -14,6 +14,8 @@ import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectType;
+import com.hawolt.ui.champselect.data.GameType;
+import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectChatUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectDebugUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSelectionElement;
@@ -23,6 +25,7 @@ import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,11 +66,16 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
     }
 
     @Override
+    protected void stopChampSelectTimer() {
+        this.headerUI.reset();
+    }
+
+    @Override
     public void init() {
         super.init();
         //JOIN CHATROOM WHEN CHAMP SELECT STARTS
         LeagueClientUI.service.execute(() -> {
-            LeagueClient client = index.getLeagueClient();
+            LeagueClient client = context.getLeagueClient();
             if (client == null) return;
             MatchContext context = client.getCachedValue(CacheType.MATCH_CONTEXT);
             if (context == null) return;
@@ -79,6 +87,7 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
 
     private void build() {
         settingUI.getSubmitButton().addActionListener(this);
+        settingUI.getDodgeButton().addActionListener(this);
         settingUI.getRuneButton().addActionListener(this);
         settingUI.getSpellOne().addActionListener(this);
         settingUI.getSpellTwo().addActionListener(this);
@@ -106,11 +115,11 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
     public void onSummonerSubmission(Spell selectedSpellOne, Spell selectedSpellTwo) {
         try {
             Logger.info("{}, {}, {}, {}", selectedSpellOne.getName(), selectedSpellOne.getId(), selectedSpellTwo.getName(), selectedSpellTwo.getId());
-            if (index == null) {
+            if (context == null) {
                 Logger.info("RETURN 1");
                 return;
             }
-            LeagueRtmpClient rtmpClient = index.getLeagueClient().getRTMPClient();
+            LeagueRtmpClient rtmpClient = context.getLeagueClient().getRTMPClient();
             TeamBuilderService teamBuilderService = rtmpClient.getTeamBuilderService();
             teamBuilderService.selectSpellsBlocking(selectedSpellOne.getId(), selectedSpellTwo.getId());
         } catch (Exception e) {
@@ -120,9 +129,9 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
     }
 
     protected void onChoice(ActionObject actionObject, int championId, boolean completed) {
-        if (index == null) return;
+        if (context == null) return;
         try {
-            LeagueRtmpClient rtmpClient = index.getLeagueClient().getRTMPClient();
+            LeagueRtmpClient rtmpClient = context.getLeagueClient().getRTMPClient();
             TeamBuilderService teamBuilderService = rtmpClient.getTeamBuilderService();
             teamBuilderService.updateActionV1Asynchronous(new PacketCallback() {
                 @Override
@@ -138,13 +147,13 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
 
     @Override
     public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
-        if (index == null) {
+        if (context == null) {
             Logger.info("RETURN 2");
             return;
         }
         Optional<ActionObject> optional = switch (type) {
-            case PICK -> index.getOwnPickPhase();
-            case BAN -> index.getOwnBanPhase();
+            case PICK -> context.getOwnPickPhase();
+            case BAN -> context.getOwnBanPhase();
         };
         optional.ifPresent(phase -> {
             Logger.info("{}, {}, {}, {}", type, phase.getActionId(), championId, completed);
@@ -170,17 +179,31 @@ public class DraftChampSelectUI extends AbstractRenderInstance implements Action
     }
 
     @Override
+    public void setGlobalRunePanel(ChampSelectRuneSelection selection) {
+        this.centerUI.setRuneSelection("runes", selection);
+    }
+
+    @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
+            case "Dodge" -> {
+                int result = JOptionPane.showConfirmDialog(
+                        Frame.getFrames()[0],
+                        "Dodging will result in loss of LP, are you sure?",
+                        "Warning",
+                        JOptionPane.YES_NO_OPTION
+                );
+                if (result == JOptionPane.YES_OPTION) dodge(GameType.CLASSIC);
+            }
             case "Submit Choice" -> {
-                if (index.getCurrentActionSetIndex() == 0) {
+                if (context.getCurrentActionSetIndex() == 0) {
                     onChoiceSubmission(ChampSelectType.BAN, bannedChampionId, true);
                 } else {
                     onChoiceSubmission(ChampSelectType.PICK, selectedChampionId, true);
                 }
             }
-            case "Configure Runes" -> {
-                Logger.info("Should switch to runes panel");
+            case "Rune Page" -> {
+                centerUI.toggleCard("runes");
             }
             case "comboBoxChanged" -> {
                 onSummonerSubmission(

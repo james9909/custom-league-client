@@ -2,12 +2,13 @@ package com.hawolt.ui.layout;
 
 import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.layout.wallet.HeaderWallet;
-import com.hawolt.util.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
+import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.FlatButton;
-import com.hawolt.util.ui.HighlightType;
-import com.hawolt.util.ui.TextAlign;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -23,16 +24,16 @@ public class LayoutHeader extends ChildUIComponent {
 
     public LayoutHeader(ILayoutManager manager, LeagueClient client) {
         super(new GridLayout(0, 5, 5, 0));
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.ACCENT_COLOR);
         this.setPreferredSize(new Dimension(0, 90));
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-        FlatButton button = new FlatButton("STORE", TextAlign.CENTER, HighlightType.BOTTOM);
-        FlatButton button1 = new FlatButton("PLAY", TextAlign.CENTER, HighlightType.BOTTOM);
-        FlatButton button2 = new FlatButton("CHAMPSELECT", TextAlign.CENTER, HighlightType.BOTTOM);
-        FlatButton button3 = new FlatButton("RUNES", TextAlign.CENTER, HighlightType.BOTTOM);
+        LFlatButton button = new LFlatButton("STORE", LTextAlign.CENTER, LHighlightType.BOTTOM);
+        LFlatButton button1 = new LFlatButton("PLAY", LTextAlign.CENTER, LHighlightType.BOTTOM);
+        LFlatButton button2 = new LFlatButton("CHAMPSELECT", LTextAlign.CENTER, LHighlightType.BOTTOM);
+        LFlatButton button3 = new LFlatButton("RUNES", LTextAlign.CENTER, LHighlightType.BOTTOM);
 
-        final Consumer<FlatButton> selectButton = (b) -> {
+        final Consumer<LFlatButton> selectButton = (b) -> {
             button.setSelected(false);
             button1.setSelected(false);
             button2.setSelected(false);
@@ -42,7 +43,7 @@ public class LayoutHeader extends ChildUIComponent {
 
         button.addActionListener(o -> {
             selectButton.accept(button);
-            AudioEngine.play("openstore.wav");
+            AudioEngine.play(Sound.OPEN_STORE);
             manager.showComponent("store");
         });
         add(button);

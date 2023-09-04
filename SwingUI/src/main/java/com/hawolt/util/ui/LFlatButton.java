@@ -11,28 +11,28 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 
-public class FlatButton extends JButton {
+public class LFlatButton extends JButton {
     private int selectedIndicatorSize = 5;
     private Color selectedColor;
 
     private boolean showSelectionIndicator;
-    private HighlightType highlightType;
+    private LHighlightType highlightType;
 
-    private TextAlign textAlign;
+    private LTextAlign textAlign;
 
-    public FlatButton() {
+    public LFlatButton() {
         init();
-        textAlign = TextAlign.LEFT;
+        textAlign = LTextAlign.LEFT;
     }
 
-    public FlatButton(String text, TextAlign textAlign) {
+    public LFlatButton(String text, LTextAlign textAlign) {
         super(text);
         init();
         this.textAlign = textAlign;
-        highlightType = HighlightType.LEFT;
+        highlightType = LHighlightType.LEFT;
     }
 
-    public FlatButton(String text, TextAlign textAlign, HighlightType highlightType) {
+    public LFlatButton(String text, LTextAlign textAlign, LHighlightType highlightType) {
         super(text);
         this.highlightType = highlightType;
         init();
@@ -45,7 +45,7 @@ public class FlatButton extends JButton {
         setBorder(new EmptyBorder(8, 8, 8, 8));
         setForeground(Color.WHITE); //Set text to white
 
-        setFont(new Font("Arial", Font.BOLD, 18));
+        setFont(new Font("Dialog", Font.BOLD, 18));
 
         selectedColor = ColorPalette.BUTTON_SELECTION_COLOR;
 
@@ -81,7 +81,7 @@ public class FlatButton extends JButton {
         setBackground(new Color(0, 0, 0, 0)); //Set default background color
     }
 
-    public void setHighlightType(HighlightType direction) {
+    public void setHighlightType(LHighlightType direction) {
         highlightType = direction;
     }
 
@@ -93,7 +93,7 @@ public class FlatButton extends JButton {
         selectedColor = col;
     }
 
-    public void setTextAlign(TextAlign align) {
+    public void setTextAlign(LTextAlign align) {
         textAlign = align;
     }
 
@@ -145,7 +145,7 @@ public class FlatButton extends JButton {
         String text = getText();
         switch (textAlign) {
             case LEFT:
-                if (highlightType != HighlightType.LEFT)
+                if (highlightType != LHighlightType.LEFT)
                     x = getWidth() / 20;
                 else
                     x = getWidth() / 20 + selectedIndicatorSize;
@@ -154,23 +154,16 @@ public class FlatButton extends JButton {
                 x = getWidth() / 2 - metrics.stringWidth(text) / 2;
                 break;
             case RIGHT:
-                if (highlightType != HighlightType.RIGHT)
+                if (highlightType != LHighlightType.RIGHT)
                     x = getWidth() - metrics.stringWidth(text) - getWidth() / 20;
                 else
                     x = getWidth() - metrics.stringWidth(text) - getWidth() / 20 - selectedIndicatorSize;
                 break;
         }
         y = getHeight() / 2 + (metrics.getAscent() - metrics.getDescent() - metrics.getLeading()) / 2;
-        drawHighlightedText(g2d, text, x, y);
+        PaintHelper.drawShadowText(g2d, text, x, y, getForeground());
 
         g2d.dispose();
         //  super.paintComponent(graphics);
-    }
-
-    private void drawHighlightedText(Graphics g, String text, int x, int y) {
-        g.setColor(Color.BLACK);
-        g.drawString(text, x + 1, y + 1);
-        g.setColor(Color.WHITE);
-        g.drawString(text, x, y);
     }
 }

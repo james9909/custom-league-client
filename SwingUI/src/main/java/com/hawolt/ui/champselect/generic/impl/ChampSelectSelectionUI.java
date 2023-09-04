@@ -9,12 +9,14 @@ import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.ScrollPane;
+import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -24,7 +26,7 @@ import java.util.stream.IntStream;
 
 public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     private static final String IMAGE_ICON_BASE = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/%s.png";
-
+    private final Map<Integer, ChampSelectSelectionElement> map = new HashMap<>();
     private final ChildUIComponent component = new ChildUIComponent();
     private final ChampSelectChoice callback;
     private final ChampSelectType type;
@@ -34,7 +36,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     public ChampSelectSelectionUI(ChampSelectType type, ChampSelectChoice callback) {
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        ScrollPane scrollPane = new ScrollPane(component);
+        LScrollPane scrollPane = new LScrollPane(component);
         component.setBackground(ColorPalette.BACKGROUND_COLOR);
         component.setLayout(new GridLayout(0, 5, 5, 5));
         component.setBorder(new EmptyBorder(5, 0, 0, 0));
@@ -58,8 +60,12 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
             for (int championId : boxed) {
                 Champion champion = championIndex.getChampion(championId);
                 if (!champion.getName().toLowerCase().contains(filter)) continue;
-                ChampSelectSelectionElement element = new ChampSelectSelectionElement(callback, type, championId, champion.getName());
-                ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), false, element);
+                if (!map.containsKey(championId)) {
+                    ChampSelectSelectionElement element = new ChampSelectSelectionElement(callback, type, championId, champion.getName());
+                    ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), false, element);
+                    map.put(championId, element);
+                }
+                ChampSelectSelectionElement element = map.get(championId);
                 component.add(element);
             }
             this.revalidate();
@@ -67,12 +73,11 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
         });
     }
 
-
     @Override
     public void update() {
         int[] championsAvailableAsChoice = switch (type) {
-            case PICK -> index.getChampionsAvailableForPick();
-            case BAN -> index.getChampionsAvailableForBan();
+            case PICK -> context.getChampionsAvailableForPick();
+            case BAN -> context.getChampionsAvailableForBan();
         };
         if (this.championsAvailableAsChoice.length == championsAvailableAsChoice.length) return;
         this.championsAvailableAsChoice = championsAvailableAsChoice;
@@ -80,7 +85,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     }
 
     public void filter(String champion) {
-        if (index == null) return;
+        if (context == null) return;
         this.filter = champion.toLowerCase();
         this.configure();
     }
