@@ -60,7 +60,7 @@ public class DraftCenterUI extends ChampSelectUIComponent {
     }
 
     public void toggleCurrentPhase() {
-        layout.show(cards, current.getName());
+        toggleCard(current.getName());
     }
 
     @Override

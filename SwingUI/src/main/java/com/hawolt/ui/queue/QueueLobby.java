@@ -136,7 +136,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
             }
             revalidate();
         });
-        if (queueId != party.getPartyGameMode().getQueueId()) {
+        if (party.getPartyGameMode() != null && queueId != party.getPartyGameMode().getQueueId()) {
             queueId = party.getPartyGameMode().getQueueId();
             try {
                 leagueClientUI.getLeagueClient().getLedge().getParties().role(party.getPartyId(), PartyRole.MEMBER);

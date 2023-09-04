@@ -13,4 +13,4 @@ jobs:
           distribution: "oracle"
           cache: "maven"
       - name: Build
-        run: mvn compile
+        run: mvn package

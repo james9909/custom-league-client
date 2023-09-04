@@ -65,7 +65,7 @@ public class AudioEngine {
     private static final Map<String, byte[]> CACHE = new HashMap<>();
 
     private static void cache(Sound sound) throws UnsupportedAudioFileException, IOException {
-        try (InputStream inputStream = RunLevel.get(String.join("/", "audio/", sound.filename))) {
+        try (InputStream inputStream = RunLevel.get(String.join("/", "audio", sound.filename))) {
             ByteArrayOutputStream outputStream = sound.filename.endsWith("mp3")
                     ? convertToWaveFormatFromMP3(inputStream)
                     : Core.read(inputStream);
