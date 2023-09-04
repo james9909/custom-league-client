@@ -8,7 +8,7 @@ CORE_DIR="Core"
 BUILD_DIR="build"
 
 TARGET="/target"
-LIB_FILES="${TARGET}/lib/"
+LIB_FILES="${TARGET}/modules/"
 CLASS_FILES="${TARGET}/classes/"
 
 SCRIPT_NAME="swift-rift.sh"

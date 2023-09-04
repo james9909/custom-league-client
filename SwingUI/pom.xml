@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>SwingUI</artifactId>
-    <version>1.05-alpha</version>
+    <version>alpha-1.05</version>
 
     <build>
         <plugins>
@@ -34,7 +34,7 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <outputDirectory>${project.build.directory}/modules</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
@@ -45,7 +45,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>bundled-client-${version}</finalName>
+                    <finalName>swift-rift-${version}</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.hawolt.LeagueClientUI</mainClass>
@@ -63,6 +63,26 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>make-installer-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>swift-rift</finalName>
+                            <outputDirectory>${project.build.directory}/modules</outputDirectory>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.hawolt.LeagueClientUI</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

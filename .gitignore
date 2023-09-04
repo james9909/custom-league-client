@@ -12,3 +12,13 @@ resources/*
 **/target/**
 #ignore jetbrains .iml configs
 ***.iml
+#ignore minified jre path
+jre/*
+#ignore release directory
+release/*
+#ignore local debug files
+debug/*
+#ignore linux build directory
+build/*
+#ignore linux build log
+build.log
