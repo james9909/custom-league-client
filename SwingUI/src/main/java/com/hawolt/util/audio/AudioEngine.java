@@ -38,13 +38,9 @@ public class AudioEngine {
     }
 
     public static Mixer SELECTED_MIXER;
-    
-    private static Float gain;
-    public static void setGain(Float gain) {
-        AudioEngine.gain = gain;
-    }
 
     private static Float gain;
+
     public static void setGain(Float gain) {
         AudioEngine.gain = gain;
     }

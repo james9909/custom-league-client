@@ -35,7 +35,7 @@ public class DraftSelectSidebarUI extends ChampSelectSidebarUI {
     public void init() {
         super.init();
         for (ChampSelectBanElement element : elements) {
-            element.update(-1);
+            element.reset();
         }
     }
 

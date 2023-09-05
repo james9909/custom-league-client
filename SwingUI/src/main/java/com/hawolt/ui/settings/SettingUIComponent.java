@@ -43,55 +43,6 @@ public class SettingUIComponent extends ChildUIComponent {
         return result;
     }
 
-    public static SettingUIComponent createVolumeComponent(String name, SettingService settingService, String key) {
-        DynamicObject settings = settingService.getClientSettings();
-        AudioEngine.setGain(-80f + (8.6f * ((float) settingService.getClientSettings().getClientVolume() / 10)));
-
-        SettingUIComponent result = new SettingUIComponent(new BorderLayout());
-        result.setPreferredSize(new Dimension(10, 64));
-
-        ChildUIComponent sliderContainer = new ChildUIComponent(new FlowLayout());
-        result.add(sliderContainer, BorderLayout.SOUTH);
-
-        ChildUIComponent labelContainer = new ChildUIComponent(new FlowLayout());
-        labelContainer.setBorder(new EmptyBorder(0, 16, 0, 0));
-        result.add(labelContainer, BorderLayout.WEST);
-
-        JLabel label = new JLabel(name);
-        label.setFont(textFont);
-        label.setForeground(Color.WHITE);
-        labelContainer.add(label);
-
-        JSlider volume = new JSlider(JSlider.HORIZONTAL, 0, 100, settingService.getClientSettings().getClientVolume());
-        volume.setBackground(ColorPalette.BACKGROUND_COLOR);
-        volume.setForeground(Color.WHITE);
-        volume.setMajorTickSpacing(10);
-        volume.setMinorTickSpacing(1);
-        volume.setPaintTicks(true);
-        volume.setPaintLabels(true);
-
-        volume.addChangeListener(listener -> {
-            float gain = -80f + (8.6f * ((float) volume.getValue() / 10));
-            AudioEngine.setGain(gain);
-        });
-
-        result.add(volume);
-
-        result.addOnSaveActionListener(listener -> {
-            try {
-                settingService.write(SettingType.CLIENT, key, volume.getValue());
-            } catch (InvalidPathException | NullPointerException e) {
-                Logger.warn(e.getMessage());
-            }
-        });
-
-        result.addOnQuitActionListener(listener -> {
-            volume.setValue(settings.getByKeyOrDefault(key, 50));
-        });
-
-        return result;
-    }
-
     public static SettingUIComponent createPathComponent(String name, SettingService settingService, String key) {
         DynamicObject settings = settingService.getClientSettings();
 
