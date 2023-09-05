@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect.impl.draft;
 
+import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;

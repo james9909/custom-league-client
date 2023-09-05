@@ -22,6 +22,12 @@ public class ChampSelectBanElement extends LazyLoadedImageComponent {
         this.setBackground(ColorPalette.BACKGROUND_COLOR);
     }
 
+    public void reset() {
+        this.completed = false;
+        this.championId = 0;
+        this.update(-1);
+    }
+
     public void update(ActionObject object) {
         if (completed || object.getChampionId() == 0) return;
         this.championId = object.getChampionId();

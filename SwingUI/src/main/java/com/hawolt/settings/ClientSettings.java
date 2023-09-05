@@ -20,4 +20,8 @@ public class ClientSettings extends DynamicObject {
     public String getRememberMeUsername() {
         return getByKeyNonNullOrThrow("username", () -> new RuntimeException("NO_USERNAME_PRESENT"));
     }
+    
+    public int getClientVolume() {
+        return getByKeyOrDefault("Volume", 50);
+    }
 }
