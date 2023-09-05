@@ -38,6 +38,16 @@ public class AudioEngine {
     }
 
     public static Mixer SELECTED_MIXER;
+    
+    private static Float gain;
+    public static void setGain(Float gain) {
+        AudioEngine.gain = gain;
+    }
+
+    private static Float gain;
+    public static void setGain(Float gain) {
+        AudioEngine.gain = gain;
+    }
 
     public static Mixer getDefaultMixer() {
         if (SUPPORTED.isEmpty()) return null;
@@ -86,6 +96,8 @@ public class AudioEngine {
                         }
                     });
                     clip.open(audioInputStream);
+                    FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                    gainControl.setValue(gain);
                     clip.start();
                 }
             } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {

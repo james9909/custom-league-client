@@ -29,10 +29,16 @@ public class SettingsSidebar extends JPanel {
         this.add(panel);
     }
 
-    protected static JButton newSectionButton(String name) {
+    protected static JButton newSectionButton(String name, CardLayout cl, JPanel main) {
         JButton button = new JButton(name);
+        button.setActionCommand(name);
         button.setFont(sectionFont);
         button.setMaximumSize(sectionDimension);
+
+        button.addActionListener(listener -> {
+            cl.show(main, listener.getActionCommand());
+        });
+        
         return button;
     }
 

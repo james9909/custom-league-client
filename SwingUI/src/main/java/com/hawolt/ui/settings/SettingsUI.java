@@ -30,9 +30,17 @@ public class SettingsUI extends ChildUIComponent {
         label.setHorizontalAlignment(JLabel.CENTER);
         header.add(label, BorderLayout.CENTER);
 
-        //TODO CardLayout for pages
+        //CardLayout
+        CardLayout cl = new CardLayout();
+        JPanel mainPanel = new JPanel(cl);
         SettingsPage clientGeneralPage = newClientGeneralPage();
-        add(clientGeneralPage);
+        SettingsPage clientAudioPage = newClientAudioPage();
+        mainPanel.add("General", clientGeneralPage);
+        mainPanel.add("Audio", clientAudioPage);
+        for (int i = 0; i < mainPanel.getComponentCount(); i++) {
+            pages.add((SettingsPage) mainPanel.getComponent(i));
+        }
+        add(mainPanel);
 
         add(header, BorderLayout.NORTH);
 
@@ -42,8 +50,10 @@ public class SettingsUI extends ChildUIComponent {
 
         SettingsSidebar.GroupTab clientGroup = sidebar.addGroupTab("Client");
 
-        JButton clientGeneralButton = SettingsSidebar.newSectionButton("General");
+        JButton clientGeneralButton = SettingsSidebar.newSectionButton("General", cl, mainPanel);
         clientGroup.addToContainer(clientGeneralButton);
+        JButton clientAudioButton = SettingsSidebar.newSectionButton("Audio", cl, mainPanel);
+        clientGroup.addToContainer(clientAudioButton);
 
         //Footer
         ChildUIComponent footer = new ChildUIComponent(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -57,6 +67,7 @@ public class SettingsUI extends ChildUIComponent {
 
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(listener -> {
+            cl.first(mainPanel);
             close();
         });
         footer.add(closeButton);
@@ -86,6 +97,14 @@ public class SettingsUI extends ChildUIComponent {
         SettingsPage result = new SettingsPage();
         result.add(SettingUIComponent.createTagComponent("Path"));
         result.add(SettingUIComponent.createPathComponent("League Base Directory Path", service, "GameBaseDir"));
+        return result;
+    }
+
+    private SettingsPage newClientAudioPage() {
+        SettingService service = leagueClientUI.getSettingService();
+        SettingsPage result = new SettingsPage();
+        result.add(SettingUIComponent.createTagComponent("Volume"));
+        result.add(SettingUIComponent.createVolumeComponent("Client Master Volume", service, "Volume"));
         return result;
     }
 }
