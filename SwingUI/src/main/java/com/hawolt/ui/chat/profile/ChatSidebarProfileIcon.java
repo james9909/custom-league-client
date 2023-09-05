@@ -4,6 +4,7 @@ import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -18,20 +19,52 @@ import java.io.ByteArrayInputStream;
 
 public class ChatSidebarProfileIcon extends ChildUIComponent implements ResourceConsumer<BufferedImage, byte[]> {
     private final String ICON_BASE_URL = "https://raw.communitydragon.org/latest/game/assets/ux/summonericons/profileicon%s.png";
-    private final int ICON_SIZE = 80;
+
+    private final Color UNOBTAINED = new Color(231, 97, 97);
+    private final Color GAINED = new Color(93, 156, 89);
+
+    private final Font font = new Font("Arial", Font.BOLD, 16);
+
+    private int current, total, level;
+    private final int ICON_SIZE = 70;
     private BufferedImage icon;
 
-    public ChatSidebarProfileIcon(LayoutManager layout) {
+    public ChatSidebarProfileIcon(UserInformation information, LayoutManager layout) {
         super(layout);
         this.setBackground(Color.BLACK);
         this.setPreferredSize(new Dimension(ICON_SIZE, ICON_SIZE));
+        if (!information.isLeagueAccountAssociated()) return;
+        this.current = 419;
+        this.total = 2193;
+        this.level = (int) information.getUserInformationLeagueAccount().getSummonerLevel();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Dimension dimension = getSize();
+        g.setColor(UNOBTAINED);
+        g.fillRect(0, 0, dimension.width, getHeight());
+        double progress = ((double) current / (double) total);
+        int width = (int) Math.floor(progress * (dimension.width - 1));
+        g.setColor(GAINED);
+        g.fillRect(0, 0, width, getHeight());
+
+        Graphics2D graphics2D = (Graphics2D) g;
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        graphics2D.setFont(font);
+        FontMetrics metrics = g.getFontMetrics();
+
+        int y = (dimension.height >> 1) + (metrics.getAscent() >> 1);
+
+
+        int levelStringWidth = metrics.stringWidth(String.valueOf(level));
+        //drawHighlightedText(g, dimension, String.valueOf(level), dimension.width - 7 - levelStringWidth, y);
         if (icon == null) return;
         g.drawImage(icon, 0, 0, null);
+        g.setColor(Color.BLACK);
+        g.drawLine(0, icon.getHeight(), dimension.width, icon.getHeight());
+        g.drawRect(0, 0, dimension.width - 1, dimension.height - 1);
     }
 
     public void setIconId(long iconId) {

@@ -5,6 +5,7 @@ import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
 import com.hawolt.client.resources.ledge.inventory.InventoryServiceLedge;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
 import com.hawolt.logger.Logger;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -63,16 +64,8 @@ public class Loadout extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .post(RequestBody.create(serviceToJwtsMap.toString(), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONArray arr = new JSONArray(plain);
-                JSONObject object;
-                object = arr.getJSONObject(0);
-                return object;
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONArray(response.asString()).getJSONObject(0);
     }
 
     public int getLegend() throws IOException {
@@ -124,14 +117,8 @@ public class Loadout extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .put(RequestBody.create(loadoutParent.toString(), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONObject content = new JSONObject(plain);
-                Logger.debug(content);
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        Logger.debug(new JSONObject(response.asString()));
     }
 
     public String getLoadoutID() throws IOException {
@@ -158,16 +145,8 @@ public class Loadout extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .post(RequestBody.create(serviceToJwtsMap.toString(), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONArray array1 = new JSONArray(plain);
-                JSONObject object;
-                object = array1.getJSONObject(0);
-                return object.get("id").toString();
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONArray(response.asString()).getJSONObject(0).get("id").toString();
     }
 
     public String name() {

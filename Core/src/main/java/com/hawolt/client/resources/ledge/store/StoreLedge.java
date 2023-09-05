@@ -8,7 +8,8 @@ import com.hawolt.client.resources.ledge.store.objects.Wallet;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
-import okhttp3.*;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,18 +37,13 @@ public class StoreLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONArray array = new JSONArray(plain);
-                List<StoreItem> list = new ArrayList<>();
-                for (int i = 0; i < array.length(); i++) {
-                    list.add(new StoreItem(new JSONArray().put(array.getJSONObject(i))));
-                }
-                return list;
-            }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        JSONArray array = new JSONArray(response.asString());
+        List<StoreItem> list = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            list.add(new StoreItem(new JSONArray().put(array.getJSONObject(i))));
         }
+        return list;
     }
 
     public StoreItem lookupV1(InventoryType type, long itemId) throws IOException {
@@ -64,12 +60,8 @@ public class StoreLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .post(RequestBody.create(array.toString(), Constant.APPLICATION_JSON))
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                return new StoreItem(new JSONArray(body.string()));
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new StoreItem(new JSONArray(response.asString()));
     }
 
     public Wallet getBalanceV2() throws IOException {

@@ -24,16 +24,17 @@ import com.hawolt.ui.MainUI;
 import com.hawolt.ui.chat.ChatSidebar;
 import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
 import com.hawolt.ui.chat.window.ChatUI;
+import com.hawolt.ui.layout.LayoutHeader;
 import com.hawolt.ui.layout.LayoutManager;
 import com.hawolt.ui.login.ILoginCallback;
 import com.hawolt.ui.login.LoginUI;
 import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.discord.RichPresence;
+import com.hawolt.util.os.WMIC;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.virtual.client.RiotClientException;
 import com.hawolt.virtual.leagueclient.exception.LeagueException;
-import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 import com.hawolt.virtual.riotclient.instance.MultiFactorSupplier;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.EventListener;
@@ -79,6 +80,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private LayoutManager manager;
     private ChatUI chatUI;
     private SettingsUI settingsUI;
+    private LayoutHeader headerUI;
     private LoginUI loginUI;
     private MainUI mainUI;
 
@@ -91,8 +93,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public static void main(String[] args) {
         RMANCache.preload();
-        RichPresence.show();
         AudioEngine.install();
+        LeagueClientUI.service.execute(() -> {
+            if (WMIC.isProcessRunning("Discord.exe")) RichPresence.show();
+        });
         LeagueClientUI leagueClientUI = new LeagueClientUI(StaticConstant.PROJECT);
         leagueClientUI.setIconImage(logo);
         leagueClientUI.settingService = new SettingManager();
@@ -139,6 +143,8 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         }
         leagueClient.cache(CacheType.PLAYER_PREFERENCE, object);
         this.settingService.write(SettingType.PLAYER, "preferences", object);
+        this.dispose();
+        this.setUndecorated(true);
         this.buildUI(leagueClient);
         this.wrap();
     }
@@ -171,20 +177,17 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         settingsUI = new SettingsUI(this);
         settingsUI.setVisible(false);
         mainUI.addSettingsComponent(settingsUI);
-        UserInformation userInformation = client.getVirtualLeagueClient()
-                .getVirtualLeagueClientInstance()
-                .getUserInformation();
-        chatSidebar = new ChatSidebar(userInformation, this);
+        chatSidebar = new ChatSidebar(this);
         manager = new LayoutManager(this);
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
-        chatSidebar.configure(userInformation);
+        temporary.add(headerUI = new LayoutHeader(manager, client), BorderLayout.NORTH);
         mainUI.setMainComponent(temporary);
         mainUI.revalidate();
     }
 
     private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatUI chatWindow) {
-        chatSidebar.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
+        headerUI.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
         xmppClient.addMessageListener(getLayoutManager().getChampSelect());
         xmppClient.addMessageListener(chatWindow);
@@ -212,6 +215,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     public LayoutManager getManager() {
         return manager;
+    }
+
+    public LayoutHeader getHeader() {
+        return headerUI;
     }
 
     public ChatUI getChatUI() {

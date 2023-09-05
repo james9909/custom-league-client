@@ -14,7 +14,7 @@ import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.impl.blank.BlankChampSelectUI;
 import com.hawolt.ui.champselect.impl.draft.DraftChampSelectUI;
 import com.hawolt.ui.champselect.util.*;
-import com.hawolt.ui.runes.IncompleteRunePageException;
+import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.version.local.LocalLeagueFileVersion;
 import com.hawolt.xmpp.event.handler.message.IMessageListener;

@@ -7,6 +7,7 @@ import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,11 +23,16 @@ public class QueueDialog extends JDialog implements ActionListener {
     public QueueDialog(Frame frame, String title, long maxAfkMillis) {
         super(frame, title);
         ChildUIComponent container = new ChildUIComponent(new BorderLayout());
-        container.setBorder(new EmptyBorder(5, 5, 5, 5));
+        container.setBorder(
+                BorderFactory.createCompoundBorder(
+                        new MatteBorder(1, 1, 1, 1, Color.DARK_GRAY),
+                        new EmptyBorder(5, 5, 5, 5)
+                )
+        );
         setContentPane(container);
 
         container.setLayout(new BorderLayout());
-        container.setPreferredSize(new Dimension(200, 60));
+        container.setPreferredSize(new Dimension(200, 75));
 
         QueueCountdown countdown = new QueueCountdown(this, maxAfkMillis);
         container.add(countdown, BorderLayout.CENTER);
@@ -43,13 +49,14 @@ public class QueueDialog extends JDialog implements ActionListener {
         component.add(decline);
 
         container.add(component, BorderLayout.SOUTH);
+        setUndecorated(true);
+        setResizable(false);
+        pack();
         setLocationRelativeTo(frame);
     }
 
     public QueueDialog showQueueDialog() {
-        setResizable(false);
         setModal(true);
-        pack();
         setVisible(true);
         return this;
     }

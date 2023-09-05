@@ -7,7 +7,9 @@ import com.hawolt.client.resources.ledge.summoner.objects.SummonerValidation;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -53,14 +55,8 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONObject o = new JSONObject(plain);
-                return new Summoner(o);
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new Summoner(new JSONObject(response.asString()));
     }
 
     public String getSummonerToken() throws IOException {
@@ -74,13 +70,9 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                return plain.substring(1, plain.length() - 1);
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        String plain = response.asString();
+        return plain.substring(1, plain.length() - 1);
     }
 
     public SummonerValidation validateSummonerName(String name) throws IOException {
@@ -97,13 +89,8 @@ public class SummonerLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(url)
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                return new SummonerValidation(new JSONArray(plain));
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new SummonerValidation(new JSONArray(response.asString()));
     }
 
     public Summoner claimSummonerName(String name) throws IOException {

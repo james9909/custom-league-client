@@ -1,6 +1,7 @@
 package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.client.misc.SortOrder;
 import com.hawolt.ui.chat.window.IChatWindow;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.audio.AudioEngine;
@@ -23,8 +24,10 @@ import com.hawolt.xmpp.event.objects.presence.impl.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 
 /**
  * Created: 08/08/2023 18:11
@@ -32,8 +35,12 @@ import java.util.*;
  **/
 
 public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendListener, IPresenceListener, IFriendListComponent, EventListener<FriendList> {
+
+    private final ChatListComparator alphabeticalComparator = new ChatListComparator(ChatListComparatorType.NAME, SortOrder.ASCENDING);
+    private final ChatListComparator statusComparator = new ChatListComparator(ChatListComparatorType.STATUS, SortOrder.DESCENDING);
     private final Map<String, ChatSidebarFriend> map = new HashMap<>();
     private final IChatWindow window;
+    private String name;
     private JComponent component;
     private LeagueClientUI leagueClientUI;
     private Map<GenericFriend, ChildUIComponent> tmp = new HashMap<>();
@@ -48,6 +55,11 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
 
     @Override
     public void search(String name) {
+        this.name = name;
+        this.filter(name);
+    }
+
+    private void filter(String name) {
         List<ChatSidebarFriend> list = new ArrayList<>(map.values());
         for (ChatSidebarFriend sidebar : list) {
             GenericFriend friend = sidebar.getFriend();
@@ -66,6 +78,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
                 remove(sidebar);
             }
         }
+        sort();
         revalidate();
     }
 
@@ -103,22 +116,23 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         return map.get(jid);
     }
 
+    private void sort() {
+        removeAll();
+        map.values()
+                .stream()
+                .filter(ChatSidebarFriend::isEnabled)
+                .sorted(alphabeticalComparator)
+                .sorted(statusComparator)
+                .forEach(this::add);
+        repaint();
+        revalidate();
+    }
+
     private void handle(AbstractPresence presence) {
         if (!map.containsKey(presence.getFrom())) return;
         getComponent(presence.getFrom()).setLastKnownPresence(presence);
-        List<ChatSidebarFriend> collection = new ArrayList<>(map.values());
-        collection.sort(Comparator.comparingInt(o -> o.getConnectionStatus().ordinal()));
-        Collections.reverse(collection);
-        Component[] components = getComponents();
-        for (Component component : components) {
-            if (component instanceof ChatSidebarFriend) {
-                remove(component);
-            }
-        }
-        for (ChatSidebarFriend friend : collection) {
-            add(friend);
-        }
-        revalidate();
+        if (name != null && !name.isEmpty()) filter(name);
+        sort();
     }
 
     private void addFriendComponent(GenericFriend friend) {

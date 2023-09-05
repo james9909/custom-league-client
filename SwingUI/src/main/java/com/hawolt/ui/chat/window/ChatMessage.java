@@ -1,5 +1,6 @@
 package com.hawolt.ui.chat.window;
 
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.PaintHelper;
 
@@ -17,13 +18,14 @@ public class ChatMessage extends ChildUIComponent {
     private final ChatPerspective perspective;
     private String[] computed;
     private String message;
+    private Color color;
 
     public ChatMessage(ChatPerspective perspective) {
         super(null);
-        this.setBackground(perspective == ChatPerspective.SELF ? Color.LIGHT_GRAY.brighter() : Color.LIGHT_GRAY);
+        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.color = perspective == ChatPerspective.SELF ? ColorPalette.MESSAGE_OUT : ColorPalette.MESSAGE_IN;
         this.perspective = perspective;
         ChildUIComponent test = new ChildUIComponent(null);
-        test.setBackground(Color.GREEN);
         add(test, BorderLayout.CENTER);
     }
 
@@ -39,8 +41,17 @@ public class ChatMessage extends ChildUIComponent {
         }
         this.computed = compute();
         Graphics2D graphics2D = PaintHelper.getGraphics2D();
+        graphics2D.setFont(font);
         FontMetrics metrics = graphics2D.getFontMetrics();
-        this.setPreferredSize(new Dimension(getPreferredSize().width, 10 + (computed.length * (metrics.getAscent() + 2))));
+
+        int endY = 3 + (metrics.getAscent() + ((computed.length - 1) * (metrics.getAscent() + 5)));
+
+        this.setPreferredSize(
+                new Dimension(
+                        getPreferredSize().width,
+                        endY + 9
+                )
+        );
         this.setSize(getPreferredSize());
         this.revalidate();
         this.repaint();
@@ -53,6 +64,7 @@ public class ChatMessage extends ChildUIComponent {
         // don't compute if window isn't open
         if (width > 0) {
             Graphics2D graphics2D = PaintHelper.getGraphics2D();
+            graphics2D.setFont(font);
             FontMetrics metrics = graphics2D.getFontMetrics();
             String[] messages = this.message.split("\n");
             for (String message : messages) {
@@ -144,18 +156,32 @@ public class ChatMessage extends ChildUIComponent {
         return result;
     }
 
+    private final Font font = new Font(Font.DIALOG, Font.PLAIN, 16);
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (computed == null) return;
         Dimension dimension = getPreferredSize();
         Graphics2D graphics2D = (Graphics2D) g;
+        graphics2D.setFont(font);
         graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         FontMetrics metrics = graphics2D.getFontMetrics();
+        int width = 0;
+        for (String message : computed) {
+            width = Math.max(width, metrics.stringWidth(message));
+        }
+        int startY = 3 + (metrics.getAscent());
+        int endY = 3 + (metrics.getAscent() + ((computed.length - 1) * (metrics.getAscent() + 5)));
+        graphics2D.setColor(color);
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int startX = perspective == ChatPerspective.OTHER ? 5 : dimension.width - 5 - width;
+        graphics2D.fillRoundRect(startX - 2, startY - metrics.getAscent() - 2, width + 8, endY + 7, 10, 10);
+        graphics2D.setColor(Color.WHITE);
         for (int i = 0; i < computed.length; i++) {
             String message = computed[i];
-            int x = perspective == ChatPerspective.OTHER ? 5 : dimension.width - 5 - metrics.stringWidth(message);
-            int y = 3 + ((i + 1) * metrics.getAscent()) + ((i + 1) * 2);
+            int x = perspective == ChatPerspective.OTHER ? 7 : dimension.width - 3 - metrics.stringWidth(message);
+            int y = 3 + (metrics.getAscent() + (i * (metrics.getAscent() + 5)));
             graphics2D.drawString(message, x, y);
         }
     }

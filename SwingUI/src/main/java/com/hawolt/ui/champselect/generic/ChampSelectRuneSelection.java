@@ -4,7 +4,7 @@ import com.hawolt.client.resources.communitydragon.rune.BasicRune;
 import com.hawolt.client.resources.communitydragon.rune.RuneIndex;
 import com.hawolt.client.resources.communitydragon.rune.RuneSource;
 import com.hawolt.client.resources.communitydragon.rune.RuneType;
-import com.hawolt.ui.runes.IncompleteRunePageException;
+import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;

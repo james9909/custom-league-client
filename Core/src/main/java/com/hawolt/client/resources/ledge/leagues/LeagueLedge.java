@@ -3,7 +3,7 @@ package com.hawolt.client.resources.ledge.leagues;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
 import com.hawolt.http.OkHttp3Client;
-import okhttp3.Call;
+import com.hawolt.http.layer.IResponse;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -28,14 +28,8 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
                 version()
         );
         Request request = jsonRequest(uri).get().build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONObject object = new JSONObject(plain);
-                return object.getString("jwt");
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONObject(response.asString()).getString("jwt");
     }
 
     public JSONObject getRankedStats(String puuid) throws IOException {
@@ -46,13 +40,8 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
                 puuid
         );
         Request request = jsonRequest(uri).get().build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                return new JSONObject(plain);
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONObject(response.asString());
     }
 
     @Override

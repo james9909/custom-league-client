@@ -3,7 +3,9 @@ package com.hawolt.client.resources.ledge.inventory;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
 import com.hawolt.http.OkHttp3Client;
-import okhttp3.*;
+import com.hawolt.http.layer.IResponse;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -41,15 +43,11 @@ public class InventoryServiceLedge extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONObject object = new JSONObject(plain);
-                JSONObject data = object.getJSONObject("data");
-                return data.getString("itemsJwt");
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        String plain = response.asString();
+        JSONObject object = new JSONObject(plain);
+        JSONObject data = object.getJSONObject("data");
+        return data.getString("itemsJwt");
     }
 
     public JSONObject getBalances() throws IOException {
@@ -65,13 +63,8 @@ public class InventoryServiceLedge extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                return new JSONObject(plain);
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONObject(response.asString());
     }
 
     public String getInventoryJwt(String type) throws IOException {
@@ -94,13 +87,8 @@ public class InventoryServiceLedge extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                return new JSONObject(plain).getJSONObject("data").get("itemsJwt").toString();
-            }
-        }
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONObject(response.asString()).getJSONObject("data").get("itemsJwt").toString();
     }
 
     public String getLegendInstanceId(int itemId) throws IOException {
@@ -122,24 +110,20 @@ public class InventoryServiceLedge extends AbstractLedgeEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        try (Response response = call.execute()) {
-            try (ResponseBody body = response.body()) {
-                String plain = body.string();
-                JSONObject object = new JSONObject(plain);
-                HashMap<String, Object> map = (HashMap<String, Object>) object.toMap();
-                HashMap<String, Object> data = (HashMap<String, Object>) map.get("data");
-                HashMap<String, Object> items = (HashMap<String, Object>) data.get("items");
-                ArrayList<HashMap<String, Object>> tftPlaybook = (ArrayList<HashMap<String, Object>>) items.get("TFT_PLAYBOOK");
-                for (int i = 0; i < tftPlaybook.size(); i++) {
-                    int playbookItemId = (int) tftPlaybook.get(i).get("itemId");
-                    if (itemId == playbookItemId) {
-                        return (String) tftPlaybook.get(i).get("instanceId");
-                    }
-                }
-                return null;
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        String plain = response.asString();
+        JSONObject object = new JSONObject(plain);
+        HashMap<String, Object> map = (HashMap<String, Object>) object.toMap();
+        HashMap<String, Object> data = (HashMap<String, Object>) map.get("data");
+        HashMap<String, Object> items = (HashMap<String, Object>) data.get("items");
+        ArrayList<HashMap<String, Object>> tftPlaybook = (ArrayList<HashMap<String, Object>>) items.get("TFT_PLAYBOOK");
+        for (int i = 0; i < tftPlaybook.size(); i++) {
+            int playbookItemId = (int) tftPlaybook.get(i).get("itemId");
+            if (itemId == playbookItemId) {
+                return (String) tftPlaybook.get(i).get("instanceId");
             }
         }
+        return null;
     }
 
 

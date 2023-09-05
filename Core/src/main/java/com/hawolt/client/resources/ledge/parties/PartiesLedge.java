@@ -78,9 +78,6 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
         registration.put("simpleInventoryToken", ledge.getInventoryService().getInventoryToken());
         registration.put("summonerToken", ledge.getSummoner().getSummonerToken());
         registration.put("userInfoToken", virtualLeagueClient.get(Authentication.USERINFO).getSimple("userinfo_token"));
-
-        Logger.error(registration);
-
         object.put("registration", registration);
         object.put("serverUtcMillis", 0L);
         object.put("summonerId", userInformation.getUserInformationLeagueAccount().getSummonerId());
@@ -191,6 +188,7 @@ public class PartiesLedge extends AbstractLedgeEndpoint {
     }
 
     public PartiesRegistration role(String partyId, PartyRole role) throws IOException {
+        if (registration == null) register();
         String uri = String.format("%s/%s/v%s/parties/%s/members/%s/role",
                 base,
                 name(),

@@ -12,4 +12,6 @@ public class ColorPalette {
     public static final Color FRIEND_IN_GAME = new Color(0, 151, 230);
     public static final Color FRIEND_IN_OTHER_GAME = new Color(225, 177, 44);
     public static final Color MESSAGE_NOTIFICATION = new Color(225, 177, 44);
+    public static final Color MESSAGE_OUT = new Color(120, 90, 40);
+    public static final Color MESSAGE_IN = new Color(30, 35, 40);
 }

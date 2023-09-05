@@ -3,10 +3,11 @@ package com.hawolt.ui.layout.wallet;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.panel.ChildUIComponent;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -16,13 +17,13 @@ import java.io.ByteArrayInputStream;
  * Author: Twitter @hawolt
  **/
 
-public class HeaderWalletCurrency extends JComponent implements ResourceConsumer<BufferedImage, byte[]> {
+public class HeaderWalletCurrency extends ChildUIComponent implements ResourceConsumer<BufferedImage, byte[]> {
     private final Font font = new Font("Arial", Font.BOLD, 18);
     private BufferedImage image;
     private int amount;
 
     public HeaderWalletCurrency(String resource) {
-        this.setBackground(Color.GRAY);
+        this.setBackground(ColorPalette.ACCENT_COLOR);
         ResourceLoader.loadResource(resource, this);
     }
 
@@ -71,6 +72,7 @@ public class HeaderWalletCurrency extends JComponent implements ResourceConsumer
     public void consume(Object o, BufferedImage bufferedImage) {
         this.image = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_HEIGHT, 32, 32);
         this.repaint();
+        this.revalidate();
     }
 
     @Override

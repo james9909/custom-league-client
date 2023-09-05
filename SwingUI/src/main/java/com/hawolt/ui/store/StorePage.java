@@ -2,7 +2,7 @@ package com.hawolt.ui.store;
 
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
-import com.hawolt.client.resources.ledge.store.objects.StoreSortOrder;
+import com.hawolt.client.misc.SortOrder;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.ui.custom.LHintTextField;
@@ -36,7 +36,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     private final LeagueClient client;
     private final ChildUIComponent grid;
     private final List<Long> owned;
-    private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, StoreSortOrder.ASCENDING);
+    private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, SortOrder.ASCENDING);
     private final StoreElementComparator comparator;
     private final Debouncer debouncer = new Debouncer();
     private String filter = "";
@@ -71,7 +71,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         add(scrollPane, BorderLayout.CENTER);
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
-        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, StoreSortOrder.DESCENDING);
+        comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, SortOrder.DESCENDING);
         JPanel inputPanel = createInputPanel(properties);
         this.add(inputPanel, BorderLayout.NORTH);
     }
@@ -103,8 +103,8 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         LComboBox<StoreSortOption> sortBox = new LComboBox<StoreSortOption>();
         //sortBox.setLabelText("Sort By");
         for (StoreSortProperty property : properties) {
-            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.DESCENDING));
-            sortBox.addItem(new StoreSortOption(property, StoreSortOrder.ASCENDING));
+            sortBox.addItem(new StoreSortOption(property, SortOrder.DESCENDING));
+            sortBox.addItem(new StoreSortOption(property, SortOrder.ASCENDING));
         }
         sortBox.addItemListener(listener -> {
             StoreSortOption option = sortBox.getItemAt(sortBox.getSelectedIndex());

@@ -4,7 +4,7 @@ import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.BasicComboBoxUI;
@@ -14,10 +14,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
 
-public class LComboBox<E> extends JComboBox<E>
-{
+public class LComboBox<E> extends JComboBox<E> {
     private String labelText = "";
     private boolean mouseOver;
 
@@ -28,7 +26,7 @@ public class LComboBox<E> extends JComboBox<E>
 
     public LComboBox(E[] items) {
         init();
-        for(int i = 0; i < items.length; i++)
+        for (int i = 0; i < items.length; i++)
             addItem(items[i]);
     }
 
@@ -36,9 +34,14 @@ public class LComboBox<E> extends JComboBox<E>
         init();
     }
 
-    private void init(){
+    private void init() {
         setBackground(ColorPalette.BACKGROUND_COLOR);
-        setBorder(new EmptyBorder(labelText.isEmpty() ? 5 : getHeight()*10, 3, 5, 3));
+        setBorder(
+                BorderFactory.createCompoundBorder(
+                        new MatteBorder(0, 0, 1, 0, Color.DARK_GRAY),
+                        new EmptyBorder(labelText.isEmpty() ? 5 : getHeight() * 10, 3, 5, 3)
+                )
+        );
         setUI(new LComboUI(this));
 
         setForeground(Color.WHITE); //Set text to white
@@ -50,7 +53,12 @@ public class LComboBox<E> extends JComboBox<E>
             @Override
             public Component getListCellRendererComponent(JList<?> jlist, Object o, int i, boolean bln, boolean bln1) {
                 Component com = super.getListCellRendererComponent(jlist, o, i, bln, bln1);
-                setBorder(new EmptyBorder(5, 5, 5, 5));
+                setBorder(
+                        BorderFactory.createCompoundBorder(
+                                new MatteBorder(0, 1, 1, 1, Color.DARK_GRAY),
+                                new EmptyBorder(5, 5, 5, 5)
+                        )
+                );
 
                 com.setForeground(Color.WHITE); //Set text to white
                 com.setFont(new Font("Dialog", Font.BOLD, 18));
@@ -65,7 +73,7 @@ public class LComboBox<E> extends JComboBox<E>
 
     }
 
-    public void setOptionBackground(Color color){
+    public void setOptionBackground(Color color) {
         optionBackground = color;
     }
 
@@ -138,7 +146,7 @@ public class LComboBox<E> extends JComboBox<E>
                     return scroll;
                 }
             };
-            pop.setBorder(new EmptyBorder(0,0,0,0));
+            pop.setBorder(new EmptyBorder(0, 0, 0, 0));
             return pop;
         }
 
@@ -149,18 +157,16 @@ public class LComboBox<E> extends JComboBox<E>
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
-            if(show)
-            {
-                if(mouseOver)
+            if (show) {
+                if (mouseOver)
                     arrowButton.setBackground(ColorPalette.BUTTON_SELECTION_COLOR.darker());
                 else
                     arrowButton.setBackground(ColorPalette.BUTTON_SELECTION_COLOR);
             }
 
             int x = 0, y = 0, width = getWidth(), height = getHeight();
-            if(!labelText.isEmpty())
-            {
-                y = height/2;
+            if (!labelText.isEmpty()) {
+                y = height / 2;
                 height /= 2;
             }
             switch (highlightType) {
@@ -185,12 +191,11 @@ public class LComboBox<E> extends JComboBox<E>
                 g2.fill(buttonArea);
 
             FontMetrics metrics = getFontMetrics(getFont());
-            y = getHeight()/2+PaintHelper.getFontHeight(metrics)/2;
-            if(!labelText.isEmpty())
-            {
+            y = getHeight() / 2 + PaintHelper.getFontHeight(metrics) / 2;
+            if (!labelText.isEmpty()) {
                 //Label
-                PaintHelper.drawShadowText(g2,combo.getLabelText(), 5, getHeight()/4+PaintHelper.getFontHeight(metrics)/2, getForeground());
-                y = getHeight()/2+getHeight()/4+PaintHelper.getFontHeight(metrics)/2;
+                PaintHelper.drawShadowText(g2, combo.getLabelText(), 5, getHeight() / 4 + PaintHelper.getFontHeight(metrics) / 2, getForeground());
+                y = getHeight() / 2 + getHeight() / 4 + PaintHelper.getFontHeight(metrics) / 2;
             }
 
             //Selected element text
@@ -216,7 +221,7 @@ public class LComboBox<E> extends JComboBox<E>
                 int height = getHeight();
                 int size = 10;
                 int x = (width - size) / 2;
-                int y = (height - size) / 2 + (labelText.isEmpty() ? 0 : (height+size)/4);
+                int y = (height - size) / 2 + (labelText.isEmpty() ? 0 : (height + size) / 4);
                 int px[] = {x, x + size, x + size / 2};
                 int py[] = {y, y, y + size};
                 g2.setColor(getBackground());

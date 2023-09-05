@@ -57,6 +57,7 @@ public class LFlatButton extends JButton {
 
             public void mouseEntered(MouseEvent evt) {
                 showSelectionIndicator = true;
+                repaint();
             }
 
             public void mouseExited(MouseEvent evt) {
@@ -64,6 +65,7 @@ public class LFlatButton extends JButton {
                     showSelectionIndicator = true;
                 else
                     showSelectionIndicator = false;
+                repaint();
             }
         });
 

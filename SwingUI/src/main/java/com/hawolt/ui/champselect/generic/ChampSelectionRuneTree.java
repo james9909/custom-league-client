@@ -2,8 +2,8 @@ package com.hawolt.ui.champselect.generic;
 
 import com.hawolt.client.resources.communitydragon.rune.BasicRune;
 import com.hawolt.client.resources.communitydragon.rune.RuneType;
-import com.hawolt.ui.runes.IRuneSelection;
-import com.hawolt.ui.runes.IncompleteRunePageException;
+import com.hawolt.ui.champselect.runes.IRuneSelection;
+import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 

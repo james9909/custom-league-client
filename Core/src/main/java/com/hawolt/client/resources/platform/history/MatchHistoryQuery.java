@@ -9,12 +9,11 @@ import com.hawolt.client.resources.platform.history.object.MatchOutcomeSummary;
 import com.hawolt.generic.data.Platform;
 import com.hawolt.generic.token.impl.StringTokenSupplier;
 import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
 import com.hawolt.version.IVersionSupplier;
 import com.hawolt.virtual.clientconfig.impl.redge.RedgeType;
 import com.hawolt.virtual.leagueclient.client.Authentication;
-import okhttp3.Call;
 import okhttp3.Request;
-import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -47,19 +46,17 @@ public class MatchHistoryQuery extends AbstractPlatformEndpoint {
     }
 
     public MatchOutcomeDetails getGameDetails(MatchGameMode matchGameMode, long gameId) throws IOException {
-        try (Response response = getGame(matchGameMode, gameId, MatchResponseType.DETAILS)) {
-            return new MatchOutcomeDetails(new JSONObject(response.body().string()));
-        }
+        IResponse response = getGame(matchGameMode, gameId, MatchResponseType.DETAILS);
+        return new MatchOutcomeDetails(new JSONObject(response.asString()));
     }
 
     public MatchOutcomeSummary getGameSummary(MatchGameMode matchGameMode, long gameId) throws IOException {
-        try (Response response = getGame(matchGameMode, gameId, MatchResponseType.SUMMARY)) {
-            JSONObject object = new JSONObject(response.body().string());
-            return new MatchOutcomeSummary(object);
-        }
+        IResponse response = getGame(matchGameMode, gameId, MatchResponseType.SUMMARY);
+        JSONObject object = new JSONObject(response.asString());
+        return new MatchOutcomeSummary(object);
     }
 
-    public Response getGame(MatchGameMode matchGameMode, long gameId, MatchResponseType matchResponseType) throws IOException {
+    public IResponse getGame(MatchGameMode matchGameMode, long gameId, MatchResponseType matchResponseType) throws IOException {
         String auth = String.format("Bearer %s", tokenSupplier.get("session.session_token", true));
         String agent = String.format("LeagueOfLegendsClient/%s (rcp-be-lol-match-history)",
                 versionSupplier.getVersionValue(platform, "LeagueClientUxRender.exe")
@@ -80,38 +77,35 @@ public class MatchHistoryQuery extends AbstractPlatformEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        return call.execute();
+        return OkHttp3Client.execute(request, gateway);
     }
 
     public List<MatchOutcomeSummary> getHistorySummary(MatchGameMode matchGameMode, String puuid) throws IOException {
-        try (Response response = getHistory(matchGameMode, puuid, true)) {
-            List<MatchOutcomeSummary> list = new ArrayList<>();
-            JSONObject object = new JSONObject(response.body().string());
-            JSONArray games = object.getJSONArray("games");
-            for (int i = 0; i < games.length(); i++) {
-                try {
-                    list.add(new MatchOutcomeSummary(games.getJSONObject(i)));
-                } catch (RuntimeException e) {
-                    //TODO ignored
-                }
+        IResponse response = getHistory(matchGameMode, puuid, true);
+        List<MatchOutcomeSummary> list = new ArrayList<>();
+        JSONObject object = new JSONObject(response.asString());
+        JSONArray games = object.getJSONArray("games");
+        for (int i = 0; i < games.length(); i++) {
+            try {
+                list.add(new MatchOutcomeSummary(games.getJSONObject(i)));
+            } catch (RuntimeException e) {
+                //TODO ignored
             }
-            return list;
         }
+        return list;
     }
 
     public String[] getHistory(MatchGameMode matchGameMode, String puuid) throws IOException {
-        try (Response response = getHistory(matchGameMode, puuid, false)) {
-            JSONArray array = new JSONArray(response.body().string());
-            String[] games = new String[array.length()];
-            for (int i = 0; i < array.length(); i++) {
-                games[i] = array.getString(i);
-            }
-            return games;
+        IResponse response = getHistory(matchGameMode, puuid, false);
+        JSONArray array = new JSONArray(response.asString());
+        String[] games = new String[array.length()];
+        for (int i = 0; i < array.length(); i++) {
+            games[i] = array.getString(i);
         }
+        return games;
     }
 
-    public Response getHistory(MatchGameMode matchGameMode, String puuid, boolean summary) throws IOException {
+    public IResponse getHistory(MatchGameMode matchGameMode, String puuid, boolean summary) throws IOException {
         String auth = String.format("Bearer %s", tokenSupplier.get("session.session_token", true));
         String agent = String.format("LeagueOfLegendsClient/%s (%s)",
                 versionSupplier.getVersionValue(platform, "LeagueClientUxRender.exe"),
@@ -132,8 +126,7 @@ public class MatchHistoryQuery extends AbstractPlatformEndpoint {
                 .addHeader("Accept", "application/json")
                 .get()
                 .build();
-        Call call = OkHttp3Client.perform(request, gateway);
-        return call.execute();
+        return OkHttp3Client.execute(request, gateway);
     }
 
     @Override

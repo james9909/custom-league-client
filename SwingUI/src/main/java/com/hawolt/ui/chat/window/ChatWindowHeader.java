@@ -1,10 +1,12 @@
 package com.hawolt.ui.chat.window;
 
-import com.hawolt.util.audio.AudioEngine;
-import com.hawolt.util.audio.Sound;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
 
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
@@ -15,15 +17,15 @@ import java.awt.*;
 
 public class ChatWindowHeader extends ChildUIComponent {
 
-    private final JLabel target;
+    private final LLabel target;
 
     public ChatWindowHeader(LayoutManager layout) {
         super(layout);
-        this.setBackground(Color.GRAY);
+        this.setBackground(ColorPalette.ACCENT_COLOR);
         this.setForeground(Color.WHITE);
         this.setBorder(new EmptyBorder(0, 5, 0, 0));
-        this.add(target = new JLabel("", SwingConstants.LEFT), BorderLayout.CENTER);
-        JButton close = new JButton("×");
+        this.add(target = new LLabel("", LTextAlign.LEFT), BorderLayout.CENTER);
+        LFlatButton close = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
         this.add(close, BorderLayout.EAST);
         close.addActionListener(listener -> {
             this.getParent().setVisible(false);

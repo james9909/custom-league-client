@@ -1,5 +1,7 @@
 package com.hawolt.client.resources.ledge.store.objects;
 
+import com.hawolt.client.misc.SortOrder;
+
 import java.util.Comparator;
 import java.util.function.Function;
 
@@ -10,9 +12,9 @@ import java.util.function.Function;
 
 public class StoreItemComparator implements Comparator<StoreItem> {
     private StoreSortProperty property;
-    private StoreSortOrder order;
+    private SortOrder order;
 
-    public StoreItemComparator(StoreSortProperty kind, StoreSortOrder order) {
+    public StoreItemComparator(StoreSortProperty kind, SortOrder order) {
         this.property = kind;
         this.order = order;
     }
@@ -21,7 +23,7 @@ public class StoreItemComparator implements Comparator<StoreItem> {
         this.property = property;
     }
 
-    public void setOrder(StoreSortOrder order) {
+    public void setOrder(SortOrder order) {
         this.order = order;
     }
 

@@ -25,6 +25,7 @@ public class MainUIComponent extends JPanel {
 
     public void init() {
         frame.pack();
+        frame.setVisible(true);
         frame.setLocationRelativeTo(null);
     }
 

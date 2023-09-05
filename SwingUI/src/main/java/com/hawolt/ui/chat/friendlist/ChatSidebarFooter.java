@@ -10,6 +10,7 @@ import com.hawolt.util.ui.LLabel;
 import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public class ChatSidebarFooter extends ChildUIComponent {
@@ -20,7 +21,7 @@ public class ChatSidebarFooter extends ChildUIComponent {
         super(new BorderLayout());
         this.setPreferredSize(new Dimension(0, HEIGHT));
         this.setBackground(ColorPalette.BACKGROUND_COLOR);
-
+        this.setBorder(new MatteBorder(1, 0, 0, 0, Color.DARK_GRAY));
         LFlatButton settingsButton = new LFlatButton("⚙", LTextAlign.CENTER, LHighlightType.COMPONENT);
         settingsButton.setBorder(BorderFactory.createEmptyBorder());
         settingsButton.setFont(font);

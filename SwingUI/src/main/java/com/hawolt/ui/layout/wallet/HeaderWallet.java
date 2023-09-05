@@ -90,11 +90,12 @@ public class HeaderWallet extends ChildUIComponent implements Runnable, IService
         try {
             InventoryServiceLedge ledge = LeagueClient.getLedge().getInventoryService();
             JSONObject balance = ledge.getBalances();
+            Logger.error(balance);
             if (!balance.has("data")) return;
             JSONObject data = balance.getJSONObject("data");
             JSONObject balances = data.getJSONObject("balances");
             if (balances.has("lol_blue_essence")) be.setAmount(balances.getInt("lol_blue_essence"));
-            if (balances.has("rp")) rp.setAmount(balances.getInt("rp"));
+            if (balances.has("RP")) rp.setAmount(balances.getInt("RP"));
             revalidate();
         } catch (Exception e) {
             Logger.error(e);

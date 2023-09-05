@@ -28,6 +28,10 @@ public class LLabel extends JPanel {
         setForeground(Color.WHITE);
     }
 
+    public void setText(String text) {
+        this.text = text;
+    }
+
     public void setFontSize(int size) {
         setFont(new Font(getFont().getFontName(), getFont().getStyle(), size));
     }

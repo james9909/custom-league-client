@@ -1,4 +1,4 @@
-package com.hawolt.ui.runes;
+package com.hawolt.ui.champselect.runes;
 
 /**
  * Created: 15/08/2023 22:45

@@ -12,6 +12,7 @@ import com.hawolt.xmpp.event.objects.conversation.history.impl.OutgoingMessage;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
 
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class ChatUI extends ChildUIComponent implements IMessageListener, IChatW
     public ChatUI() {
         super(new BorderLayout());
         this.add(header = new ChatWindowHeader(new BorderLayout()), BorderLayout.NORTH);
+        this.setBorder(new MatteBorder(1, 1, 1, 0, Color.DARK_GRAY));
         this.add(container = new ChildUIComponent(this.layout), BorderLayout.CENTER);
     }
 
