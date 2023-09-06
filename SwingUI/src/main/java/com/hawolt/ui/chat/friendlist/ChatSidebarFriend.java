@@ -134,8 +134,8 @@ public class ChatSidebarFriend extends LFlatButton {
                     this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
                     this.status = switch (valorant.getValorantActivityType()) {
                         case IN_GAME -> "Playing Valorant";
-                        case UNKNOWN -> "Valorant";
-                        case IDLE -> null;
+                        case IDLE -> "Valorant";
+                        case UNKNOWN -> null;
                     };
                 }
             }
