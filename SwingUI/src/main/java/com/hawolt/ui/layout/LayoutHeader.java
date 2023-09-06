@@ -72,6 +72,7 @@ public class LayoutHeader extends ChildUIComponent {
         buttons.setBackground(ColorPalette.ACCENT_COLOR);
         main.add(buttons, BorderLayout.WEST);
 
+        LFlatButton button3 = new LFlatButton("HOME", LTextAlign.CENTER, LHighlightType.BOTTOM);
         LFlatButton button = new LFlatButton("STORE", LTextAlign.CENTER, LHighlightType.BOTTOM);
         LFlatButton button1 = new LFlatButton("PLAY", LTextAlign.CENTER, LHighlightType.BOTTOM);
         LFlatButton button2 = new LFlatButton("CHAMPSELECT", LTextAlign.CENTER, LHighlightType.BOTTOM);
@@ -81,9 +82,16 @@ public class LayoutHeader extends ChildUIComponent {
             button.setSelected(false);
             button1.setSelected(false);
             button2.setSelected(false);
+            button3.setSelected(false);
             b.setSelected(true);
         };
 
+        button3.addActionListener(o -> {
+            selectButton.accept(button3);
+            manager.showComponent("github");
+        });
+        button3.setSelected(true);
+        buttons.add(button3);
         button.addActionListener(o -> {
             selectButton.accept(button);
             AudioEngine.play(Sound.OPEN_STORE);
