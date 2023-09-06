@@ -1,12 +1,12 @@
 package com.hawolt.client.resources.ledge.leagues;
 
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
+import com.hawolt.client.resources.ledge.leagues.objects.LeagueLedgeNotifications;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
 import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -42,6 +42,19 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri).get().build();
         IResponse response = OkHttp3Client.execute(request, gateway);
         return new JSONObject(response.asString());
+    }
+
+    public LeagueLedgeNotifications getNotifications() throws IOException {
+        String uri = String.format("%s/%s/v%s/notifications",
+                base,
+                name(),
+                version()
+        );
+        Request request = jsonRequest(uri).get().build();
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        LeagueLedgeNotifications notifications = new LeagueLedgeNotifications(new JSONObject(response.asString()));
+        client.cache(CacheType.LEAGUE_LEDGE_NOTIFICATION, notifications);
+        return notifications;
     }
 
     @Override
