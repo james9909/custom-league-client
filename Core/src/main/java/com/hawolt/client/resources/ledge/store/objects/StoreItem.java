@@ -43,8 +43,6 @@ public class StoreItem {
             JSONObject sale = item.getJSONObject("sale");
             if (sale.has("prices")) {
                 JSONArray salePrices = sale.getJSONArray("prices");
-                this.discount = salePrices.getJSONObject(0).getFloat("discount");
-                this.discountCost = salePrices.getJSONObject(0).getInt("cost");
                 //TODO does not support BE sale prices
                 for (int i = 0; i < salePrices.length(); i++) {
                     JSONObject salePrice = salePrices.getJSONObject(i);
