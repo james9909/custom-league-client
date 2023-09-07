@@ -20,7 +20,10 @@ import com.hawolt.xmpp.event.objects.friends.IFriendListener;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
 import com.hawolt.xmpp.event.objects.friends.status.FailedFriendStatus;
 import com.hawolt.xmpp.event.objects.presence.AbstractPresence;
-import com.hawolt.xmpp.event.objects.presence.impl.*;
+import com.hawolt.xmpp.event.objects.presence.impl.BasicPresence;
+import com.hawolt.xmpp.event.objects.presence.impl.MobilePresence;
+import com.hawolt.xmpp.event.objects.presence.impl.OfflinePresence;
+import com.hawolt.xmpp.event.objects.presence.impl.UnfriendPresence;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,6 +62,8 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         this.filter(name);
     }
 
+    private final Object lock = new Object();
+
     private void filter(String name) {
         List<ChatSidebarFriend> list = new ArrayList<>(map.values());
         for (ChatSidebarFriend sidebar : list) {
@@ -70,12 +75,15 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
                             friend.getName().toString(),
                             friend.getTagline().toString()
                     );
-            if (name.isEmpty() || computed.toLowerCase().contains(name)) {
-                sidebar.setEnabled(true);
-                add(sidebar);
-            } else {
-                sidebar.setEnabled(false);
-                remove(sidebar);
+
+            synchronized (lock) {
+                if (name.isEmpty() || computed.toLowerCase().contains(name)) {
+                    sidebar.setEnabled(true);
+                    add(sidebar);
+                } else {
+                    sidebar.setEnabled(false);
+                    remove(sidebar);
+                }
             }
         }
         sort();
@@ -101,15 +109,19 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
 
     public void addFriendComponent(ChatSidebarFriend component) {
         this.map.put(component.getFriend().getJID(), component);
-        this.add(component);
+        synchronized (lock) {
+            this.add(component);
+        }
     }
 
     public void removeFriendComponent(String jid) {
         if (!map.containsKey(jid)) return;
         ChatSidebarFriend friend = map.get(jid);
         map.remove(jid);
-        remove(friend);
-        revalidate();
+        synchronized (lock) {
+            remove(friend);
+            revalidate();
+        }
     }
 
     private ChatSidebarFriend getComponent(String jid) {
@@ -117,20 +129,22 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     }
 
     private void sort() {
-        removeAll();
-        map.values()
-                .stream()
-                .filter(ChatSidebarFriend::isEnabled)
-                .sorted(alphabeticalComparator)
-                .sorted(statusComparator)
-                .forEach(this::add);
+        synchronized (lock) {
+            removeAll();
+            map.values()
+                    .stream()
+                    .filter(ChatSidebarFriend::isEnabled)
+                    .sorted(alphabeticalComparator)
+                    .sorted(statusComparator)
+                    .forEach(this::add);
+        }
         repaint();
         revalidate();
     }
 
     private void handle(AbstractPresence presence) {
-        if (!map.containsKey(presence.getFrom())) return;
-        getComponent(presence.getFrom()).setLastKnownPresence(presence);
+        if (!map.containsKey(presence.getBareFromJID())) return;
+        getComponent(presence.getBareFromJID()).setLastKnownPresence(presence);
         if (name != null && !name.isEmpty()) filter(name);
         sort();
     }
@@ -157,7 +171,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
                 List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
                 if (list.isEmpty()) return;
                 client.addFriendByTag(list.get(0).getName().toString(), list.get(0).getTagline().toString());
-                component.remove(request);
+                synchronized (lock) {
+                    component.remove(request);
+                }
                 component.revalidate();
             });
             accept.setPreferredSize(new Dimension(30, 0));
@@ -169,14 +185,17 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
             List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
             if (list.isEmpty()) return;
             client.removeFriend(list.get(0).getJID());
-            component.remove(request);
-            component.revalidate();
+            synchronized (lock) {
+                component.remove(request);
+            }
         });
         remove.setPreferredSize(new Dimension(30, 0));
         actions.add(remove);
         tmp.put(genericFriend, request);
         request.add(actions, BorderLayout.EAST);
-        this.component.add(request);
+        synchronized (lock) {
+            this.component.add(request);
+        }
     }
 
 
@@ -214,7 +233,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onOutgoingFriendRequestCanceled(GenericFriend genericFriend) {
         if (tmp.containsKey(genericFriend)) {
-            component.remove(tmp.get(genericFriend));
+            synchronized (lock) {
+                component.remove(tmp.get(genericFriend));
+            }
             component.revalidate();
         }
     }
@@ -222,7 +243,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onOutgoingFriendRequestAccepted(GenericFriend genericFriend) {
         if (tmp.containsKey(genericFriend)) {
-            component.remove(tmp.get(genericFriend));
+            synchronized (lock) {
+                component.remove(tmp.get(genericFriend));
+            }
             component.revalidate();
         }
         addFriendComponent(genericFriend);
@@ -232,41 +255,6 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onFailedInteraction(FailedFriendStatus failedFriendStatus) {
 
-    }
-
-    @Override
-    public void onGamePresence(GamePresence gamePresence) {
-        handle(gamePresence);
-    }
-
-    @Override
-    public void onOnlinePresence(OnlinePresence onlinePresence) {
-        handle(onlinePresence);
-    }
-
-    @Override
-    public void onMobilePresence(MobilePresence mobilePresence) {
-        handle(mobilePresence);
-    }
-
-    @Override
-    public void onOfflinePresence(OfflinePresence offlinePresence) {
-        handle(offlinePresence);
-    }
-
-    @Override
-    public void onDeceivePresence(DeceivePresence deceivePresence) {
-        handle(deceivePresence);
-    }
-
-    @Override
-    public void onUnknownPresence(AbstractPresence abstractPresence) {
-        handle(abstractPresence);
-    }
-
-    @Override
-    public void onFakeMobilePresence(FakeMobilePresence fakeMobilePresence) {
-        handle(fakeMobilePresence);
     }
 
     @Override
@@ -280,5 +268,30 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         }
         if (component != null) component.revalidate();
         revalidate();
+    }
+
+    @Override
+    public void onUnfriendPresence(UnfriendPresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onUnknownPresence(AbstractPresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onOfflinePresence(OfflinePresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onMobilePresence(MobilePresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onBasicPresence(BasicPresence presence) {
+        handle(presence);
     }
 }
