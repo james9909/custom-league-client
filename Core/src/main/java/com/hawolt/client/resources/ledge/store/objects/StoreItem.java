@@ -45,6 +45,13 @@ public class StoreItem {
                 JSONArray salePrices = sale.getJSONArray("prices");
                 this.discount = salePrices.getJSONObject(0).getFloat("discount");
                 this.discountCost = salePrices.getJSONObject(0).getInt("cost");
+                //TODO does not support BE sale prices
+                for (int i = 0; i < salePrices.length(); i++) {
+                    JSONObject salePrice = salePrices.getJSONObject(i);
+                    if (!salePrice.has("discount")) continue;
+                    this.discount = salePrice.getFloat("discount");
+                    this.discountCost = salePrice.getInt("cost");
+                }
             }
         }
         if (item.has("localizations")) {
