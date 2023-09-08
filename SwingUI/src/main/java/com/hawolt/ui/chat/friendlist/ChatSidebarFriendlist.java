@@ -19,11 +19,8 @@ import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.IFriendListener;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
 import com.hawolt.xmpp.event.objects.friends.status.FailedFriendStatus;
-import com.hawolt.xmpp.event.objects.presence.AbstractPresence;
-import com.hawolt.xmpp.event.objects.presence.impl.BasicPresence;
-import com.hawolt.xmpp.event.objects.presence.impl.MobilePresence;
-import com.hawolt.xmpp.event.objects.presence.impl.OfflinePresence;
-import com.hawolt.xmpp.event.objects.presence.impl.UnfriendPresence;
+import com.hawolt.xmpp.event.objects.presence.GenericPresence;
+import com.hawolt.xmpp.event.objects.presence.impl.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -140,9 +137,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         revalidate();
     }
 
-    private final List<AbstractPresence> buffer = new LinkedList<>();
+    private final List<GenericPresence> buffer = new LinkedList<>();
 
-    private void handle(AbstractPresence presence) {
+    private void handle(GenericPresence presence) {
         if (!map.containsKey(presence.getBareFromJID())) {
             buffer.add(presence);
         } else {
@@ -282,7 +279,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     }
 
     @Override
-    public void onUnknownPresence(AbstractPresence presence) {
+    public void onUnknownPresence(GenericPresence presence) {
         handle(presence);
     }
 
@@ -298,6 +295,21 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
 
     @Override
     public void onBasicPresence(BasicPresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onMucPresence(MucPresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onJoinMucPresence(JoinMucPresence presence) {
+        handle(presence);
+    }
+
+    @Override
+    public void onLeaveMucPresence(LeaveMucPresence presence) {
         handle(presence);
     }
 }

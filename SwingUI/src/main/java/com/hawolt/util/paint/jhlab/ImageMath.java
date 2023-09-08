@@ -2,7 +2,7 @@
  ** Copyright 2005 Huxtable.com. All rights reserved.
  */
 
-package com.hawolt.util.jhlab;
+package com.hawolt.util.paint.jhlab;
 
 /**
  * A class containing static math methods useful for image processing.

@@ -18,8 +18,8 @@ import com.hawolt.util.ui.PaintHelper;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
-import com.hawolt.xmpp.event.objects.presence.AbstractPresence;
 import com.hawolt.xmpp.event.objects.presence.ConnectionStatus;
+import com.hawolt.xmpp.event.objects.presence.GenericPresence;
 import com.hawolt.xmpp.event.objects.presence.games.BasicGame;
 import com.hawolt.xmpp.event.objects.presence.games.GameType;
 import com.hawolt.xmpp.event.objects.presence.games.impl.*;
@@ -45,7 +45,7 @@ public class ChatSidebarFriend extends LFlatButton {
     private final VirtualRiotXMPPClient xmppClient;
     private final LeagueClientUI leagueClientUI;
     private final GenericFriend friend;
-    private AbstractPresence lastKnownPresence;
+    private GenericPresence lastKnownPresence;
     private String providedUsername;
     private Runnable runnable;
     private int counter;
@@ -95,7 +95,7 @@ public class ChatSidebarFriend extends LFlatButton {
         };
     }
 
-    public void setLastKnownPresence(AbstractPresence lastKnownPresence) {
+    public void setLastKnownPresence(GenericPresence lastKnownPresence) {
         this.lastKnownPresence = lastKnownPresence;
         this.connectionStatus = getConnectionStatus();
         this.color = getBaseColor();
@@ -202,7 +202,7 @@ public class ChatSidebarFriend extends LFlatButton {
         return base.toString();
     }
 
-    public AbstractPresence getLastKnownPresence() {
+    public GenericPresence getLastKnownPresence() {
         return lastKnownPresence;
     }
 

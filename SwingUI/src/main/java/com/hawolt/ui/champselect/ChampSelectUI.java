@@ -13,8 +13,8 @@ import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.impl.blank.BlankChampSelectUI;
 import com.hawolt.ui.champselect.impl.draft.DraftChampSelectUI;
-import com.hawolt.ui.champselect.util.*;
 import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
+import com.hawolt.ui.champselect.util.*;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.version.local.LocalLeagueFileVersion;
 import com.hawolt.xmpp.event.handler.message.IMessageListener;
@@ -50,12 +50,13 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
     protected boolean allowDuplicatePicks, skipChampionSelect, allowSkinSelection, allowOptingOutOfBanning;
     protected int localPlayerCellId, currentActionSetIndex, counter, recoveryCounter, queueId;
     protected Map<Integer, List<ActionObject>> actionSetMapping = new ConcurrentHashMap<>();
+    protected long currentTotalTimeMillis, currentTimeRemainingMillis, gameId, lastUpdate;
     protected String teamId, subphase, teamChatRoomId, phaseName, contextId, filter;
-    protected long currentTotalTimeMillis, currentTimeRemainingMillis, gameId;
     protected ChampSelectRuneSelection runeSelection;
     protected int[] championsAvailableForBan;
     protected LeagueClientUI leagueClientUI;
     protected LeagueClient leagueClient;
+    protected JSONArray trades, swaps;
     protected JSONObject cells;
 
     public ChampSelectUI(LeagueClientUI leagueClientUI) {
@@ -151,9 +152,12 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         this.skipChampionSelect = championSelectState.getBoolean("skipChampionSelect");
         this.localPlayerCellId = championSelectState.getInt("localPlayerCellId");
         this.teamChatRoomId = championSelectState.getString("teamChatRoomId");
+        this.swaps = championSelectState.getJSONArray("pickOrderSwaps");
         this.subphase = championSelectState.getString("subphase");
+        this.trades = championSelectState.getJSONArray("trades");
         this.cells = championSelectState.getJSONObject("cells");
         this.teamId = championSelectState.getString("teamId");
+        this.lastUpdate = System.currentTimeMillis();
         JSONArray actionSetList = championSelectState.getJSONArray("actionSetList");
         for (int i = 0; i < actionSetList.length(); i++) {
             JSONArray actionSetListChild = actionSetList.getJSONArray(i);
@@ -259,6 +263,70 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
             }
         }
         return null;
+    }
+
+    @Override
+    public TradeStatus[] getTrades() {
+        return trades.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(TradeStatus::new)
+                .toArray(TradeStatus[]::new);
+    }
+
+    @Override
+    public Optional<TradeStatus> getTrade(int cellId) {
+        return trades.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(TradeStatus::new)
+                .filter(status -> status.getCellId() == cellId)
+                .findFirst();
+    }
+
+    @Override
+    public Optional<TradeStatus> getActiveTrade() {
+        return trades.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(TradeStatus::new)
+                .filter(status -> "SENT".equals(status.getState()) || "RECEIVED".equals(status.getState()))
+                .findFirst();
+    }
+
+    @Override
+    public PickOrderStatus[] getPickSwaps() {
+        return swaps.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(PickOrderStatus::new)
+                .toArray(PickOrderStatus[]::new);
+    }
+
+    @Override
+    public Optional<PickOrderStatus> getPickSwap(int cellId) {
+        return swaps.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(PickOrderStatus::new)
+                .filter(status -> status.getCellId() == cellId)
+                .findFirst();
+    }
+
+    @Override
+    public Optional<PickOrderStatus> getPickSwap() {
+        return swaps.toList()
+                .stream()
+                .map(o -> (HashMap<?, ?>) o)
+                .map(JSONObject::new)
+                .map(PickOrderStatus::new)
+                .filter(status -> "SENT".equals(status.getState()) || "RECEIVED".equals(status.getState()))
+                .findFirst();
     }
 
     @Override
@@ -408,6 +476,10 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
     @Override
     public PacketCallback getPacketCallback() {
         return this;
+    }
+
+    public long getLastUpdate() {
+        return lastUpdate;
     }
 
     @Override
