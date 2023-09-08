@@ -1,5 +1,7 @@
 package com.hawolt.ui.github;
 
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -30,6 +32,9 @@ public class HtmlBuilder {
     }
 
     public HtmlBuilder addLink(String link, String text) {
+        HTMLEditorKit kit = new HTMLEditorKit();
+        StyleSheet styleSheet = kit.getStyleSheet();
+        styleSheet.addRule("a {color:#ffaaff;}");
         builder.append("<a href='").append(link).append("'>").append(text).append("</a> ");
         return this;
     }

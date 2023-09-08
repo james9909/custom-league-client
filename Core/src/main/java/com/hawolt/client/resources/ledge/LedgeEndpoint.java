@@ -1,6 +1,7 @@
 package com.hawolt.client.resources.ledge;
 
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.resources.ledge.challenges.ChallengeLedge;
 import com.hawolt.client.resources.ledge.gsm.GameServiceMessageLedge;
 import com.hawolt.client.resources.ledge.inventory.InventoryServiceLedge;
 import com.hawolt.client.resources.ledge.leagues.LeagueLedge;
@@ -11,6 +12,7 @@ import com.hawolt.client.resources.ledge.preferences.PlayerPreferencesLedge;
 import com.hawolt.client.resources.ledge.store.StoreLedge;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.teambuilder.TeamBuilderLedge;
+import com.hawolt.client.resources.ledge.unclassified.UnclassifiedLedge;
 
 /**
  * Created: 19/01/2023 16:03
@@ -21,7 +23,9 @@ public class LedgeEndpoint {
     private final GameServiceMessageLedge gameServiceMessageLedge;
     private final PlayerPreferencesLedge playerPreferencesLedge;
     private final InventoryServiceLedge inventoryServiceLedge;
+    private final UnclassifiedLedge unclassifiedLedge;
     private final TeamBuilderLedge teamBuilderLedge;
+    private final ChallengeLedge challengeLedge;
     private final SummonerLedge summonerLedge;
     private final PartiesLedge partiesLedge;
     private final LeagueLedge leagueLedge;
@@ -36,7 +40,9 @@ public class LedgeEndpoint {
         this.leagueLedge = new LeagueLedge(client);
         this.partiesLedge = new PartiesLedge(client);
         this.summonerLedge = new SummonerLedge(client);
+        this.challengeLedge = new ChallengeLedge(client);
         this.teamBuilderLedge = new TeamBuilderLedge(client);
+        this.unclassifiedLedge = new UnclassifiedLedge(client);
         this.inventoryServiceLedge = new InventoryServiceLedge(client);
         this.playerPreferencesLedge = new PlayerPreferencesLedge(client);
         this.gameServiceMessageLedge = new GameServiceMessageLedge(client);
@@ -80,5 +86,13 @@ public class LedgeEndpoint {
 
     public PlayerPreferencesLedge getPlayerPreferences() {
         return playerPreferencesLedge;
+    }
+
+    public UnclassifiedLedge getUnclassified() {
+        return unclassifiedLedge;
+    }
+
+    public ChallengeLedge getChallenge() {
+        return challengeLedge;
     }
 }

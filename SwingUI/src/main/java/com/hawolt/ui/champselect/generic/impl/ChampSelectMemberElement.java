@@ -1,5 +1,8 @@
 package com.hawolt.ui.champselect.generic.impl;
 
+import com.hawolt.LeagueClientUI;
+import com.hawolt.async.ExecutorManager;
+import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.async.loader.ResourceManager;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.communitydragon.DataTypeConverter;
@@ -10,25 +13,33 @@ import com.hawolt.client.resources.communitydragon.skin.SkinSource;
 import com.hawolt.client.resources.communitydragon.spell.SpellIndex;
 import com.hawolt.client.resources.communitydragon.spell.SpellSource;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
+import com.hawolt.client.resources.ledge.teambuilder.TeamBuilderLedge;
 import com.hawolt.logger.Logger;
+import com.hawolt.rtmp.service.impl.TeamBuilderService;
 import com.hawolt.ui.champselect.ChampSelectContext;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.champselect.util.ChampSelectMember;
 import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
+import com.hawolt.ui.champselect.util.TradeStatus;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.paint.custom.GraphicalDrawableManager;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,24 +57,38 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     private int championId, indicatorId, skinId, spell1Id, spell2Id;
     private BufferedImage sprite, spellOne, spellTwo, clearChampion;
     private ChampSelectMember member;
-    private String hero, name;
+    private String hero, name, puuid;
 
     @Override
     public void run() {
         if (!(member instanceof ChampSelectTeamMember teamMember)) return;
-        LeagueClient client = context.getLeagueClient();
-        if (client == null) return;
-        SummonerLedge summonerLedge = client.getLedge().getSummoner();
+        GraphicalIndicatorButton swapOrder = drawables.getGraphicalComponent("order");
+        swapOrder.setVisible(true);
         this.name = String.valueOf(teamMember.getSummonerId());
-        try {
-            this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
-        } catch (IOException e) {
-            Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
-        }
-        switch (teamMember.getNameVisibilityType()) {
-            case "UNHIDDEN" -> context.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
-            case "HIDDEN" -> context.cache(teamMember.getPUUID(), getHiddenName());
-            case "VISIBLE" -> context.cache(teamMember.getPUUID(), name);
+        configure(teamMember);
+    }
+
+    private void configure(ChampSelectTeamMember teamMember) {
+        if (this.puuid != null && this.puuid.equals(teamMember.getPUUID())) return;
+        this.puuid = teamMember.getPUUID();
+        Map<String, String> resolver = context.getPUUIDResolver();
+        if (!resolver.containsKey(puuid)) {
+            LeagueClient client = context.getLeagueClient();
+            if (client == null) return;
+            SummonerLedge summonerLedge = context.getLeagueClient().getLedge().getSummoner();
+            try {
+                this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
+            } catch (IOException e) {
+                Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
+            }
+            switch (teamMember.getNameVisibilityType()) {
+                case "UNHIDDEN" ->
+                        context.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
+                case "HIDDEN" -> context.cache(teamMember.getPUUID(), getHiddenName());
+                case "VISIBLE" -> context.cache(teamMember.getPUUID(), name);
+            }
+        } else {
+            this.name = resolver.get(puuid);
         }
         this.repaint();
     }
@@ -88,12 +113,55 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         repaint();
     }
 
+
     public ChampSelectMemberElement(ChampSelectTeamType teamType, ChampSelectTeam team, ChampSelectMember member) {
         this.addComponentListener(new ChampSelectSelectMemberResizeAdapter());
         this.setBackground(ColorPalette.BACKGROUND_COLOR);
         this.teamType = teamType;
         this.member = member;
         this.team = team;
+        this.drawables();
+    }
+
+    private GraphicalDrawableManager drawables;
+
+    private void drawables() {
+        this.drawables = new GraphicalDrawableManager(this);
+        GraphicalIndicatorButton swapOrder = new GraphicalIndicatorButton();
+        ResourceLoader.loadLocalResource("assets/cs_swap_order.png", swapOrder);
+        swapOrder.addExecutionListener(event -> LeagueClientUI.service.execute(() -> {
+            if (event.getInitiator() instanceof MouseEvent mouseEvent) {
+                System.out.println(mouseEvent.getButton());
+                TeamBuilderLedge ledge = context.getLeagueClient().getLedge().getTeamBuilder();
+                context.getPickSwap(member.getCellId()).ifPresent(trade -> {
+                    try {
+                        switch (mouseEvent.getButton()) {
+                            case 1 -> ledge.acceptPickOrderSwap(trade.getId());
+                            case 3 -> ledge.declinePickOrderSwap(trade.getId());
+                        }
+                    } catch (IOException e) {
+                        Logger.error(e);
+                    }
+                });
+            }
+        }));
+        GraphicalIndicatorButton swapChampion = new GraphicalIndicatorButton();
+        ResourceLoader.loadLocalResource("assets/cs_swap_champion.png", swapChampion);
+        swapChampion.addExecutionListener(event -> LeagueClientUI.service.execute(() -> {
+            TeamBuilderService service = context.getLeagueClient().getRTMPClient().getTeamBuilderService();
+            context.getTrade(member.getCellId()).ifPresent(trade -> {
+                try {
+                    service.acceptTradeV1Blocking(trade.getId());
+                } catch (IOException e) {
+                    Logger.error(e);
+                }
+            });
+        }));
+        swapChampion.setVisible(false);
+        addMouseListener(drawables);
+        addMouseMotionListener(drawables);
+        drawables.register("order", swapOrder);
+        drawables.register("champion", swapChampion);
     }
 
     private void setClearChampion(int championId) {
@@ -130,7 +198,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
     }
 
-    //
     private void updateSkin(ChampSelectTeamMember member) {
         if (this.skinId == member.getSkinId()) return;
         if (member.getSkinId() != 0) {
@@ -194,15 +261,56 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
     }
 
+    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("trade-blocker");
+    private ScheduledFuture<?> future;
+
     public void update(ChampSelectMember member) {
         this.member = member;
         this.updateChamp(member);
+        GraphicalIndicatorButton swapOrder = drawables.getGraphicalComponent("order");
+        long remaining = context.getCurrentTimeRemainingMillis() - (System.currentTimeMillis() - context.getLastUpdate()) - 5000L;
+        if (remaining > 0) {
+            if (future != null) future.cancel(true);
+            future = service.schedule(() -> {
+                swapOrder.setVisible(false);
+                ChampSelectMemberElement.this.repaint();
+            }, remaining, TimeUnit.MILLISECONDS);
+        }
         if (teamType == ChampSelectTeamType.ALLIED) {
             ChampSelectTeamMember teamMember = (ChampSelectTeamMember) member;
             this.updateChampIndicator(teamMember);
             this.updateSpellOne(teamMember);
             this.updateSpellTwo(teamMember);
             this.updateSkin(teamMember);
+            //potential error cause
+            this.configure(teamMember);
+
+            context.getPickSwap().ifPresentOrElse(trade -> {
+                if (trade.getCellId() != member.getCellId()) return;
+                swapOrder.setHighlight(true);
+            }, () -> swapOrder.setHighlight(false));
+
+            GraphicalIndicatorButton swapChampion = drawables.getGraphicalComponent("champion");
+            context.getActiveTrade().ifPresentOrElse(trade -> {
+                if (trade.getCellId() != member.getCellId()) return;
+                swapChampion.setHighlight(true);
+            }, () -> swapChampion.setHighlight(false));
+
+            int baseX = team == ChampSelectTeam.PURPLE ? 5 : getSize().width - 5 - 28;
+            swapOrder.update(new Rectangle(baseX, 38, 28, 28));
+            if (remaining > 5000L) {
+                context.getOwnPickPhase().ifPresent(phase -> {
+                    swapOrder.setVisible(!phase.isCompleted() && !isLockedIn());
+                    repaint();
+                });
+            }
+            TradeStatus[] tradeStatuses = context.getTrades();
+            swapChampion.update(new Rectangle(baseX, 71, 28, 28));
+            for (TradeStatus status : tradeStatuses) {
+                if (status.getCellId() != member.getCellId()) continue;
+                swapChampion.setVisible(!"INVALID".equals(status.getState()));
+            }
+
             if (context != null && isPicking()) {
                 context.getCurrent()
                         .stream()
@@ -218,17 +326,14 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         this.repaint();
     }
 
-    private static final Color HIGHLIGHTER = new Color(0xFF, 0xFF, 0xFF, 0x4F);
+    private static final Color HIGHLIGHT_NOT_LOCKED = new Color(0xFF, 0xFF, 0xFF, 0x4F);
+    private static final Color HIGHLIGHT_PICKING = new Color(155, 224, 155, 179);
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (context == null) return;
-
         Dimension dimension = getSize();
-
-        Color color = isPicking() ? Color.PINK : Color.ORANGE;
-        g.setColor(isSelf() ? color.brighter() : color);
 
         //DRAW CHAMPION/SKIN IMAGE
         if (clearChampion != null) {
@@ -237,22 +342,10 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
             g.drawImage(clearChampion, imageX, imageY, null);
         }
 
-        //INDICATE STATUS NOT LOCKED IN
+        //INDICATE PICKING OR STATUS NOT LOCKED IN
         if (!isLockedIn() || context.getCurrentActionSetIndex() <= 0) {
-            g.setColor(HIGHLIGHTER);
+            g.setColor(HIGHLIGHT_NOT_LOCKED);
             g.fillRect(0, 0, dimension.width, dimension.height);
-        }
-
-        //INDICATOR TO SHOW WHO WE ARE
-        if (isSelf()) {
-            int baseX = switch (team) {
-                case BLUE -> dimension.width - (SUMMONER_SPELL_DIMENSION.width * 3) - (5 * 3);
-                case PURPLE -> 5 + (SUMMONER_SPELL_DIMENSION.width << 1) + (5 << 1);
-            };
-            g.setColor(Color.BLACK);
-            g.fillRect(baseX - 1, 5 - 1, SUMMONER_SPELL_DIMENSION.width + 2, SUMMONER_SPELL_DIMENSION.height + 2);
-            g.setColor(!isPicking() ? Color.RED : Color.GREEN);
-            g.fillRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
         }
 
         //DRAW SUMMONER SPELLS
@@ -308,9 +401,21 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
             drawTextWithShadow(graphics2D, hero, heroX, dimension.height - 7);
         }
 
+        //BORDER
+        if (!isLockedIn() && isPicking()) {
+            g.setColor(HIGHLIGHT_PICKING);
+            g.drawRect(0, 0, dimension.width - 1, dimension.height - 1);
+        } else {
+            g.setColor(Color.BLACK);
+            g.drawRect(0, 0, dimension.width - 1, dimension.height - 1);
+        }
 
-        g.setColor(Color.BLACK);
-        g.drawRect(0, 0, dimension.width - 1, dimension.height - 1);
+        if (isSelf()) {
+            g.setColor(new Color(217, 160, 74, 255));
+            g.drawRect(1, 1, dimension.width - 3, dimension.height - 3);
+        } else if (isTeamMember()) {
+            drawables.draw(graphics2D);
+        }
     }
 
     public String getHiddenName() {
@@ -356,9 +461,13 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         return member.getCellId() == context.getLocalPlayerCellId();
     }
 
+    private boolean isTeamMember() {
+        return context.getSelf().getTeamId() == member.getTeamId();
+    }
+
     private boolean isLockedIn() {
-        if (context.isFinalizing()) return true;
         if (context == null || context.getCurrentActionSetIndex() < 0) return false;
+        if (context.isFinalizing()) return true;
         return context.getActionSetMapping().values()
                 .stream()
                 .skip(1)

@@ -7,6 +7,8 @@ import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.ui.champselect.util.ActionObject;
 import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
+import com.hawolt.ui.champselect.util.PickOrderStatus;
+import com.hawolt.ui.champselect.util.TradeStatus;
 import org.json.JSONArray;
 
 import java.util.List;
@@ -94,4 +96,18 @@ public interface ChampSelectContext {
     void quitChampSelect();
 
     ChampSelectRuneSelection getRuneSelectionPanel();
+
+    long getLastUpdate();
+
+    TradeStatus[] getTrades();
+
+    Optional<TradeStatus> getTrade(int cellId);
+
+    Optional<TradeStatus> getActiveTrade();
+
+    Optional<PickOrderStatus> getPickSwap(int cellId);
+
+    Optional<PickOrderStatus> getPickSwap();
+
+    PickOrderStatus[] getPickSwaps();
 }

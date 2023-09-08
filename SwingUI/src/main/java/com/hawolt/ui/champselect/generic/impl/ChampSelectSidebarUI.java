@@ -74,7 +74,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        if (context == null) return;
+        if (context == null || type == null) return;
         for (ChampSelectMember member : get(type)) {
             map.get(member.getCellId()).update(member);
         }

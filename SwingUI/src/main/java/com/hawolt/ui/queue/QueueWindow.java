@@ -17,8 +17,8 @@ import com.hawolt.rtmp.utility.Base64GZIP;
 import com.hawolt.rtmp.utility.PacketCallback;
 import com.hawolt.ui.chat.friendlist.ChatSidebarEssentials;
 import com.hawolt.ui.queue.pop.QueueDialog;
-import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
@@ -62,9 +62,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         LeagueClientUI.service.execute(this);
     }
 
-    public void showClientComponent(String name) {
-        layout.show(parent, name);
-    }
 
     public DraftQueueLobby getDraftLobby() {
         Component[] components = this.parent.getComponents();
@@ -177,11 +174,14 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
             if (!info.has("backwardsTransitionReason")) return;
+            /*
+             * other existing backwardsTransitionReason
+             * 1.   AFK_CHECK_FAILED
+             */
             switch (info.getString("backwardsTransitionReason")) {
-                case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION", "PLAYER_LEFT_CHAMPION_SELECT" -> {
+                case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION", "PLAYER_LEFT_CHAMPION_SELECT", "PLAYER_LEFT_MATCHMAKING" -> {
                     leagueClientUI.getLayoutManager().getChampSelect().showBlankPanel();
                 }
-                //case "PLAYER_LEFT_MATCHMAKING", "AFK_CHECK_FAILED" -> {}
             }
             leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
             try {

@@ -8,6 +8,7 @@ import com.hawolt.client.resources.ledge.parties.objects.PartyException;
 import com.hawolt.client.resources.ledge.parties.objects.data.PartyRole;
 import com.hawolt.client.resources.ledge.summoner.SummonerLedge;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
+import com.hawolt.generic.data.Unsafe;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.LFlatButton;
@@ -17,14 +18,14 @@ import com.hawolt.util.ui.PaintHelper;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
-import com.hawolt.xmpp.event.objects.presence.AbstractPresence;
 import com.hawolt.xmpp.event.objects.presence.ConnectionStatus;
-import com.hawolt.xmpp.event.objects.presence.impl.GamePresence;
-import com.hawolt.xmpp.event.objects.presence.impl.PresenceData;
-import com.hawolt.xmpp.event.objects.presence.impl.data.LeagueOfLegends;
-import com.hawolt.xmpp.event.objects.presence.impl.data.Valorant;
-import com.hawolt.xmpp.event.objects.presence.impl.data.lol.LeagueGameType;
-import org.json.JSONObject;
+import com.hawolt.xmpp.event.objects.presence.GenericPresence;
+import com.hawolt.xmpp.event.objects.presence.games.BasicGame;
+import com.hawolt.xmpp.event.objects.presence.games.GameType;
+import com.hawolt.xmpp.event.objects.presence.games.impl.*;
+import com.hawolt.xmpp.event.objects.presence.impl.BasicPresence;
+import com.hawolt.xmpp.event.objects.presence.impl.MobilePresence;
+import com.hawolt.xmpp.event.objects.presence.impl.OfflinePresence;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,7 +34,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created: 08/08/2023 18:15
@@ -44,7 +45,7 @@ public class ChatSidebarFriend extends LFlatButton {
     private final VirtualRiotXMPPClient xmppClient;
     private final LeagueClientUI leagueClientUI;
     private final GenericFriend friend;
-    private AbstractPresence lastKnownPresence;
+    private GenericPresence lastKnownPresence;
     private String providedUsername;
     private Runnable runnable;
     private int counter;
@@ -88,56 +89,103 @@ public class ChatSidebarFriend extends LFlatButton {
 
     private Color getBaseColor() {
         return switch (getConnectionStatus()) {
-            case ONLINE, MOBILE -> ColorPalette.FRIEND_ONLINE;
+            case ONLINE -> ColorPalette.FRIEND_ONLINE;
+            case MOBILE -> ColorPalette.FRIEND_MOBILE;
             default -> ColorPalette.FRIEND_OFFLINE;
         };
     }
 
-    public void setLastKnownPresence(AbstractPresence lastKnownPresence) {
+    public void setLastKnownPresence(GenericPresence lastKnownPresence) {
         this.lastKnownPresence = lastKnownPresence;
         this.connectionStatus = getConnectionStatus();
         this.color = getBaseColor();
-        if (lastKnownPresence instanceof GamePresence presence) {
-            for (PresenceData data : presence.getPresenceData()) {
-                if (data instanceof LeagueOfLegends league) {
-                    if ("away".equals(presence.getShow())) {
-                        this.color = ColorPalette.FRIEND_DND;
-                        this.status = "Do not Disturb";
+        Map<String, BasicGame> map = lastKnownPresence.getGameMap();
+        for (String key : map.keySet()) {
+            if ("keystone".equals(key)) continue;
+            switch (key) {
+                case "league_of_legends" -> handleLOL(
+                        Unsafe.cast(lastKnownPresence),
+                        lastKnownPresence.getGameInfo(GameType.LEAGUE_OF_LEGENDS,
+                                null)
+                );
+                case "valorant" -> handleValorant(lastKnownPresence.getGameInfo(GameType.VALORANT, null));
+                case "ritoplus" -> handleRiotMobile(lastKnownPresence.getGameInfo(GameType.RITOPLUS, null));
+                case "wildrift" -> handleWildrift(lastKnownPresence.getGameInfo(GameType.WILDRIFT, null));
+                case "bacon" -> handleLOR(lastKnownPresence.getGameInfo(GameType.BACON, null));
+            }
+        }
+        if (lastKnownPresence instanceof MobilePresence) handleRiotMobile(null);
+        if (lastKnownPresence instanceof OfflinePresence) this.status = "";
+    }
+
+    private void handleLOR(LOR gameInfo) {
+        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        if ("bacon_availability_in_game".equals(gameInfo.getAvailability())) {
+            this.status = "Playing Legends of Runeterra";
+        } else {
+            this.status = "Legends of Runeterra";
+        }
+    }
+
+    private void handleWildrift(Wildrift gameInfo) {
+        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        this.status = "Playing Wildrift";
+    }
+
+    private void handleValorant(Valorant gameInfo) {
+        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        String sessionLoopState = gameInfo.getSessionLoopState();
+        if (sessionLoopState != null) {
+            if (sessionLoopState.contains("INGAME")) {
+                this.status = "Playing Valorant";
+            } else {
+                this.status = "Valorant";
+            }
+        } else {
+            this.status = "Unknown Valorant";
+        }
+    }
+
+    private void handleRiotMobile(Ritoplus gameInfo) {
+        this.color = ColorPalette.FRIEND_MOBILE;
+        this.status = "Riot Mobile";
+    }
+
+    private void handleLOL(BasicPresence presence, LOL gameInfo) {
+        if ("away".equals(presence.getShow())) {
+            this.color = ColorPalette.FRIEND_DND;
+            this.status = "Do not Disturb";
+        } else {
+            switch (gameInfo.getLeagueGameStatus()) {
+                case CHAMP_SELECT, QUEUE, IN_GAME -> this.color = ColorPalette.FRIEND_IN_GAME;
+            }
+            String gameStatus = switch (gameInfo.getLeagueGameStatus()) {
+                case ONLINE -> {
+                    if (gameInfo.getMessage().isEmpty()) {
+                        yield "Online";
                     } else {
-                        switch (league.getLeagueGameStatus()) {
-                            case CHAMP_SELECT, QUEUE, IN_GAME -> this.color = ColorPalette.FRIEND_IN_GAME;
-                        }
-                        String gameStatus = switch (league.getLeagueGameStatus()) {
-                            case ONLINE -> "Online";
-                            case IN_LOBBY -> "Lobby";
-                            case OPEN_LOBBY -> "Lobby (Open)";
-                            case CLOSED_LOBBY -> "Lobby (Closed)";
-                            case FULL_LOBBY -> "Lobby (Full)";
-                            case CHAMP_SELECT -> "Champselect";
-                            case QUEUE -> "In Queue";
-                            case IN_GAME -> "Playing";
-                            case UNKNOWN -> "Idle";
-                        };
-                        String type = translate(league.getLeagueQueueType().name());
-                        String gameType = switch (league.getLeagueQueueType()) {
-                            case TFT, TFT_RANKED, DOUBLE_UP, HYPER_ROLL -> String.format("TFT %s", type);
-                            case PRACTICE_TOOL, NORMAL, FLEX, SOLO_DUO, ARAM -> type;
-                            case UNKNOWN -> null;
-                        };
-                        if (gameType != null) {
-                            this.status = String.join(" ", gameStatus, gameType);
-                        } else {
-                            this.status = gameStatus;
-                        }
+                        yield "Online \"" + gameInfo.getMessage() + "\"";
                     }
-                } else if (data instanceof Valorant valorant) {
-                    this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
-                    this.status = switch (valorant.getValorantActivityType()) {
-                        case IN_GAME -> "Playing Valorant";
-                        case UNKNOWN -> "Valorant";
-                        case IDLE -> null;
-                    };
                 }
+                case IN_LOBBY -> "Lobby";
+                case OPEN_LOBBY -> "Lobby (Open)";
+                case CLOSED_LOBBY -> "Lobby (Closed)";
+                case FULL_LOBBY -> "Lobby (Full)";
+                case CHAMP_SELECT -> "Champselect";
+                case QUEUE -> "In Queue";
+                case IN_GAME -> "Playing";
+                case UNKNOWN -> "Idle";
+            };
+            String type = translate(gameInfo.getLeagueQueueType().name());
+            String gameType = switch (gameInfo.getLeagueQueueType()) {
+                case TFT, TFT_RANKED, DOUBLE_UP, HYPER_ROLL -> String.format("TFT %s", type);
+                case PRACTICE_TOOL, NORMAL, FLEX, SOLO_DUO, ARAM -> type;
+                case UNKNOWN -> null;
+            };
+            if (gameType != null) {
+                this.status = String.join(" ", gameStatus, gameType);
+            } else {
+                this.status = gameStatus;
             }
         }
     }
@@ -154,7 +202,7 @@ public class ChatSidebarFriend extends LFlatButton {
         return base.toString();
     }
 
-    public AbstractPresence getLastKnownPresence() {
+    public GenericPresence getLastKnownPresence() {
         return lastKnownPresence;
     }
 
@@ -243,39 +291,31 @@ public class ChatSidebarFriend extends LFlatButton {
             this.repaint();
         } else if (SwingUtilities.isRightMouseButton(e)) {
             JPopupMenu menu = new JPopupMenu();
-            if (lastKnownPresence != null && (lastKnownPresence instanceof GamePresence presence)) {
-                List<LeagueOfLegends> list = presence.getPresenceData()
-                        .stream()
-                        .filter(o -> o instanceof LeagueOfLegends)
-                        .map(o -> (LeagueOfLegends) o)
-                        .toList();
-                if (!list.isEmpty()) {
-                    LeagueOfLegends league = list.get(0);
-                    JSONObject pty = league.getPTY();
-                    if (pty.has("partyId") && !pty.isNull("partyId")) {
-                        String partyId = pty.getString("partyId");
+            if (lastKnownPresence != null && (lastKnownPresence instanceof BasicPresence presence)) {
+                LOL game = presence.getGameInfo(GameType.LEAGUE_OF_LEGENDS, null);
+                if (game != null) {
+                    game.getPty().ifPresent(pty -> {
                         JMenuItem join = new JMenuItem(new AbstractAction("Join Lobby") {
                             @Override
                             public void actionPerformed(ActionEvent e) {
                                 LeagueClient client = leagueClientUI.getLeagueClient();
                                 try {
-                                    client.getLedge().getParties().role(partyId, PartyRole.MEMBER);
+                                    client.getLedge().getParties().role(pty.getPartyId(), PartyRole.MEMBER);
                                     leagueClientUI.getLayoutManager().showClientComponent("play");
-                                    LeagueGameType gameType = league.getLeagueQueueType().getGameType();
-                                    if (gameType == LeagueGameType.TFT) {
-                                        leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
-                                        leagueClientUI.getLayoutManager().getQueue().showClientComponent("tftLobby");
-                                    } else {
-                                        leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
-                                        leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
-                                    }
+                                    game.getPresenceInfo().ifPresent(info -> {
+                                        if (info.getGameMode().toLowerCase().contains("tft")) {
+                                            leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
+                                        } else {
+                                            leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
+                                        }
+                                    });
                                 } catch (IOException ex) {
                                     Logger.error(ex);
                                 }
                             }
                         });
                         menu.add(join);
-                    }
+                    });
                 }
             }
             JMenuItem invite = new JMenuItem(new AbstractAction("Invite Friend") {

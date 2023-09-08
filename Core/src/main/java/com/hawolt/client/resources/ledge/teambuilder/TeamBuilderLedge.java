@@ -48,6 +48,31 @@ public class TeamBuilderLedge extends AbstractLedgeEndpoint {
         return context;
     }
 
+    public IResponse acceptPickOrderSwap(int swapId) throws IOException {
+        return handlePickOrderSwap("acceptPickOrderSwap", swapId);
+    }
+
+    public IResponse declinePickOrderSwap(int swapId) throws IOException {
+        return handlePickOrderSwap("declinePickOrderSwap", swapId);
+    }
+
+    private IResponse handlePickOrderSwap(String type, int swapId) throws IOException {
+        String uri = String.format("%s/%s/v%s/%s/accountId/%s/summonerId/%s",
+                base,
+                name(),
+                "1",
+                type,
+                client.getVirtualLeagueClientInstance().getUserInformation().getUserInformationLeague().getCUID(),
+                client.getVirtualLeagueClientInstance().getUserInformation().getUserInformationLeagueAccount().getSummonerId()
+        );
+        JSONObject object = new JSONObject();
+        object.put("swapId", swapId);
+        Request request = jsonRequest(uri)
+                .post(RequestBody.create(object.toString(), Constant.APPLICATION_JSON))
+                .build();
+        return OkHttp3Client.execute(request, gateway);
+    }
+
     @Override
     public int version() {
         return 2;

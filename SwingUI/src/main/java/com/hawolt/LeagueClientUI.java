@@ -158,8 +158,13 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         this.chatUI.setSupplier(xmppClient);
         xmppClient.addHandler(
                 EventType.ON_READY,
-                (EventListener<PlainData>) event -> buildSidebarUI(xmppClient, chatUI)
+                (EventListener<PlainData>) event -> buildSidebarUI(xmppClient)
         );
+        ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
+        xmppClient.addMessageListener(getLayoutManager().getChampSelect());
+        xmppClient.addPresenceListener(friendlist);
+        xmppClient.addFriendListener(friendlist);
+        xmppClient.addMessageListener(chatUI);
         xmppClient.connect();
     }
 
@@ -186,15 +191,13 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         mainUI.revalidate();
     }
 
-    private void buildSidebarUI(VirtualRiotXMPPClient xmppClient, ChatUI chatWindow) {
+    private void buildSidebarUI(VirtualRiotXMPPClient xmppClient) {
         headerUI.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
-        xmppClient.addMessageListener(getLayoutManager().getChampSelect());
-        xmppClient.addMessageListener(chatWindow);
-        friendlist.onEvent(xmppClient.getFriendList());
-        xmppClient.addPresenceListener(friendlist);
-        xmppClient.addFriendListener(friendlist);
-        friendlist.revalidate();
+        LeagueClientUI.service.execute(() -> {
+            friendlist.onEvent(xmppClient.getFriendList());
+            friendlist.revalidate();
+        });
     }
 
     public LeagueClient getLeagueClient() {
