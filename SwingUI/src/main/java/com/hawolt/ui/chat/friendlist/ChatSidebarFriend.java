@@ -160,7 +160,13 @@ public class ChatSidebarFriend extends LFlatButton {
                 case CHAMP_SELECT, QUEUE, IN_GAME -> this.color = ColorPalette.FRIEND_IN_GAME;
             }
             String gameStatus = switch (gameInfo.getLeagueGameStatus()) {
-                case ONLINE -> "Online";
+                case ONLINE -> {
+                    if (gameInfo.getMessage().isEmpty()) {
+                        yield "Online";
+                    } else {
+                        yield "Online \"" + gameInfo.getMessage() + "\"";
+                    }
+                }
                 case IN_LOBBY -> "Lobby";
                 case OPEN_LOBBY -> "Lobby (Open)";
                 case CLOSED_LOBBY -> "Lobby (Closed)";
@@ -299,10 +305,8 @@ public class ChatSidebarFriend extends LFlatButton {
                                     game.getPresenceInfo().ifPresent(info -> {
                                         if (info.getGameMode().toLowerCase().contains("tft")) {
                                             leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
-                                            leagueClientUI.getLayoutManager().getQueue().showClientComponent("tftLobby");
                                         } else {
                                             leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
-                                            leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
                                         }
                                     });
                                 } catch (IOException ex) {

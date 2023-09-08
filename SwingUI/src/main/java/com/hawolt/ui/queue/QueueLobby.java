@@ -145,7 +145,6 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
                 } else {
                     leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
                 }
-                leagueClientUI.getLayoutManager().getQueue().showClientComponent("lobby");
                 leagueClientUI.getLayoutManager().showClientComponent("play");
             } catch (IOException ex) {
                 Logger.error(ex);

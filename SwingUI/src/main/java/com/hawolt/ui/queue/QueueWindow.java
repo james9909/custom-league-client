@@ -62,9 +62,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         LeagueClientUI.service.execute(this);
     }
 
-    public void showClientComponent(String name) {
-        layout.show(parent, name);
-    }
 
     public DraftQueueLobby getDraftLobby() {
         Component[] components = this.parent.getComponents();
