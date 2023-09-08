@@ -27,10 +27,8 @@ import com.hawolt.xmpp.event.objects.presence.impl.UnfriendPresence;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created: 08/08/2023 18:11
@@ -142,11 +140,16 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         revalidate();
     }
 
+    private final List<AbstractPresence> buffer = new LinkedList<>();
+
     private void handle(AbstractPresence presence) {
-        if (!map.containsKey(presence.getBareFromJID())) return;
-        getComponent(presence.getBareFromJID()).setLastKnownPresence(presence);
-        if (name != null && !name.isEmpty()) filter(name);
-        sort();
+        if (!map.containsKey(presence.getBareFromJID())) {
+            buffer.add(presence);
+        } else {
+            getComponent(presence.getBareFromJID()).setLastKnownPresence(presence);
+            if (name != null && !name.isEmpty()) filter(name);
+            sort();
+        }
     }
 
     private void addFriendComponent(GenericFriend friend) {
@@ -267,6 +270,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
             }
         }
         if (component != null) component.revalidate();
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            handle(buffer.remove(i));
+        }
         revalidate();
     }
 
