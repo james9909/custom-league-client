@@ -340,8 +340,9 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
             g.drawImage(clearChampion, imageX, imageY, null);
         }
         //INDICATE PICKING OR STATUS NOT LOCKED IN
-        if (member != null) {
-            if (!utilityContext.isLockedIn(member) || (settingsContext.isDraftMode() && settingsContext.getCurrentActionSetIndex() <= 0)) {
+        DraftMode mode = settingsContext.getDraftMode();
+        if (member != null && mode != DraftMode.ARAM) {
+            if (!utilityContext.isLockedIn(member) || (mode == DraftMode.DRAFT && settingsContext.getCurrentActionSetIndex() <= 0)) {
                 g.setColor(HIGHLIGHT_NOT_LOCKED);
                 g.fillRect(0, 0, dimension.width, dimension.height);
             }

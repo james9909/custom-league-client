@@ -8,6 +8,7 @@ import com.hawolt.ui.champselect.context.ChampSelectContextProvider;
 import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
+import com.hawolt.ui.champselect.data.DraftMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -28,7 +29,7 @@ public class ChampSelectSettings extends ChampSelectContextProvider implements C
     private long currentTotalTimeMillis, currentTimeRemainingMillis, gameId, lastUpdate;
     private String teamId, subphase, teamChatRoomId, phaseName, contextId, filter;
     protected int[] championsAvailableForBan;
-    private JSONArray trades, swaps;
+    private JSONArray trades, swaps, bench;
     private JSONObject cells;
 
     public ChampSelectSettings(ChampSelectUI champSelectUI, ChampSelectContext context) {
@@ -43,6 +44,7 @@ public class ChampSelectSettings extends ChampSelectContextProvider implements C
         this.contextId = payload.getString("contextId");
         this.recoveryCounter = payload.getInt("recoveryCounter");
         JSONObject championSelectState = payload.getJSONObject("championSelectState");
+        JSONObject championBenchState = championSelectState.getJSONObject("championBenchState");
         this.currentTimeRemainingMillis = championSelectState.getLong("currentTimeRemainingMillis");
         this.allowOptingOutOfBanning = championSelectState.getBoolean("allowOptingOutOfBanning");
         this.currentTotalTimeMillis = championSelectState.getLong("currentTotalTimeMillis");
@@ -53,6 +55,7 @@ public class ChampSelectSettings extends ChampSelectContextProvider implements C
         this.localPlayerCellId = championSelectState.getInt("localPlayerCellId");
         this.teamChatRoomId = championSelectState.getString("teamChatRoomId");
         this.swaps = championSelectState.getJSONArray("pickOrderSwaps");
+        this.bench = championBenchState.getJSONArray("championIds");
         this.subphase = championSelectState.getString("subphase");
         this.trades = championSelectState.getJSONArray("trades");
         this.cells = championSelectState.getJSONObject("cells");
@@ -105,8 +108,17 @@ public class ChampSelectSettings extends ChampSelectContextProvider implements C
     }
 
     @Override
-    public boolean isDraftMode() {
-        return getActionSetMapping().size() != 1;
+    public JSONArray getChampionBench() {
+        return bench;
+    }
+
+    @Override
+    public DraftMode getDraftMode() {
+        return switch (getActionSetMapping().size()) {
+            case 0 -> DraftMode.ARAM;
+            case 1 -> DraftMode.BLIND;
+            default -> DraftMode.DRAFT;
+        };
     }
 
     @Override

@@ -27,6 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -37,6 +38,7 @@ import java.util.Optional;
 public abstract class MatchmadeRenderInstance extends AbstractRenderInstance implements ActionListener {
     protected final ChampSelectSidebarUI teamOne, teamTwo;
     protected final ChampSelectGameSettingUI settingUI;
+    protected final ChampSelectHeaderUI headerUI;
     protected final ChampSelectCenterUI centerUI;
     protected final ChampSelectChatUI chatUI;
     protected int selectedChampionId, bannedChampionId;
@@ -45,17 +47,20 @@ public abstract class MatchmadeRenderInstance extends AbstractRenderInstance imp
         this.component.add(centerUI = getCenterUI(this, supportedTypes), BorderLayout.CENTER);
         this.centerUI.add(teamTwo = getSidebarUI(ChampSelectTeam.PURPLE), BorderLayout.EAST);
         this.centerUI.add(teamOne = getSidebarUI(ChampSelectTeam.BLUE), BorderLayout.WEST);
+        this.centerUI.getNorthernChild().add(headerUI = getHeaderUI(), BorderLayout.CENTER);
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
-        this.centerUI.getChild().add(component, BorderLayout.NORTH);
+        this.centerUI.getSouthernChild().add(component, BorderLayout.NORTH);
         component.add(new ChampSelectDebugUI(), BorderLayout.NORTH);
         component.add(settingUI = new ChampSelectGameSettingUI(getAllowedSummonerSpells()), BorderLayout.CENTER);
-        this.centerUI.getChild().add(chatUI = new ChampSelectChatUI(), BorderLayout.CENTER);
+        this.centerUI.getSouthernChild().add(chatUI = new ChampSelectChatUI(), BorderLayout.CENTER);
         this.build();
     }
 
     protected abstract ChampSelectCenterUI getCenterUI(AbstractRenderInstance instance, ChampSelectType... supportedTypes);
 
     protected abstract ChampSelectSidebarUI getSidebarUI(ChampSelectTeam team);
+
+    protected abstract ChampSelectHeaderUI getHeaderUI();
 
     protected abstract Integer[] getAllowedSummonerSpells();
 
@@ -159,6 +164,25 @@ public abstract class MatchmadeRenderInstance extends AbstractRenderInstance imp
             case BAN -> this.bannedChampionId = championId;
         }
         this.onChoiceSubmission(element.getType(), championId, false);
+    }
+
+    @Override
+    public void onSwapChoice(ChampSelectBenchElement element) {
+        int championId = element.getChampionId();
+        if (championId == -1) return;
+        LeagueRtmpClient rtmpClient = context.getChampSelectDataContext().getLeagueClient().getRTMPClient();
+        TeamBuilderService teamBuilderService = rtmpClient.getTeamBuilderService();
+        try {
+            teamBuilderService.championBenchSwapV1Asynchronous(new PacketCallback() {
+                @Override
+                public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
+                    Logger.info("OBJECT: {}", typedObject);
+                }
+            }, championId);
+        } catch (IOException e) {
+            Logger.error("Unable to bench swap");
+            Logger.error(e);
+        }
     }
 
     @Override

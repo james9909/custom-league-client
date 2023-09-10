@@ -19,7 +19,7 @@ import java.util.Map;
 public abstract class ChampSelectCenterUI extends ChampSelectUIComponent {
     protected final Map<String, ChampSelectSelectionUI> map = new HashMap<>();
     protected final CardLayout layout = new CardLayout();
-    protected final ChildUIComponent main, child, cards;
+    protected final ChildUIComponent main, northernChild, southernChild, cards;
     protected ChampSelectRuneSelection runeSelection;
     protected ChampSelectPhase current;
     protected String name;
@@ -27,8 +27,9 @@ public abstract class ChampSelectCenterUI extends ChampSelectUIComponent {
     public ChampSelectCenterUI(ChampSelectChoice callback, ChampSelectType... supportedTypes) {
         this.setLayout(new BorderLayout());
         this.add(main = new ChildUIComponent(new BorderLayout()), BorderLayout.CENTER);
+        this.main.add(northernChild = new ChildUIComponent(new BorderLayout()), BorderLayout.NORTH);
         this.main.add(cards = new ChildUIComponent(layout), BorderLayout.CENTER);
-        this.main.add(child = new ChildUIComponent(new BorderLayout()), BorderLayout.SOUTH);
+        this.main.add(southernChild = new ChildUIComponent(new BorderLayout()), BorderLayout.SOUTH);
         for (ChampSelectType type : supportedTypes) {
             ChampSelectSelectionUI selectionUI = new ChampSelectSelectionUI(type, callback);
             this.cards.add(type.getName(), selectionUI);
@@ -56,8 +57,12 @@ public abstract class ChampSelectCenterUI extends ChampSelectUIComponent {
         return main;
     }
 
-    public ChildUIComponent getChild() {
-        return child;
+    public ChildUIComponent getNorthernChild() {
+        return northernChild;
+    }
+
+    public ChildUIComponent getSouthernChild() {
+        return southernChild;
     }
 
     public void toggleCard(String name) {

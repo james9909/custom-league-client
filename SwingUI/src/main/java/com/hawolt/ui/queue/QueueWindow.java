@@ -92,7 +92,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         return tftLobby;
     }
 
-    private final List<String> supportedModes = Arrays.asList("BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
+    private final List<String> supportedModes = Arrays.asList("ARAM", "BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) throws Exception {
@@ -136,7 +136,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
 
             for (JSONObject object : map.get(key)) {
                 String name = object.getString("shortName");
-                if (name.contains("TUTORIAL")) {
+                if (name.contains("TUTORIAL") || name.contains("CLASH")) {
                     continue;
                 }
 
@@ -149,6 +149,8 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     button.addActionListener(e -> goToLobby(e, "CLASSIC"));
                 } else if (key.contains("TFT")) {
                     button.addActionListener(e -> goToLobby(e, "TFT"));
+                } else if (key.contains("ARAM")) {
+                    button.addActionListener(e -> goToLobby(e, "ARAM"));
                 }
                 grid.add(button);
             }
@@ -227,7 +229,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
 
     public void goToLobby(ActionEvent e, String mode) {
         Logger.error("goTo Lobby mode: " + mode);
-        if (mode.equals("CLASSIC")) {
+        if (mode.equals("CLASSIC") || mode.equals("ARAM")) {
             this.parent.add("lobby", lobby);
             layout.show(parent, "lobby");
         } else if (mode.equals("TFT")) {

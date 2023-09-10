@@ -8,6 +8,7 @@ import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.context.ChampSelectContext;
 import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.context.impl.ChampSelect;
+import com.hawolt.ui.champselect.impl.aram.ARAMChampSelectUI;
 import com.hawolt.ui.champselect.impl.blank.BlankChampSelectUI;
 import com.hawolt.ui.champselect.impl.blind.BlindChampSelectUI;
 import com.hawolt.ui.champselect.impl.draft.DraftChampSelectUI;
@@ -48,6 +49,7 @@ public class ChampSelectUI extends ChildUIComponent {
         this.addRenderInstance(BlankChampSelectUI.INSTANCE);
         this.addRenderInstance(DraftChampSelectUI.INSTANCE);
         this.addRenderInstance(BlindChampSelectUI.INSTANCE);
+        this.addRenderInstance(ARAMChampSelectUI.INSTANCE);
         this.showBlankPanel();
     }
 
@@ -77,7 +79,7 @@ public class ChampSelectUI extends ChildUIComponent {
             MatchContext matchContext = leagueClient.getCachedValue(CacheType.MATCH_CONTEXT);
             initialCounter = matchContext.getPayload().getCounter() + 1;
         } else {
-            initialCounter = 2;
+            initialCounter = 5;
         }
         ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
         if (settingsContext.getCounter() == initialCounter) {

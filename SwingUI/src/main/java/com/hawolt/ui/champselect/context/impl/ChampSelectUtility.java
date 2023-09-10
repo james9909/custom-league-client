@@ -72,7 +72,9 @@ public class ChampSelectUtility extends ChampSelectContextProvider implements Ch
 
     @Override
     public Optional<ActionObject> getOwnBanPhase() {
-        return getActionSetMapping().get(0)
+        Map<Integer, List<ActionObject>> mapping = getActionSetMapping();
+        if (mapping.isEmpty()) return Optional.empty();
+        return mapping.get(0)
                 .stream()
                 .filter(object -> "BAN".equals(object.getType()) && object.getActorCellId() == getLocalPlayerCellId())
                 .findFirst();

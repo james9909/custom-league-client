@@ -4,6 +4,7 @@ import com.hawolt.client.resources.communitydragon.spell.Spell;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectBenchElement;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
 import com.hawolt.xmpp.event.objects.presence.impl.JoinMucPresence;
 
@@ -57,6 +58,11 @@ public class BlankChampSelectUI extends AbstractRenderInstance {
 
     @Override
     public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
+
+    }
+
+    @Override
+    public void onSwapChoice(ChampSelectBenchElement element) {
 
     }
 }

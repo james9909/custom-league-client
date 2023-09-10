@@ -7,8 +7,6 @@ import com.hawolt.ui.champselect.generic.impl.ChampSelectCenterUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
 import com.hawolt.ui.champselect.impl.MatchmadeRenderInstance;
 
-import java.awt.*;
-
 /**
  * Created: 03/09/2023 14:16
  * Author: Twitter @hawolt
@@ -16,12 +14,9 @@ import java.awt.*;
 
 public class BlindChampSelectUI extends MatchmadeRenderInstance {
     public static BlindChampSelectUI INSTANCE = new BlindChampSelectUI(ChampSelectType.PICK);
-    private final BlindChampSelectHeaderUI headerUI;
 
     public BlindChampSelectUI(ChampSelectType... supportedTypes) {
         super(supportedTypes);
-
-        this.centerUI.getMain().add(headerUI = new BlindChampSelectHeaderUI(), BorderLayout.NORTH);
     }
 
     @Override
@@ -32,6 +27,11 @@ public class BlindChampSelectUI extends MatchmadeRenderInstance {
     @Override
     protected ChampSelectSidebarUI getSidebarUI(ChampSelectTeam team) {
         return new BlindSelectSidebarUI(team);
+    }
+
+    @Override
+    protected BlindChampSelectHeaderUI getHeaderUI() {
+        return new BlindChampSelectHeaderUI();
     }
 
     @Override

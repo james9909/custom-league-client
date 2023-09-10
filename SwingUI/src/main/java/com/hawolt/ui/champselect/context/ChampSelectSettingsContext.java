@@ -2,6 +2,7 @@ package com.hawolt.ui.champselect.context;
 
 import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
+import com.hawolt.ui.champselect.data.DraftMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -73,5 +74,7 @@ public interface ChampSelectSettingsContext {
 
     JSONObject getCellData();
 
-    boolean isDraftMode();
+    JSONArray getChampionBench();
+
+    DraftMode getDraftMode();
 }
