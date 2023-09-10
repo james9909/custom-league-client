@@ -33,10 +33,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created: 10/08/2023 15:52
@@ -94,6 +92,8 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         return tftLobby;
     }
 
+    private final List<String> supportedModes = Arrays.asList("BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
+
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) throws Exception {
         TypedObject data = typedObject.getTypedObject("data");
@@ -104,10 +104,16 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         for (int i = 0; i < array.length(); i++) {
             JSONObject object = array.getJSONObject(i);
             String state = object.getString("queueState");
-            String shortName = object.getString("shortName");
-            if (!shortName.contains("DRAFT") && !shortName.contains("RANKED-FLEX") && !shortName.contains("RANKED-SOLO") && !shortName.contains("TFT"))
-                continue;
             if ("OFF".equals(state)) continue;
+            String shortName = object.getString("shortName");
+            boolean supported = false;
+            for (String mode : supportedModes) {
+                if (shortName.contains(mode)) {
+                    supported = true;
+                    break;
+                }
+            }
+            if (!supported) continue;
             String gameMode = object.getString("gameMode");
             if (!map.containsKey(gameMode)) map.put(gameMode, new ArrayList<>());
             map.get(gameMode).add(object);
@@ -180,7 +186,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
              */
             switch (info.getString("backwardsTransitionReason")) {
                 case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION", "PLAYER_LEFT_CHAMPION_SELECT", "PLAYER_LEFT_MATCHMAKING" -> {
-                    leagueClientUI.getLayoutManager().getChampSelect().showBlankPanel();
+                    leagueClientUI.getLayoutManager().getChampSelectUI().showBlankPanel();
                 }
             }
             leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
@@ -229,7 +235,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             layout.show(parent, "lobby");
         }
         if (!init) {
-            LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER);
+            LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER, LHighlightType.COMPONENT);
             button.setPreferredSize(new Dimension(getWidth() / 5, 30));
             button.setHorizontalAlignment(SwingConstants.CENTER);
             button.setVerticalAlignment(SwingConstants.CENTER);

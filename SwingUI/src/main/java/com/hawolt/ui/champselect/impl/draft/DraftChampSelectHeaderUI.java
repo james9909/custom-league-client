@@ -1,8 +1,10 @@
 package com.hawolt.ui.champselect.impl.draft;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
+import com.hawolt.ui.champselect.context.ChampSelectUtilityContext;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
-import com.hawolt.ui.champselect.util.ChampSelectPhase;
+import com.hawolt.ui.champselect.data.ChampSelectPhase;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
@@ -72,21 +74,23 @@ public class DraftChampSelectHeaderUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        this.currentTimeRemainingMillis = context.getCurrentTimeRemainingMillis();
-        this.currentTotalTimeMillis = context.getCurrentTotalTimeMillis();
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
+        ChampSelectUtilityContext utilityContext = context.getChampSelectUtilityContext();
+        this.currentTimeRemainingMillis = settingsContext.getCurrentTimeRemainingMillis();
+        this.currentTotalTimeMillis = settingsContext.getCurrentTotalTimeMillis();
         this.timestamp = System.currentTimeMillis();
-        if (context.isFinalizing()) {
+        if (utilityContext.isFinalizing()) {
             this.phase = ChampSelectPhase.FINALIZE;
         } else {
-            switch (context.getCurrentActionSetIndex()) {
+            switch (settingsContext.getCurrentActionSetIndex()) {
                 case -1 -> this.phase = ChampSelectPhase.PLAN;
-                case 0 -> context.getOwnBanPhase().ifPresent(actionObject -> {
+                case 0 -> utilityContext.getOwnBanPhase().ifPresent(actionObject -> {
                     this.phase = actionObject.isCompleted() ? ChampSelectPhase.PLAN : ChampSelectPhase.BAN;
                 });
                 default -> {
-                    boolean pick = context.getActionSetMapping().get(context.getCurrentActionSetIndex())
+                    boolean pick = settingsContext.getActionSetMapping().get(settingsContext.getCurrentActionSetIndex())
                             .stream()
-                            .anyMatch(o -> o.getActorCellId() == context.getLocalPlayerCellId() && !o.isCompleted());
+                            .anyMatch(o -> o.getActorCellId() == settingsContext.getLocalPlayerCellId() && !o.isCompleted());
                     this.phase = pick ? ChampSelectPhase.PICK : ChampSelectPhase.IDLE;
                 }
             }

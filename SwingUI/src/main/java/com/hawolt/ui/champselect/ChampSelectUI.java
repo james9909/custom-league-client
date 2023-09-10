@@ -5,59 +5,34 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.teambuilder.objects.MatchContext;
 import com.hawolt.logger.Logger;
-import com.hawolt.rtmp.amf.TypedObject;
-import com.hawolt.rtmp.io.RtmpPacket;
-import com.hawolt.rtmp.utility.Base64GZIP;
-import com.hawolt.rtmp.utility.PacketCallback;
-import com.hawolt.ui.champselect.data.ChampSelectTeamType;
-import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
+import com.hawolt.ui.champselect.context.ChampSelectContext;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
+import com.hawolt.ui.champselect.context.impl.ChampSelect;
 import com.hawolt.ui.champselect.impl.blank.BlankChampSelectUI;
+import com.hawolt.ui.champselect.impl.blind.BlindChampSelectUI;
 import com.hawolt.ui.champselect.impl.draft.DraftChampSelectUI;
-import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
-import com.hawolt.ui.champselect.util.*;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.version.local.LocalLeagueFileVersion;
-import com.hawolt.xmpp.event.handler.message.IMessageListener;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.FailedMessage;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.OutgoingMessage;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * Created: 29/08/2023 16:59
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectUI extends ChildUIComponent implements ChampSelectContext, PacketCallback, IMessageListener {
-
+public class ChampSelectUI extends ChildUIComponent {
     private final Map<Integer, String> QUEUE_RENDERER_MAPPING = new HashMap<>();
-    private final Set<AbstractRenderInstance> instances = new HashSet<>();
-    private final Map<String, String> resolver = new HashMap<>();
+    private final List<AbstractRenderInstance> instances = new ArrayList<>();
     private final CardLayout layout = new CardLayout();
     private final JComponent main = new ChildUIComponent(layout);
-
-
-    protected boolean allowDuplicatePicks, skipChampionSelect, allowSkinSelection, allowOptingOutOfBanning;
-    protected int localPlayerCellId, currentActionSetIndex, counter, recoveryCounter, queueId;
-    protected Map<Integer, List<ActionObject>> actionSetMapping = new ConcurrentHashMap<>();
-    protected long currentTotalTimeMillis, currentTimeRemainingMillis, gameId, lastUpdate;
-    protected String teamId, subphase, teamChatRoomId, phaseName, contextId, filter;
-    protected ChampSelectRuneSelection runeSelection;
-    protected int[] championsAvailableForBan;
-    protected LeagueClientUI leagueClientUI;
-    protected LeagueClient leagueClient;
-    protected JSONArray trades, swaps;
-    protected JSONObject cells;
+    private final ChampSelect champSelect;
+    private LeagueClientUI leagueClientUI;
+    private LeagueClient leagueClient;
 
     public ChampSelectUI(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
@@ -65,31 +40,15 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         if (leagueClientUI != null) {
             this.leagueClientUI = leagueClientUI;
             this.leagueClient = leagueClientUI.getLeagueClient();
-            LocalLeagueFileVersion leagueFileVersion = leagueClient.getVirtualLeagueClientInstance().getLocalLeagueFileVersion();
-            String value = leagueFileVersion.getVersionValue(leagueClient.getPlayerPlatform(), "LeagueClientUxRender.exe");
-            String[] versions = value.split("\\.");
-            String patch = String.format("%s.%s.1", versions[0], versions[1]);
-            this.leagueClient.getRTMPClient().addDefaultCallback(this);
-            this.runeSelection = new ChampSelectRuneSelection(patch);
-            this.runeSelection.getSaveButton().addActionListener(listener -> setRuneSelection());
+            this.champSelect = new ChampSelect(this);
+            this.leagueClient.getRTMPClient().addDefaultCallback(champSelect.getChampSelectDataContext().getPacketCallback());
+        } else {
+            this.champSelect = new ChampSelect(this);
         }
         this.addRenderInstance(BlankChampSelectUI.INSTANCE);
         this.addRenderInstance(DraftChampSelectUI.INSTANCE);
+        this.addRenderInstance(BlindChampSelectUI.INSTANCE);
         this.showBlankPanel();
-    }
-
-    private void setRuneSelection() {
-        LeagueClientUI.service.execute(() -> {
-            try {
-                JSONObject runes = this.runeSelection.getSelectedRunes();
-                leagueClient.getLedge().getPerks().setRunesForCurrentRegistration(runes);
-                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page set");
-            } catch (IncompleteRunePageException e) {
-                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page incomplete");
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Failed to save Rune Page");
-            }
-        });
     }
 
     public void showBlankPanel() {
@@ -100,32 +59,9 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         this(null);
     }
 
-    @Override
-    public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) {
-        if (typedObject == null || !typedObject.containsKey("data")) return;
-        TypedObject data = typedObject.getTypedObject("data");
-        if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;
-        TypedObject message = data.getTypedObject("flex.messaging.messages.AsyncMessage");
-        if (message == null || !message.containsKey("body")) return;
-        TypedObject body = message.getTypedObject("body");
-        if (body == null || !body.containsKey("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse")) {
-            return;
-        }
-        TypedObject response = body.getTypedObject("com.riotgames.platform.serviceproxy.dispatch.LcdsServiceProxyResponse");
-        if (response == null || !response.containsKey("payload")) return;
-        try {
-            Object object = response.get("payload");
-            if (object == null) return;
-            JSONObject payload = new JSONObject(Base64GZIP.unzipBase64(object.toString()));
-            Logger.info("[champ-select] {}", payload);
-            configure(payload);
-        } catch (IOException e) {
-            Logger.error(e);
-        }
-    }
 
     private void addRenderInstance(AbstractRenderInstance instance) {
-        if (runeSelection != null) instance.setGlobalRunePanel(runeSelection);
+        instance.setGlobalRunePanel(champSelect.getChampSelectInterfaceContext().getRuneSelectionPanel());
         int[] queueIds = instance.getSupportedQueueIds();
         for (int id : queueIds) {
             Logger.info("[champ-select] register queueId:{} as '{}'", id, instance.getCardName());
@@ -135,56 +71,7 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         this.main.add(instance.getCardName(), instance);
     }
 
-    public void configure(JSONObject object) {
-        this.gameId = object.getLong("gameId");
-        this.queueId = object.getInt("queueId");
-        this.counter = object.getInt("counter");
-        this.phaseName = object.getString("phaseName");
-        this.contextId = object.getString("contextId");
-        this.recoveryCounter = object.getInt("recoveryCounter");
-        JSONObject championSelectState = object.getJSONObject("championSelectState");
-        this.currentTimeRemainingMillis = championSelectState.getLong("currentTimeRemainingMillis");
-        this.allowOptingOutOfBanning = championSelectState.getBoolean("allowOptingOutOfBanning");
-        this.currentTotalTimeMillis = championSelectState.getLong("currentTotalTimeMillis");
-        this.currentActionSetIndex = championSelectState.getInt("currentActionSetIndex");
-        this.allowDuplicatePicks = championSelectState.getBoolean("allowDuplicatePicks");
-        this.allowSkinSelection = championSelectState.getBoolean("allowSkinSelection");
-        this.skipChampionSelect = championSelectState.getBoolean("skipChampionSelect");
-        this.localPlayerCellId = championSelectState.getInt("localPlayerCellId");
-        this.teamChatRoomId = championSelectState.getString("teamChatRoomId");
-        this.swaps = championSelectState.getJSONArray("pickOrderSwaps");
-        this.subphase = championSelectState.getString("subphase");
-        this.trades = championSelectState.getJSONArray("trades");
-        this.cells = championSelectState.getJSONObject("cells");
-        this.teamId = championSelectState.getString("teamId");
-        this.lastUpdate = System.currentTimeMillis();
-        JSONArray actionSetList = championSelectState.getJSONArray("actionSetList");
-        for (int i = 0; i < actionSetList.length(); i++) {
-            JSONArray actionSetListChild = actionSetList.getJSONArray(i);
-            List<ActionObject> list = new ArrayList<>();
-            for (int j = 0; j < actionSetListChild.length(); j++) {
-                ActionObject actionObject = new ActionObject(actionSetListChild.getJSONObject(j));
-                list.add(actionObject);
-            }
-            actionSetMapping.put(i, list);
-        }
-        JSONObject inventoryDraft = championSelectState.getJSONObject("inventoryDraft");
-        List<String> disabledChampionIds = inventoryDraft.getJSONArray("disabledChampionIds")
-                .toList()
-                .stream()
-                .map(Object::toString)
-                .toList();
-        championsAvailableForBan = inventoryDraft.getJSONArray("allChampionIds")
-                .toList()
-                .stream()
-                .map(Object::toString)
-                .filter(o -> !disabledChampionIds.contains(o))
-                .mapToInt(Integer::parseInt)
-                .toArray();
-        this.update(this);
-    }
-
-    private void update(ChampSelectContext context) {
+    public void update(ChampSelectContext context) {
         int initialCounter;
         if (leagueClient != null) {
             MatchContext matchContext = leagueClient.getCachedValue(CacheType.MATCH_CONTEXT);
@@ -192,10 +79,11 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         } else {
             initialCounter = 2;
         }
-        if (context.getCounter() == initialCounter) {
-            String card = QUEUE_RENDERER_MAPPING.getOrDefault(context.getQueueId(), "blank");
-            Logger.debug("[champ-select] switch to card {}", card);
-            layout.show(main, card);
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
+        if (settingsContext.getCounter() == initialCounter) {
+            String card = QUEUE_RENDERER_MAPPING.getOrDefault(settingsContext.getQueueId(), "blank");
+            Logger.info("[champ-select] switch to card {}", card);
+            this.layout.show(main, card);
             if (leagueClientUI != null) leagueClientUI.getLayoutManager().showClientComponent("select");
         }
         for (AbstractRenderInstance instance : instances) {
@@ -204,311 +92,19 @@ public class ChampSelectUI extends ChildUIComponent implements ChampSelectContex
         this.repaint();
     }
 
-    @Override
-    public Optional<ActionObject> getOwnBanPhase() {
-        return actionSetMapping.get(0)
-                .stream()
-                .filter(object -> object.getActorCellId() == localPlayerCellId)
-                .findFirst();
+    public ChampSelect getChampSelect() {
+        return champSelect;
     }
 
-    @Override
-    public Optional<ActionObject> getOwnPickPhase() {
-        return actionSetMapping.values()
-                .stream()
-                .skip(1)
-                .flatMap(Collection::stream)
-                .filter(object -> object.getActorCellId() == localPlayerCellId)
-                .findFirst();
-    }
-
-    @Override
-    public List<ActionObject> getBanSelection(ChampSelectTeamType type) {
-        List<Integer> cellIds = Arrays.stream(getCells(type, MemberFunction.INSTANCE))
-                .map(ChampSelectMember::getCellId)
-                .toList();
-        return actionSetMapping.values()
-                .stream()
-                .flatMap(Collection::stream)
-                .filter(actionObject -> actionObject.getType().equals("BAN"))
-                .filter(actionObject -> cellIds.contains(actionObject.getActorCellId()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public int[] getChampionsAvailableForBan() {
-        return championsAvailableForBan;
-    }
-
-    @Override
-    public int[] getChampionsAvailableForPick() {
-        if (leagueClient == null) return championsAvailableForBan;
-        String jwt = leagueClient.getCachedValue(CacheType.INVENTORY_TOKEN);
-        JSONObject b = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
-        JSONObject items = b.getJSONObject("items");
-        JSONArray champions = items.getJSONArray("CHAMPION");
-        int[] ids = new int[champions.length()];
-        for (int i = 0; i < champions.length(); i++) {
-            ids[i] = champions.getInt(i);
-        }
-        return ids;
-    }
-
-    @Override
-    public ChampSelectTeamMember getSelf() {
-        ChampSelectMember[] members = getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE);
-        for (ChampSelectMember member : members) {
-            if (member.getCellId() == getLocalPlayerCellId()) {
-                return (ChampSelectTeamMember) member;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public TradeStatus[] getTrades() {
-        return trades.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(TradeStatus::new)
-                .toArray(TradeStatus[]::new);
-    }
-
-    @Override
-    public Optional<TradeStatus> getTrade(int cellId) {
-        return trades.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(TradeStatus::new)
-                .filter(status -> status.getCellId() == cellId)
-                .findFirst();
-    }
-
-    @Override
-    public Optional<TradeStatus> getActiveTrade() {
-        return trades.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(TradeStatus::new)
-                .filter(status -> "SENT".equals(status.getState()) || "RECEIVED".equals(status.getState()))
-                .findFirst();
-    }
-
-    @Override
-    public PickOrderStatus[] getPickSwaps() {
-        return swaps.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(PickOrderStatus::new)
-                .toArray(PickOrderStatus[]::new);
-    }
-
-    @Override
-    public Optional<PickOrderStatus> getPickSwap(int cellId) {
-        return swaps.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(PickOrderStatus::new)
-                .filter(status -> status.getCellId() == cellId)
-                .findFirst();
-    }
-
-    @Override
-    public Optional<PickOrderStatus> getPickSwap() {
-        return swaps.toList()
-                .stream()
-                .map(o -> (HashMap<?, ?>) o)
-                .map(JSONObject::new)
-                .map(PickOrderStatus::new)
-                .filter(status -> "SENT".equals(status.getState()) || "RECEIVED".equals(status.getState()))
-                .findFirst();
-    }
-
-    @Override
-    public Set<String> getCells() {
-        return cells.keySet();
-    }
-
-    @Override
     public LeagueClient getLeagueClient() {
         return leagueClient;
     }
 
-    @Override
     public LeagueClientUI getLeagueClientUI() {
-        return null;
+        return leagueClientUI;
     }
 
-    @Override
-    public JSONArray getCells(ChampSelectTeamType type) {
-        return cells.getJSONArray(type.getIdentifier());
-    }
-
-    @Override
-    public <T> T getCells(ChampSelectTeamType type, Function<JSONArray, T> function) {
-        return function.apply(getCells(type));
-    }
-
-    @Override
-    public void cache(String puuid, String name) {
-        this.resolver.put(puuid, name);
-    }
-
-    @Override
-    public Map<String, String> getPUUIDResolver() {
-        return resolver;
-    }
-
-    @Override
-    public Map<Integer, List<ActionObject>> getActionSetMapping() {
-        return actionSetMapping;
-    }
-
-    @Override
-    public boolean isAllowDuplicatePicks() {
-        return allowDuplicatePicks;
-    }
-
-    @Override
-    public boolean isSkipChampionSelect() {
-        return skipChampionSelect;
-    }
-
-    @Override
-    public boolean isAllowSkinSelection() {
-        return allowSkinSelection;
-    }
-
-    @Override
-    public boolean isAllowOptingOutOfBanning() {
-        return allowOptingOutOfBanning;
-    }
-
-    @Override
-    public long getCurrentTotalTimeMillis() {
-        return currentTotalTimeMillis;
-    }
-
-    @Override
-    public long getCurrentTimeRemainingMillis() {
-        return currentTimeRemainingMillis;
-    }
-
-    @Override
-    public int getLocalPlayerCellId() {
-        return localPlayerCellId;
-    }
-
-    @Override
-    public int getCurrentActionSetIndex() {
-        return currentActionSetIndex;
-    }
-
-    @Override
-    public String getTeamId() {
-        return teamId;
-    }
-
-    @Override
-    public String getSubphase() {
-        return subphase;
-    }
-
-    @Override
-    public String getTeamChatRoomId() {
-        return teamChatRoomId;
-    }
-
-    @Override
-    public int getCounter() {
-        return counter;
-    }
-
-    @Override
-    public int getRecoveryCounter() {
-        return recoveryCounter;
-    }
-
-    @Override
-    public int getQueueId() {
-        return queueId;
-    }
-
-    @Override
-    public long getGameId() {
-        return gameId;
-    }
-
-    @Override
-    public String getPhaseName() {
-        return phaseName;
-    }
-
-    @Override
-    public String getContextId() {
-        return contextId;
-    }
-
-    @Override
-    public boolean isFinalizing() {
-        int availableActions = getActionSetMapping().size();
-        return getCurrentActionSetIndex() >= availableActions;
-    }
-
-    @Override
-    public List<ActionObject> getCurrent() {
-        if (getCurrentActionSetIndex() < 0) return new ArrayList<>();
-        return getActionSetMapping().get(getCurrentActionSetIndex());
-    }
-
-    @Override
-    public void filterChampion(String champion) {
-        for (AbstractRenderInstance instance : instances) {
-            instance.invokeChampionFilter(champion);
-        }
-    }
-
-    @Override
-    public PacketCallback getPacketCallback() {
-        return this;
-    }
-
-    public long getLastUpdate() {
-        return lastUpdate;
-    }
-
-    @Override
-    public void quitChampSelect() {
-        this.showBlankPanel();
-    }
-
-    @Override
-    public ChampSelectRuneSelection getRuneSelectionPanel() {
-        return runeSelection;
-    }
-
-
-    @Override
-    public void onMessageReceived(IncomingMessage incomingMessage) {
-        Logger.error(incomingMessage);
-        if (!incomingMessage.getType().equals("groupchat")) return;
-        for (AbstractRenderInstance instance : instances) {
-            instance.push(incomingMessage);
-        }
-    }
-
-    @Override
-    public void onMessageSent(OutgoingMessage outgoingMessage) {
-
-    }
-
-    @Override
-    public void onFailedMessage(FailedMessage failedMessage) {
-
+    public List<AbstractRenderInstance> getInstances() {
+        return instances;
     }
 }

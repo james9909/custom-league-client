@@ -6,5 +6,14 @@ package com.hawolt.ui.champselect.data;
  **/
 
 public enum ChampSelectType {
-    PICK, BAN
+    PICK("select"), BAN("ban");
+    final String name;
+
+    ChampSelectType(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

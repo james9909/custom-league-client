@@ -1,9 +1,9 @@
 package com.hawolt.ui.champselect.impl.draft;
 
+import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectBanElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
-import com.hawolt.ui.champselect.util.ActionObject;
 import com.hawolt.util.panel.ChildUIComponent;
 
 import java.awt.*;
@@ -43,7 +43,7 @@ public class DraftSelectSidebarUI extends ChampSelectSidebarUI {
     public void update() {
         super.update();
         if (type == null) return;
-        List<ActionObject> list = context.getBanSelection(type);
+        List<ActionObject> list = context.getChampSelectInteractionContext().getBanSelection(type);
         for (ActionObject object : list) {
             int normalizedActorCellId = object.getActorCellId() % 5;
             elements[normalizedActorCellId].update(object);

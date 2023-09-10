@@ -2,6 +2,8 @@ package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.misc.SortOrder;
+import com.hawolt.ui.champselect.context.ChampSelectDataContext;
+import com.hawolt.ui.champselect.context.impl.ChampSelect;
 import com.hawolt.ui.chat.window.IChatWindow;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.audio.AudioEngine;
@@ -305,6 +307,9 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
 
     @Override
     public void onJoinMucPresence(JoinMucPresence presence) {
+        ChampSelect champSelect = leagueClientUI.getLayoutManager().getChampSelectUI().getChampSelect();
+        ChampSelectDataContext dataContext = champSelect.getChampSelectDataContext();
+        dataContext.push(presence);
         handle(presence);
     }
 

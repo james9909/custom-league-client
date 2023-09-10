@@ -161,7 +161,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                 (EventListener<PlainData>) event -> buildSidebarUI(xmppClient)
         );
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
-        xmppClient.addMessageListener(getLayoutManager().getChampSelect());
+        xmppClient.addMessageListener(getLayoutManager().getChampSelectUI().getChampSelect().getChampSelectDataContext().getMessageListener());
         xmppClient.addPresenceListener(friendlist);
         xmppClient.addFriendListener(friendlist);
         xmppClient.addMessageListener(chatUI);

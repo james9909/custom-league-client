@@ -5,6 +5,7 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.communitydragon.champion.Champion;
 import com.hawolt.client.resources.communitydragon.champion.ChampionIndex;
 import com.hawolt.client.resources.communitydragon.champion.ChampionSource;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
@@ -75,9 +76,10 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
         int[] championsAvailableAsChoice = switch (type) {
-            case PICK -> context.getChampionsAvailableForPick();
-            case BAN -> context.getChampionsAvailableForBan();
+            case PICK -> settingsContext.getChampionsAvailableForPick();
+            case BAN -> settingsContext.getChampionsAvailableForBan();
         };
         if (this.championsAvailableAsChoice.length == championsAvailableAsChoice.length) return;
         this.championsAvailableAsChoice = championsAvailableAsChoice;

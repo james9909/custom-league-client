@@ -1,8 +1,10 @@
 package com.hawolt.ui.champselect.impl.blind;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
+import com.hawolt.ui.champselect.context.ChampSelectUtilityContext;
+import com.hawolt.ui.champselect.data.ChampSelectPhase;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
-import com.hawolt.ui.champselect.util.ChampSelectPhase;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
@@ -55,11 +57,10 @@ public class BlindChampSelectHeaderUI extends ChampSelectUIComponent {
 
         if (phase == null) return;
         String status = switch (phase) {
-            case PLAN -> "DECLARE YOUR CHAMPION";
             case IDLE -> "WAITING FOR OTHERS";
-            case BAN -> "BAN A CHAMPION";
             case PICK -> "SELECT YOUR CHAMPION";
             case FINALIZE -> "PREPARE FOR BATTLE";
+            default -> "UNKNOWN STATE";
         };
         Graphics2D graphics2D = (Graphics2D) g;
         graphics2D.setColor(Color.WHITE);
@@ -72,24 +73,19 @@ public class BlindChampSelectHeaderUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        this.currentTimeRemainingMillis = context.getCurrentTimeRemainingMillis();
-        this.currentTotalTimeMillis = context.getCurrentTotalTimeMillis();
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
+        ChampSelectUtilityContext utilityContext = context.getChampSelectUtilityContext();
+        this.currentTimeRemainingMillis = settingsContext.getCurrentTimeRemainingMillis();
+        this.currentTotalTimeMillis = settingsContext.getCurrentTotalTimeMillis();
         this.timestamp = System.currentTimeMillis();
-        if (context.isFinalizing()) {
+        if (utilityContext.isFinalizing()) {
             this.phase = ChampSelectPhase.FINALIZE;
         } else {
-            switch (context.getCurrentActionSetIndex()) {
-                case -1 -> this.phase = ChampSelectPhase.PLAN;
-                case 0 -> context.getOwnBanPhase().ifPresent(actionObject -> {
-                    this.phase = actionObject.isCompleted() ? ChampSelectPhase.PLAN : ChampSelectPhase.BAN;
-                });
-                default -> {
-                    boolean pick = context.getActionSetMapping().get(context.getCurrentActionSetIndex())
-                            .stream()
-                            .anyMatch(o -> o.getActorCellId() == context.getLocalPlayerCellId() && !o.isCompleted());
-                    this.phase = pick ? ChampSelectPhase.PICK : ChampSelectPhase.IDLE;
-                }
-            }
+            utilityContext.getOwnPickPhase().ifPresentOrElse(phase -> {
+                this.phase = phase.isCompleted() ? ChampSelectPhase.IDLE : ChampSelectPhase.PICK;
+            }, () -> {
+                this.phase = ChampSelectPhase.PICK;
+            });
         }
     }
 }

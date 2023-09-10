@@ -1,13 +1,14 @@
 package com.hawolt.ui.champselect.generic.impl;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectTeamType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
-import com.hawolt.ui.champselect.util.ChampSelectMember;
-import com.hawolt.ui.champselect.util.ChampSelectTeamMember;
-import com.hawolt.ui.champselect.util.MemberFunction;
-import com.hawolt.ui.champselect.util.TeamMemberFunction;
+import com.hawolt.ui.champselect.data.ChampSelectMember;
+import com.hawolt.ui.champselect.data.ChampSelectTeamMember;
+import com.hawolt.ui.champselect.data.MemberFunction;
+import com.hawolt.ui.champselect.data.TeamMemberFunction;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +27,8 @@ import java.util.concurrent.ExecutorService;
  **/
 
 public class ChampSelectSidebarUI extends ChampSelectUIComponent {
-    private final Map<Integer, ChampSelectMemberElement> map = new HashMap<>();
-    private final ChildUIComponent display;
+    protected final Map<Integer, ChampSelectMemberElement> map = new HashMap<>();
+    protected final ChildUIComponent display;
 
     protected final ChildUIComponent main;
     protected final ChampSelectTeam team;
@@ -60,7 +61,12 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
         this.type = getChampSelectTeamType();
         ChampSelectMember[] members = get(type);
         this.display.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.display.setLayout(new GridLayout(members.length, 0, 0, 5));
+        populate(members);
+        revalidate();
+    }
+
+    protected void populate(ChampSelectMember... members) {
+        this.display.setLayout(new GridLayout(Math.max(1, members.length), 0, 0, 5));
         for (ChampSelectMember member : members) {
             ExecutorService loader = ExecutorManager.getService("name-loader");
             ChampSelectMemberElement element = new ChampSelectMemberElement(type, team, member);
@@ -69,7 +75,6 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
             loader.execute(element);
             this.display.add(element);
         }
-        revalidate();
     }
 
     @Override
@@ -80,22 +85,23 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
         }
     }
 
-    private ChampSelectMember[] get(ChampSelectTeamType type) {
+    protected ChampSelectMember[] get(ChampSelectTeamType type) {
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
         switch (type) {
             case ALLIED -> {
-                return context.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE);
+                return settingsContext.getCells(ChampSelectTeamType.ALLIED, TeamMemberFunction.INSTANCE);
 
             }
             case ENEMY -> {
-                return context.getCells(ChampSelectTeamType.ENEMY, MemberFunction.INSTANCE);
+                return settingsContext.getCells(ChampSelectTeamType.ENEMY, MemberFunction.INSTANCE);
             }
         }
         return new ChampSelectMember[0];
     }
 
     @NotNull
-    private ChampSelectTeamType getChampSelectTeamType() {
-        ChampSelectTeamMember self = context.getSelf();
+    protected ChampSelectTeamType getChampSelectTeamType() {
+        ChampSelectTeamMember self = context.getChampSelectUtilityContext().getSelf();
         int alliedTeamId = self.getTeamId();
         ChampSelectTeamType type;
         switch (team) {

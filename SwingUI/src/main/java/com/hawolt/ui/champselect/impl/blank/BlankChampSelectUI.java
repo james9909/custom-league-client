@@ -5,6 +5,7 @@ import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
+import com.hawolt.xmpp.event.objects.presence.impl.JoinMucPresence;
 
 /**
  * Created: 02/09/2023 16:53
@@ -25,12 +26,17 @@ public class BlankChampSelectUI extends AbstractRenderInstance {
     }
 
     @Override
-    protected void push(IncomingMessage incomingMessage) {
+    public void push(IncomingMessage incomingMessage) {
 
     }
 
     @Override
-    protected void stopChampSelectTimer() {
+    public void push(JoinMucPresence presence) {
+
+    }
+
+    @Override
+    protected void stopChampSelect() {
 
     }
 

@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect.impl.draft;
+package com.hawolt.ui.champselect.generic.impl;
 
 import com.hawolt.client.resources.communitydragon.spell.Spell;
 import com.hawolt.client.resources.communitydragon.spell.SpellIndex;
@@ -28,16 +28,17 @@ import java.util.concurrent.TimeUnit;
  * Author: Twitter @hawolt
  **/
 
-public class DraftGameSettingUI extends ChampSelectUIComponent {
+public class ChampSelectGameSettingUI extends ChampSelectUIComponent {
     private final Debouncer debouncer = new Debouncer();
     private final LComboBox<Spell> spellOne, spellTwo;
     private final LFlatButton submit, runes, dodge;
 
-    //TODO find a data source for this
-    private static final List<Integer> temporaryWhiteList = Arrays.asList(1, 3, 4, 6, 7, 11, 12, 13, 14, 21);
-    private static Spell[] allowed;
-
-    static {
+    public ChampSelectGameSettingUI(Integer... allowedSpellIds) {
+        this.setLayout(new BorderLayout());
+        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
+        //TODO find a data source for this
+        List<Integer> temporaryWhiteList = Arrays.asList(allowedSpellIds);
         SpellIndex spellIndex = SpellSource.SPELL_SOURCE_INSTANCE.get();
         Spell[] spells = spellIndex.getAvailableSpells();
         List<Spell> list = new ArrayList<>();
@@ -45,13 +46,7 @@ public class DraftGameSettingUI extends ChampSelectUIComponent {
             if (!temporaryWhiteList.contains(spell.getId())) continue;
             list.add(spell);
         }
-        DraftGameSettingUI.allowed = list.toArray(Spell[]::new);
-    }
-
-    public DraftGameSettingUI() {
-        this.setLayout(new BorderLayout());
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
+        Spell[] allowed = list.toArray(Spell[]::new);
         ChildUIComponent spellUI = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         spellUI.add(spellOne = new LComboBox<>(allowed));
         spellUI.add(spellTwo = new LComboBox<>(allowed));
@@ -66,7 +61,7 @@ public class DraftGameSettingUI extends ChampSelectUIComponent {
             private void forward(String text) {
                 debouncer.debounce(
                         "filter",
-                        () -> context.filterChampion(text),
+                        () -> context.getChampSelectInterfaceContext().filterChampion(text),
                         200L,
                         TimeUnit.MILLISECONDS
                 );

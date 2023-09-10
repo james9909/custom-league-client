@@ -2,7 +2,7 @@ package com.hawolt.ui.champselect.generic.impl;
 
 import com.hawolt.async.LazyLoadedImageComponent;
 import com.hawolt.async.loader.ResourceLoader;
-import com.hawolt.ui.champselect.util.ActionObject;
+import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.util.ColorPalette;
 
 import java.awt.*;

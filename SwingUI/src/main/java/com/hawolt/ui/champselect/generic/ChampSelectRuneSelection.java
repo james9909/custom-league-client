@@ -1,10 +1,12 @@
 package com.hawolt.ui.champselect.generic;
 
+import com.hawolt.LeagueClientUI;
+import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.communitydragon.rune.BasicRune;
 import com.hawolt.client.resources.communitydragon.rune.RuneIndex;
 import com.hawolt.client.resources.communitydragon.rune.RuneSource;
 import com.hawolt.client.resources.communitydragon.rune.RuneType;
-import com.hawolt.ui.champselect.runes.IncompleteRunePageException;
+import com.hawolt.ui.champselect.IncompleteRunePageException;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -16,6 +18,7 @@ import org.json.JSONObject;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -26,7 +29,7 @@ import java.util.List;
  * Author: Twitter @hawolt
  **/
 
-public class ChampSelectRuneSelection extends ChildUIComponent {
+public class ChampSelectRuneSelection extends ChampSelectUIComponent {
     private final ChampSelectionRuneTree extra;
     private final LTabbedPane main, secondary;
     private final LFlatButton close, save;
@@ -39,6 +42,7 @@ public class ChampSelectRuneSelection extends ChildUIComponent {
         this.add(header = new ChildUIComponent(new BorderLayout()), BorderLayout.NORTH);
         header.add(close = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT), BorderLayout.EAST);
         header.add(save = new LFlatButton("Save", LTextAlign.CENTER, LHighlightType.COMPONENT), BorderLayout.WEST);
+        save.addActionListener(listener -> setRuneSelection());
         ChildUIComponent panel = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         this.add(panel, BorderLayout.CENTER);
         this.main = new LTabbedPane(new Font("Dialog", Font.PLAIN, 10));
@@ -59,6 +63,22 @@ public class ChampSelectRuneSelection extends ChildUIComponent {
         }
         disableTabAndSelectNextAvailable(secondary, 0);
         main.addChangeListener(listener -> disableTabAndSelectNextAvailable(secondary, main.getSelectedIndex()));
+    }
+
+
+    private void setRuneSelection() {
+        LeagueClientUI.service.execute(() -> {
+            try {
+                JSONObject runes = getSelectedRunes();
+                LeagueClient client = context.getChampSelectDataContext().getLeagueClient();
+                client.getLedge().getPerks().setRunesForCurrentRegistration(runes);
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page set");
+            } catch (IncompleteRunePageException e) {
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Rune Page incomplete");
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(Frame.getFrames()[0], "Failed to save Rune Page");
+            }
+        });
     }
 
     public JSONObject getSelectedRunes() throws IncompleteRunePageException {

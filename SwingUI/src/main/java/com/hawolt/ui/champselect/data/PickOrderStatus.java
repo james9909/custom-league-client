@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect.util;
+package com.hawolt.ui.champselect.data;
 
 import org.json.JSONObject;
 
