@@ -5,6 +5,7 @@ import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LComboBox;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,10 +29,10 @@ public class DraftQueueLobby extends QueueLobby {
     protected void createSpecificComponents(ChildUIComponent component) {
 
         ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
-        main = new JComboBox<>(PositionPreference.values());
+        main = new LComboBox<>(PositionPreference.values());
         main.addActionListener(this);
         roles.add(main);
-        other = new JComboBox<>(PositionPreference.values());
+        other = new LComboBox<>(PositionPreference.values());
         other.addActionListener(this);
         //TODO revisit
       /*  try {
