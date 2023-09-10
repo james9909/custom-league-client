@@ -15,4 +15,6 @@ public interface ChampSelectChoice {
     void onChoiceSubmission(ChampSelectType type, int championId, boolean completed);
 
     void onChoice(ChampSelectSelectionElement element);
+
+    void onSwapChoice(ChampSelectBenchElement element);
 }

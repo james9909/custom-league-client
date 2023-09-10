@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect.util;
+package com.hawolt.ui.champselect.data;
 
 import org.json.JSONArray;
 
@@ -9,15 +9,14 @@ import java.util.function.Function;
  * Author: Twitter @hawolt
  **/
 
-public class TeamMemberFunction implements Function<JSONArray, ChampSelectMember[]> {
-
-    public static TeamMemberFunction INSTANCE = new TeamMemberFunction();
+public class MemberFunction implements Function<JSONArray, ChampSelectMember[]> {
+    public static MemberFunction INSTANCE = new MemberFunction();
 
     @Override
     public ChampSelectMember[] apply(JSONArray array) {
         ChampSelectMember[] members = new ChampSelectMember[array.length()];
         for (int i = 0; i < array.length(); i++) {
-            members[i] = new ChampSelectTeamMember(array.getJSONObject(i));
+            members[i] = new ChampSelectMember(array.getJSONObject(i));
         }
         return members;
     }

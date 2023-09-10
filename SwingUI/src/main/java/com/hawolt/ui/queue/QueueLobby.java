@@ -14,6 +14,9 @@ import com.hawolt.rms.data.subject.service.IServiceMessageListener;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
 import org.json.JSONObject;
 
 import javax.swing.*;
@@ -55,11 +58,11 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         this.leagueClientUI = leagueClientUI;
         this.leagueClientUI.getLeagueClient().getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, this);
 
-        JButton close = new JButton("Return to previous Component");
+        LFlatButton close = new LFlatButton("Return to previous Component", LTextAlign.CENTER, LHighlightType.COMPONENT);
         close.addActionListener(listener -> layout.show(parent, "modes"));
         add(close, BorderLayout.NORTH);
 
-        JButton invite = new JButton("Invite another Summoner");
+        LFlatButton invite = new LFlatButton("Invite another Summoner", LTextAlign.CENTER, LHighlightType.COMPONENT);
         invite.addActionListener(listener -> {
             String name = (String) JOptionPane.showInputDialog(
                     this,
@@ -85,10 +88,10 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
 
         add(component, BorderLayout.CENTER);
         ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
-        JButton start = new JButton("START QUEUE");
+        LFlatButton start = new LFlatButton("START QUEUE", LTextAlign.CENTER, LHighlightType.COMPONENT);
         start.addActionListener(listener -> startQueue());
         bottom.add(start);
-        JButton stop = new JButton("STOP QUEUE");
+        LFlatButton stop = new LFlatButton("STOP QUEUE", LTextAlign.CENTER, LHighlightType.COMPONENT);
         stop.addActionListener(listener -> {
             if (future != null) future.cancel(true);
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();

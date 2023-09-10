@@ -1,13 +1,18 @@
 package com.hawolt.ui.champselect.impl.draft;
 
 import com.hawolt.async.ExecutorManager;
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
+import com.hawolt.ui.champselect.context.ChampSelectUtilityContext;
+import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
-import com.hawolt.ui.champselect.util.ChampSelectPhase;
+import com.hawolt.ui.champselect.data.ChampSelectPhase;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectHeaderUI;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -16,80 +21,47 @@ import java.util.concurrent.TimeUnit;
  * Author: Twitter @hawolt
  **/
 
-public class DraftChampSelectHeaderUI extends ChampSelectUIComponent {
-    private final ScheduledExecutorService scheduler = ExecutorManager.getScheduledService(getClass().getSimpleName());
-    private double currentTotalTimeMillis, currentTimeRemainingMillis, timestamp;
-    private ChampSelectPhase phase;
+public class DraftChampSelectHeaderUI extends ChampSelectHeaderUI {
 
     public DraftChampSelectHeaderUI() {
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.setPreferredSize(new Dimension(0, 60));
-        this.scheduler.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);
-        this.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK),
-                        new EmptyBorder(5, 5, 5, 5)
-                )
-        );
-    }
-
-    public void reset() {
-        this.timestamp = 0;
+        super();
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Dimension dimension = getSize();
-
-        if (context != null && timestamp != 0L) {
-            double difference = currentTotalTimeMillis - currentTimeRemainingMillis + (System.currentTimeMillis() - timestamp);
-            double percentage = difference / currentTotalTimeMillis;
-            if (percentage < 0) percentage = 0;
-            int centerX = (dimension.width >> 1);
-            int extend = (int) Math.ceil(centerX * percentage);
-            g.setColor(Color.WHITE);
-            g.fillRect(centerX, dimension.height - 5, extend, 5);
-            g.fillRect(centerX - extend, dimension.height - 5, extend, 5);
-        }
-
-        if (phase == null) return;
-        String status = switch (phase) {
+    protected String getPhaseDescription(ChampSelectPhase phase) {
+        return switch (phase) {
             case PLAN -> "DECLARE YOUR CHAMPION";
             case IDLE -> "WAITING FOR OTHERS";
             case BAN -> "BAN A CHAMPION";
             case PICK -> "SELECT YOUR CHAMPION";
             case FINALIZE -> "PREPARE FOR BATTLE";
         };
-        Graphics2D graphics2D = (Graphics2D) g;
-        graphics2D.setColor(Color.WHITE);
-        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        graphics2D.setFont(new Font("Arial", Font.BOLD, 28));
-        FontMetrics metrics = graphics2D.getFontMetrics();
-        int width = metrics.stringWidth(status);
-        graphics2D.drawString(status, (dimension.width >> 1) - (width >> 1), (dimension.height >> 1) + (metrics.getAscent() >> 1));
     }
 
     @Override
-    public void update() {
-        this.currentTimeRemainingMillis = context.getCurrentTimeRemainingMillis();
-        this.currentTotalTimeMillis = context.getCurrentTotalTimeMillis();
-        this.timestamp = System.currentTimeMillis();
-        if (context.isFinalizing()) {
-            this.phase = ChampSelectPhase.FINALIZE;
+    protected ChampSelectPhase getChampSelectPhase() {
+        ChampSelectUtilityContext utilityContext = context.getChampSelectUtilityContext();
+        if (utilityContext.isFinalizing()) {
+            return ChampSelectPhase.FINALIZE;
         } else {
-            switch (context.getCurrentActionSetIndex()) {
-                case -1 -> this.phase = ChampSelectPhase.PLAN;
-                case 0 -> context.getOwnBanPhase().ifPresent(actionObject -> {
-                    this.phase = actionObject.isCompleted() ? ChampSelectPhase.PLAN : ChampSelectPhase.BAN;
-                });
-                default -> {
-                    boolean pick = context.getActionSetMapping().get(context.getCurrentActionSetIndex())
-                            .stream()
-                            .anyMatch(o -> o.getActorCellId() == context.getLocalPlayerCellId() && !o.isCompleted());
-                    this.phase = pick ? ChampSelectPhase.PICK : ChampSelectPhase.IDLE;
+            return switch (settingsContext.getCurrentActionSetIndex()) {
+                case -1 -> ChampSelectPhase.PLAN;
+                case 0 -> {
+                    Optional<ActionObject> optional = utilityContext.getOwnBanPhase();
+                    if (optional.isPresent()) {
+                        ActionObject object = optional.get();
+                        yield object.isCompleted() ? ChampSelectPhase.PLAN : ChampSelectPhase.BAN;
+                    } else {
+                        yield ChampSelectPhase.PICK;
+                    }
                 }
-            }
+                default -> {
+                    boolean pick = settingsContext.getActionSetMapping().get(settingsContext.getCurrentActionSetIndex())
+                            .stream()
+                            .anyMatch(o -> o.getActorCellId() == settingsContext.getLocalPlayerCellId() && !o.isCompleted());
+                    yield pick ? ChampSelectPhase.PICK : ChampSelectPhase.IDLE;
+                }
+            };
         }
     }
 }

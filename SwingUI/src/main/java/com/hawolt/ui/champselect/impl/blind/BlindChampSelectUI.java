@@ -1,49 +1,46 @@
 package com.hawolt.ui.champselect.impl.blind;
 
-import com.hawolt.client.resources.communitydragon.spell.Spell;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectType;
-import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectCenterUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
-import com.hawolt.ui.champselect.impl.draft.DraftSelectSidebarUI;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
-
-import java.awt.*;
+import com.hawolt.ui.champselect.impl.MatchmadeRenderInstance;
 
 /**
  * Created: 03/09/2023 14:16
  * Author: Twitter @hawolt
  **/
 
-public class BlindChampSelectUI extends AbstractRenderInstance {
-    public static BlindChampSelectUI INSTANCE = new BlindChampSelectUI();
+public class BlindChampSelectUI extends MatchmadeRenderInstance {
+    public static BlindChampSelectUI INSTANCE = new BlindChampSelectUI(ChampSelectType.PICK);
 
-
-    public BlindChampSelectUI() {
-        setLayout(new BorderLayout());
-
-        this.add(new ChampSelectSidebarUI(ChampSelectTeam.PURPLE), BorderLayout.EAST);
-        this.add(new ChampSelectSidebarUI(ChampSelectTeam.BLUE), BorderLayout.WEST);
+    public BlindChampSelectUI(ChampSelectType... supportedTypes) {
+        super(supportedTypes);
     }
 
     @Override
-    protected void push(IncomingMessage incomingMessage) {
-
+    protected ChampSelectCenterUI getCenterUI(AbstractRenderInstance instance, ChampSelectType... supportedTypes) {
+        return new BlindCenterUI(instance, supportedTypes);
     }
 
     @Override
-    protected void stopChampSelectTimer() {
-
+    protected ChampSelectSidebarUI getSidebarUI(ChampSelectTeam team) {
+        return new BlindSelectSidebarUI(team);
     }
 
     @Override
-    public void invokeChampionFilter(String champion) {
-
+    protected BlindChampSelectHeaderUI getHeaderUI() {
+        return new BlindChampSelectHeaderUI();
     }
 
     @Override
-    public void setGlobalRunePanel(ChampSelectRuneSelection selection) {
+    protected Integer[] getAllowedSummonerSpells() {
+        return new Integer[]{1, 3, 4, 6, 7, 11, 12, 13, 14, 21};
+    }
+
+    @Override
+    protected void stopChampSelect() {
 
     }
 
@@ -55,15 +52,5 @@ public class BlindChampSelectUI extends AbstractRenderInstance {
     @Override
     public String getCardName() {
         return "blind";
-    }
-
-    @Override
-    public void onSummonerSubmission(Spell selectedSpellOne, Spell selectedSpellTwo) {
-
-    }
-
-    @Override
-    public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
-
     }
 }

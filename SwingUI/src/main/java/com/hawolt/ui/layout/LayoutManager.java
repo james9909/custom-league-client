@@ -42,7 +42,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         layout.show(center, name);
     }
 
-    public ChampSelectUI getChampSelect() {
+    public ChampSelectUI getChampSelectUI() {
         return champSelect;
     }
 

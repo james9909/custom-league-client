@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect.util;
+package com.hawolt.ui.champselect.data;
 
 /**
  * Created: 29/08/2023 19:23

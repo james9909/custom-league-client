@@ -26,7 +26,7 @@ public class GameStartListener implements IServiceMessageListener<RiotMessageSer
         if (!gameStart) return;
         Launcher.launch(leagueClientUI.getSettingService(), platform, riotMessageServiceMessage.getPayload().getPayload());
         leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
-        leagueClientUI.getLayoutManager().getChampSelect().showBlankPanel();
+        leagueClientUI.getLayoutManager().getChampSelectUI().showBlankPanel();
     }
 
 }

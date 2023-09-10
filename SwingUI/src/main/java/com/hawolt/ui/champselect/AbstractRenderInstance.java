@@ -4,6 +4,8 @@ import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.logger.Logger;
 import com.hawolt.rtmp.LeagueRtmpClient;
+import com.hawolt.ui.champselect.context.ChampSelectContext;
+import com.hawolt.ui.champselect.context.ChampSelectDataContext;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.data.GameType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
@@ -12,6 +14,7 @@ import com.hawolt.ui.champselect.generic.impl.ChampSelectChoice;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSelectionElement;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
+import com.hawolt.xmpp.event.objects.presence.impl.JoinMucPresence;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,9 +39,11 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
     private final Map<ChampSelectType, ChampSelectSelectionElement> map = new ConcurrentHashMap<>();
 
 
-    protected abstract void push(IncomingMessage incomingMessage);
+    public abstract void push(IncomingMessage incomingMessage);
 
-    protected abstract void stopChampSelectTimer();
+    public abstract void push(JoinMucPresence presence);
+
+    protected abstract void stopChampSelect();
 
     public abstract void invokeChampionFilter(String champion);
 
@@ -70,19 +75,18 @@ public abstract class AbstractRenderInstance extends ChampSelectUIComponent impl
     public void dodge(GameType type) {
         if (context == null) return;
         LeagueClientUI.service.execute(() -> {
-            LeagueClient client = context.getLeagueClient();
+            ChampSelectDataContext dataContext = context.getChampSelectDataContext();
+            LeagueClient client = dataContext.getLeagueClient();
             LeagueRtmpClient rtmpClient = client.getRTMPClient();
-            LeagueClientUI leagueClientUI = context.getLeagueClientUI();
+            LeagueClientUI leagueClientUI = context.getChampSelectInterfaceContext().getLeagueClientUI();
             try {
                 switch (type) {
                     case CLASSIC ->
-                            rtmpClient.getTeamBuilderService().quitGameV2Asynchronous(context.getPacketCallback());
-                    case CUSTOM -> {
-                        Logger.debug("currently not supported");
-                    }
+                            rtmpClient.getTeamBuilderService().quitGameV2Asynchronous(dataContext.getPacketCallback());
+                    case CUSTOM -> Logger.debug("currently not supported");
                 }
                 leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
-                context.quitChampSelect();
+                context.getChampSelectUtilityContext().quitChampSelect();
                 revalidate();
             } catch (IOException e) {
                 Logger.error("failed to quit game");

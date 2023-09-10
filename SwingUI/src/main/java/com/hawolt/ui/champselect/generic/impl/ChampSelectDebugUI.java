@@ -1,5 +1,6 @@
 package com.hawolt.ui.champselect.generic.impl;
 
+import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 
@@ -35,9 +36,10 @@ public class ChampSelectDebugUI extends ChampSelectUIComponent {
 
     @Override
     public void update() {
-        this.queueId.setText(String.format("Queue ID: %s", context.getQueueId()));
-        this.counter.setText(String.format("COUNTER: %s", context.getCounter()));
-        this.phaseName.setText(String.format("PHASE: %s - %s", context.getPhaseName(), context.getSubphase()));
+        ChampSelectSettingsContext settingsContext = context.getChampSelectSettingsContext();
+        this.queueId.setText(String.format("Queue ID: %s", settingsContext.getQueueId()));
+        this.counter.setText(String.format("COUNTER: %s", settingsContext.getCounter()));
+        this.phaseName.setText(String.format("PHASE: %s - %s", settingsContext.getPhaseName(), settingsContext.getSubphase()));
     }
 
 }

@@ -4,7 +4,9 @@ import com.hawolt.client.resources.communitydragon.spell.Spell;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectBenchElement;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
+import com.hawolt.xmpp.event.objects.presence.impl.JoinMucPresence;
 
 /**
  * Created: 02/09/2023 16:53
@@ -25,12 +27,17 @@ public class BlankChampSelectUI extends AbstractRenderInstance {
     }
 
     @Override
-    protected void push(IncomingMessage incomingMessage) {
+    public void push(IncomingMessage incomingMessage) {
 
     }
 
     @Override
-    protected void stopChampSelectTimer() {
+    public void push(JoinMucPresence presence) {
+
+    }
+
+    @Override
+    protected void stopChampSelect() {
 
     }
 
@@ -51,6 +58,11 @@ public class BlankChampSelectUI extends AbstractRenderInstance {
 
     @Override
     public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
+
+    }
+
+    @Override
+    public void onSwapChoice(ChampSelectBenchElement element) {
 
     }
 }

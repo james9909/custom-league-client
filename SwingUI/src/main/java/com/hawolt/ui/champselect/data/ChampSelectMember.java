@@ -1,4 +1,4 @@
-package com.hawolt.ui.champselect.util;
+package com.hawolt.ui.champselect.data;
 
 import org.json.JSONObject;
 
@@ -13,10 +13,10 @@ public class ChampSelectMember {
     protected final long summonerId;
 
     public ChampSelectMember(JSONObject object) {
+        this.championId = object.has("championId") ? object.getInt("championId") : 0;
         this.nameVisibilityType = object.getString("nameVisibilityType");
         this.summonerName = object.getString("summonerName");
         this.summonerId = object.getLong("summonerId");
-        this.championId = object.getInt("championId");
         this.teamId = object.getInt("teamId");
         this.cellId = object.getInt("cellId");
     }

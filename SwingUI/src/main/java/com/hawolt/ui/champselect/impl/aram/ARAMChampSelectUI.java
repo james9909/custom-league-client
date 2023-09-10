@@ -1,34 +1,52 @@
 package com.hawolt.ui.champselect.impl.aram;
 
-import com.hawolt.client.resources.communitydragon.spell.Spell;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
+import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectType;
-import com.hawolt.ui.champselect.generic.ChampSelectRuneSelection;
-import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectBenchElement;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectCenterUI;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectHeaderUI;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
+import com.hawolt.ui.champselect.impl.MatchmadeRenderInstance;
+
+import java.awt.*;
 
 /**
  * Created: 03/09/2023 14:16
  * Author: Twitter @hawolt
  **/
 
-public class ARAMChampSelectUI extends AbstractRenderInstance {
-    @Override
-    protected void push(IncomingMessage incomingMessage) {
+public class ARAMChampSelectUI extends MatchmadeRenderInstance {
+    public static ARAMChampSelectUI INSTANCE = new ARAMChampSelectUI(ChampSelectType.PICK);
 
+    public ARAMChampSelectUI(ChampSelectType... supportedTypes) {
+        super(supportedTypes);
+        this.centerUI.getNorthernChild().add(new ARAMBenchUI(this), BorderLayout.NORTH);
     }
 
     @Override
-    protected void stopChampSelectTimer() {
-
+    protected ChampSelectCenterUI getCenterUI(AbstractRenderInstance instance, ChampSelectType... supportedTypes) {
+        return new ARAMCenterUI(instance);
     }
 
     @Override
-    public void invokeChampionFilter(String champion) {
-
+    protected ChampSelectSidebarUI getSidebarUI(ChampSelectTeam team) {
+        return new ARAMSelectSidebarUI(team);
     }
 
     @Override
-    public void setGlobalRunePanel(ChampSelectRuneSelection selection) {
+    protected ChampSelectHeaderUI getHeaderUI() {
+        return new ARAMChampSelectHeaderUI();
+    }
+
+
+    @Override
+    protected Integer[] getAllowedSummonerSpells() {
+        return new Integer[]{1, 3, 4, 6, 7, 13, 14, 21, 32};
+    }
+
+    @Override
+    protected void stopChampSelect() {
 
     }
 
@@ -40,15 +58,5 @@ public class ARAMChampSelectUI extends AbstractRenderInstance {
     @Override
     public String getCardName() {
         return "aram";
-    }
-
-    @Override
-    public void onSummonerSubmission(Spell selectedSpellOne, Spell selectedSpellTwo) {
-
-    }
-
-    @Override
-    public void onChoiceSubmission(ChampSelectType type, int championId, boolean completed) {
-
     }
 }

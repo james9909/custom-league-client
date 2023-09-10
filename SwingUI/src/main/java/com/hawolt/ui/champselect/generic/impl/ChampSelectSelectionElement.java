@@ -39,11 +39,13 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
         @Override
         public void mousePressed(MouseEvent e) {
             try {
+                Logger.info("[champ-select] indicate {}", championId);
                 Dimension dimension = getSize();
                 int rectangleX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
                 Rectangle rectangle = new Rectangle(rectangleX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
                 selected = rectangle.contains(e.getPoint());
                 if (!selected) return;
+                Logger.info("[champ-select] forward {} as indicator", championId);
                 ChampSelectSelectionElement.this.repaint();
                 callback.onChoice(ChampSelectSelectionElement.this);
             } catch (Exception ex) {
