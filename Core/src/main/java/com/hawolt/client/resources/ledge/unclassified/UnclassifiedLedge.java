@@ -25,7 +25,16 @@ public class UnclassifiedLedge extends AbstractLedgeEndpoint {
                 gameId,
                 userInformation.getSub()
         );
-        Request request = jsonRequest(uri).get().build();
+        String agent = String.format("LeagueOfLegendsClient/%s (%s)",
+                leagueVersionSupplier.getVersionValue(platform, "LeagueClientUxRender.exe"),
+                "rcp-be-lol-end-of-game"
+        );
+        Request request = new Request.Builder()
+                .url(uri)
+                .addHeader("Authorization", auth())
+                .addHeader("User-Agent", agent)
+                .addHeader("Accept", "application/json")
+                .build();
         return OkHttp3Client.execute(request, gateway);
     }
 
