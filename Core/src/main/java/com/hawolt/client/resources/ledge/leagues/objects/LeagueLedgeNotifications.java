@@ -17,7 +17,7 @@ public class LeagueLedgeNotifications {
     public LeagueLedgeNotifications(JSONObject object) {
         JSONArray leagueNotifications = object.getJSONArray("leagueNotifications");
         for (int i = 0; i < leagueNotifications.length(); i++) {
-            leagueNotifications.put(new LeagueNotification(leagueNotifications.getJSONObject(i)));
+            this.leagueNotifications.add(new LeagueNotification(leagueNotifications.getJSONObject(i)));
         }
     }
 

@@ -31,7 +31,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.add(center = new ChildUIComponent(layout), BorderLayout.CENTER);
         this.center.setBorder(new MatteBorder(2, 0, 0, 0, Color.DARK_GRAY));
 
-        this.center.add("github", new ReleaseWindow());
+        this.center.add("home", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
         this.center.add("select", champSelect = new ChampSelectUI(leagueClientUI));

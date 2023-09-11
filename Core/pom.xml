@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.github.hawolt.league-client-api</groupId>
             <artifactId>VirtualClient</artifactId>
-            <version>600839c331</version>
+            <version>47183d6c86</version>
         </dependency>
         <dependency>
             <groupId>com.github.hawolt</groupId>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.github.hawolt</groupId>
             <artifactId>league-of-legends-rms</artifactId>
-            <version>d80b497b02</version>
+            <version>097db71f43</version>
         </dependency>
     </dependencies>
 </project>
