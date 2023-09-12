@@ -114,7 +114,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     }
 
     private void configure(boolean remember) {
-        ResourceLoader.loadResource("local", new PreferenceLoader(leagueClient), true, this);
+        ResourceLoader.loadResource("local", new PreferenceLoader(leagueClient), this);
         if (!remember) return;
         this.settingService.write(
                 SettingType.PLAYER,

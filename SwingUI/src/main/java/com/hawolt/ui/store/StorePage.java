@@ -1,9 +1,9 @@
 package com.hawolt.ui.store;
 
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.misc.SortOrder;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
-import com.hawolt.client.misc.SortOrder;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.ui.custom.LHintTextField;
@@ -17,11 +17,13 @@ import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,22 +55,24 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         add(component, BorderLayout.NORTH);
         component.add(grid, BorderLayout.NORTH);
         LScrollPane scrollPane = new LScrollPane(component);
-        //TODO revisit this is good
-        /*scrollPane.getViewport().addChangeListener(new ChangeListener() {
+        scrollPane.getViewport().addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                Rectangle visibleRect = grid.getVisibleRect();
+                Rectangle visible = grid.getVisibleRect();
                 for (Component child : grid.getComponents()) {
-                    Rectangle childBounds = child.getBounds();
-                    if (childBounds.intersects(visibleRect)) {
-                        System.out.println("INTERSECT");
-                    } else {
-                        System.out.println("NO INTERSECT");
+                    if (child instanceof StoreElement element) {
+                        Rectangle bounds = element.getBounds();
+                        debouncer.debounce(String.valueOf(element.getItem().getItemId()), () -> {
+                            if (bounds.intersects(visible)) {
+                                element.getImage().load();
+                            } else {
+                                element.getImage().unload();
+                            }
+                        }, 100L, TimeUnit.MILLISECONDS);
                     }
                 }
             }
         });
-        */
         scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         add(scrollPane, BorderLayout.CENTER);
@@ -111,8 +115,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
 
     @NotNull
     private LComboBox<StoreSortOption> createStoreSortOptionJComboBox(StoreSortProperty[] properties) {
-        LComboBox<StoreSortOption> sortBox = new LComboBox<StoreSortOption>();
-        //sortBox.setLabelText("Sort By");
+        LComboBox<StoreSortOption> sortBox = new LComboBox<>();
         for (StoreSortProperty property : properties) {
             sortBox.addItem(new StoreSortOption(property, SortOrder.DESCENDING));
             sortBox.addItem(new StoreSortOption(property, SortOrder.ASCENDING));

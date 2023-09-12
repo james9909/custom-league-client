@@ -27,9 +27,9 @@ import java.util.List;
 public class StoreElement extends ChildUIComponent implements IStoreElement {
     private final List<StoreButton> buttons = new ArrayList<>();
     private final LeagueClient client;
-    private StoreImage image;
-    private final StoreItem item;
+    private final StoreImage image;
     private final IStorePage page;
+    private final StoreItem item;
 
     public StoreElement(LeagueClient client, IStorePage page, StoreItem item) {
         super(new BorderLayout());

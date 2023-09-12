@@ -63,7 +63,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
                 if (!champion.getName().toLowerCase().contains(filter)) continue;
                 if (!map.containsKey(championId)) {
                     ChampSelectSelectionElement element = new ChampSelectSelectionElement(callback, type, championId, champion.getName());
-                    ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), false, element);
+                    ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), element);
                     map.put(championId, element);
                 }
                 ChampSelectSelectionElement element = map.get(championId);

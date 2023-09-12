@@ -17,16 +17,16 @@ import java.util.List;
  **/
 
 public class StoreItem {
-    private List<Price> list = new ArrayList<>();
+    private final List<Price> prices = new ArrayList<>();
     private String offerId, name, description;
-    private InventoryType inventoryType;
     private SubInventoryType subInventoryType;
+    private int discountCostBE, discountCostRP;
+    private float discountBE, discountRP;
+    private InventoryType inventoryType;
     private boolean active, valid;
     private JSONObject object;
-    private long itemId;
-    private float discountBE, discountRP;
-    private int discountCostBE, discountCostRP;
     private Date releaseDate;
+    private long itemId;
 
     public StoreItem(JSONArray array) {
         this.valid = !array.isEmpty();
@@ -34,13 +34,14 @@ public class StoreItem {
         JSONObject item = array.getJSONObject(0);
         if (item.has("offerId")) this.offerId = item.getString("offerId");
         this.inventoryType = InventoryType.valueOf(item.getString("inventoryType"));
-        if (item.has("subInventoryType"))
-            this.subInventoryType = SubInventoryType.valueOf(item.getString("subInventoryType"));
+        if (item.has("subInventoryType")) {
+            this.subInventoryType = SubInventoryType.valueOf(item.getString("subInventoryType").toUpperCase());
+        }
         this.active = item.getBoolean("active");
         this.itemId = item.getLong("itemId");
         JSONArray prices = item.getJSONArray("prices");
         for (int i = 0; i < prices.length(); i++) {
-            list.add(new Price(prices.getJSONObject(i)));
+            this.prices.add(new Price(prices.getJSONObject(i)));
         }
         if (item.has("sale")) {
             JSONObject sale = item.getJSONObject("sale");
@@ -89,11 +90,11 @@ public class StoreItem {
     }
 
     public boolean isRiotPointPurchaseAvailable() {
-        return list.stream().anyMatch(price -> price.getCurrency().equals("RP"));
+        return prices.stream().anyMatch(price -> price.getCurrency().equals("RP"));
     }
 
     public int getRiotPointCost() {
-        return list.stream().filter(price -> price.getCurrency().equals("RP")).mapToInt(Price::getCost).sum();
+        return prices.stream().filter(price -> price.getCurrency().equals("RP")).mapToInt(Price::getCost).sum();
     }
 
     public boolean hasDiscount() {
@@ -133,19 +134,19 @@ public class StoreItem {
     }
 
     public boolean isBlueEssencePurchaseAvailable() {
-        return list.stream().anyMatch(price -> price.getCurrency().equals("IP"));
+        return prices.stream().anyMatch(price -> price.getCurrency().equals("IP"));
     }
 
     public int getBlueEssenceCost() {
-        return list.stream().filter(price -> price.getCurrency().equals("IP")).mapToInt(Price::getCost).sum();
+        return prices.stream().filter(price -> price.getCurrency().equals("IP")).mapToInt(Price::getCost).sum();
     }
 
     public int getPointCost() {
         return (int) Math.ceil(getBlueEssenceCost() / 450D);
     }
 
-    public List<Price> getList() {
-        return list;
+    public List<Price> getPrices() {
+        return prices;
     }
 
     public String getOfferId() {
@@ -187,7 +188,7 @@ public class StoreItem {
     @Override
     public String toString() {
         return "StoreItem{" +
-                "list=" + list +
+                "list=" + prices +
                 ", offerId='" + offerId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

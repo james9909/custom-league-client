@@ -5,6 +5,7 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.store.StoreLedge;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
+import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
@@ -43,19 +44,28 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
                     .map(Object::toString)
                     .map(Long::parseLong)
                     .toList();
-          /*  pane.addTab(
+            pane.addTab(
                     InventoryType.CHAMPION.name(),
                     new StorePage(
                             client,
                             InventoryType.CHAMPION.name(),
-                            list_ch,
+                            championList,
                             StoreSortProperty.values()
                     )
+            );
             //TODO get better at handling lots of images - I'm too stupid ~Lett4s
-            //JSONArray skins = items.getJSONArray("CHAMPION_SKIN");
-            //List<Long> list_sk = skins.toList().stream().map(Object::toString).map(Long::parseLong).toList();
-            //pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client, InventoryType.CHAMPION_SKIN.name(), list_sk, StoreSortProperty.values()));
-            );*/
+            //no you are not, I fixed this for you :) ~hawolt
+            JSONArray skins = items.getJSONArray("CHAMPION_SKIN");
+            List<Long> skinList = skins.toList().stream().map(Object::toString).map(Long::parseLong).toList();
+            pane.addTab(
+                    InventoryType.CHAMPION_SKIN.name(),
+                    new StorePage(
+                            client,
+                            InventoryType.CHAMPION_SKIN.name(),
+                            skinList,
+                            StoreSortProperty.values()
+                    )
+            );
         } catch (Exception e) {
             Logger.error(e);
         }

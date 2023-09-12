@@ -23,8 +23,6 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created: 16/08/2023 18:21
@@ -39,8 +37,8 @@ public class ResourceLoader {
     );
 
     private static final Map<String, List<ResourceConsumer<?, byte[]>>> pending = new HashMap<>();
-    private static final LinkedList<Runnable> queue = new LinkedList<>();
-    private static final Object lock = new Object();
+    private static final Map<String, byte[]> cache = new HashMap<>();
+    private static final Set<String> hashes = new HashSet<>();
 
     static {
         try (InputStream configStream = RunLevel.get("sql/config.json")) {
@@ -61,15 +59,16 @@ public class ResourceLoader {
                     }
                 }
             }
-            ScheduledExecutorService scheduler = ExecutorManager.getScheduledService("resource-loader");
-            scheduler.scheduleWithFixedDelay(() -> {
-                synchronized (lock) {
-                    if (queue.isEmpty()) return;
-                    for (int i = 0; i < queue.size(); i++) {
-                        service.execute(queue.remove(0));
+            try (Connection connection = Hikari.getManager().getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT HASH FROM CACHE")) {
+                    try (ResultSet set = statement.executeQuery()) {
+                        List<String> list = ResultSetTransformer.parse(set, String::valueOf);
+                        Collections.addAll(hashes, list.toArray(String[]::new));
                     }
                 }
-            }, 0, 10, TimeUnit.MILLISECONDS);
+            } catch (SQLException e) {
+                Logger.warn("Failed to query database for hashes");
+            }
         } catch (SQLException | IOException e) {
             Logger.fatal("Unable to initialize embedded in-memory cache database");
             Logger.error(e);
@@ -80,7 +79,7 @@ public class ResourceLoader {
         return Unsafe.cast(in);
     }
 
-    private static void load(String path, boolean priority, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
+    private static void load(String path, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
         String hash = MD5.hash(path);
         if (cached(hash)) {
             try {
@@ -93,60 +92,45 @@ public class ResourceLoader {
         } else {
             pending.put(hash, new ArrayList<>());
             pending.get(hash).add(consumer);
-            synchronized (lock) {
-                queue.add(priority ? 0 : queue.size(), runnable);
-            }
+            service.execute(runnable);
         }
+    }
+
+
+    public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, ResourceConsumer<?, byte[]> consumer) {
+        service.execute(() -> load(uri, consumer, () -> {
+            try {
+                consume(uri, supplier.get());
+            } catch (Exception e) {
+                exceptional(uri, e);
+            }
+        }));
     }
 
     public static void loadResource(String uri, ResourceConsumer<?, byte[]> consumer) {
-        loadResource(uri, false, consumer);
-    }
-
-    public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        synchronized (lock) {
-            queue.add(priority ? 0 : queue.size(), () -> load(uri, priority, consumer, () -> {
-                try {
-                    consume(uri, supplier.get());
-                } catch (Exception e) {
-                    exceptional(uri, e);
-                }
-            }));
-        }
-    }
-
-    public static void loadResource(String uri, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        synchronized (lock) {
-            queue.add(priority ? 0 : queue.size(), () -> load(uri, priority, consumer, () -> {
-                Request request = new Request.Builder()
-                        .url(uri)
-                        .header("User-Agent", StaticConstant.USER_AGENT)
-                        .get()
-                        .build();
-                try {
-                    IResponse response = OkHttpResponse.from(request);
-                    consume(uri, response.response());
-                } catch (IOException e) {
-                    exceptional(uri, e);
-                }
-            }));
-        }
+        service.execute(() -> load(uri, consumer, () -> {
+            Request request = new Request.Builder()
+                    .url(uri)
+                    .header("User-Agent", StaticConstant.USER_AGENT)
+                    .get()
+                    .build();
+            try {
+                IResponse response = OkHttpResponse.from(request);
+                consume(uri, response.response());
+            } catch (IOException e) {
+                exceptional(uri, e);
+            }
+        }));
     }
 
     public static void loadLocalResource(String name, ResourceConsumer<?, byte[]> consumer) {
-        loadLocalResource(name, false, consumer);
-    }
-
-    public static void loadLocalResource(String name, boolean priority, ResourceConsumer<?, byte[]> consumer) {
-        synchronized (lock) {
-            queue.add(priority ? 0 : queue.size(), () -> load(name, priority, consumer, () -> {
-                try (InputStream stream = RunLevel.get(name)) {
-                    consume(name, Core.read(stream).toByteArray());
-                } catch (IOException e) {
-                    exceptional(name, e);
-                }
-            }));
-        }
+        service.execute(() -> load(name, consumer, () -> {
+            try (InputStream stream = RunLevel.get(name)) {
+                consume(name, Core.read(stream).toByteArray());
+            } catch (IOException e) {
+                exceptional(name, e);
+            }
+        }));
     }
 
     private static void store(String o, String hash, byte[] b) {
@@ -179,6 +163,7 @@ public class ResourceLoader {
                     Logger.error(e);
                 }
             }
+            pending.remove(hash);
         } else {
             exceptional(o, new IOException(String.format("%s has loaded with 0 bytes", hash)));
         }
@@ -192,25 +177,22 @@ public class ResourceLoader {
     }
 
     private static boolean cached(String hash) {
-        try (Connection connection = Hikari.getManager().getConnection()) {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT HASH FROM CACHE WHERE HASH=?")) {
-                statement.setString(1, hash);
-                try (ResultSet set = statement.executeQuery()) {
-                    return set.next();
-                }
-            }
-        } catch (SQLException e) {
-            Logger.warn("Failed to query database for hash {}", hash);
-        }
-        return false;
+        return hashes.contains(hash);
+    }
+
+    private static void cache(String hash, byte[] b) {
+        cache.put(hash, b);
+        hashes.add(hash);
     }
 
     private static byte[] get(String hash) throws SQLException, IOException {
+        if (cache.containsKey(hash)) return cache.get(hash);
         try (Connection connection = Hikari.getManager().getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT DATA FROM CACHE WHERE HASH=?")) {
                 statement.setString(1, hash);
                 try (ResultSet set = statement.executeQuery()) {
                     byte[] b = ResultSetTransformer.singleton(set, o -> o.length > 0 && o[0] != null ? (byte[]) o[0] : new byte[0]);
+                    ResourceLoader.cache(hash, b);
                     if (b.length == 0) {
                         throw new IOException(String.format("Cache contains bad binary for hash %s", hash));
                     } else {

@@ -78,7 +78,7 @@ public class ChampSelectBenchElement extends ChildUIComponent implements Resourc
 
     public void setChampionId(int championId) {
         if (this.championId == championId) return;
-        ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, this.championId = championId), false, this);
+        ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, this.championId = championId), this);
     }
 
     @Override
