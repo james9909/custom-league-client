@@ -5,7 +5,9 @@ import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**
@@ -20,7 +22,12 @@ public class ChampSelectDebugUI extends ChampSelectUIComponent {
         ColorPalette.addThemeListener(this);
         this.setBackground(ColorPalette.backgroundColor);
         this.setLayout(new GridLayout(0, 3, 5, 0));
-        this.setBorder(new EmptyBorder(2, 5, 2, 5));
+        this.setBorder(
+                new CompoundBorder(
+                        new MatteBorder(0, 1, 1, 1, Color.DARK_GRAY),
+                        new EmptyBorder(2, 5, 2, 5)
+                )
+        );
         this.add(queueId = new JLabel("", SwingConstants.LEFT));
         this.queueId.setForeground(ColorPalette.textColor);
         this.add(phaseName = new JLabel("", SwingConstants.CENTER));

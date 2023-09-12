@@ -101,7 +101,7 @@ public class LScrollBarUI extends BasicScrollBarUI implements PropertyChangeList
 
     @Override
     protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
-        Graphics2D g2 = (Graphics2D) g;
+        Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setComposite(AlphaComposite.SrcOver.derive(animate * 0.5f));
         g2.setColor(scrollbar.getForeground().brighter());
@@ -111,7 +111,7 @@ public class LScrollBarUI extends BasicScrollBarUI implements PropertyChangeList
 
     @Override
     protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
-        Graphics2D g2 = (Graphics2D) g;
+        Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(scrollbar.getForeground());
         double border = scrollSize * 0.3f - (animate * 1);
@@ -192,7 +192,7 @@ public class LScrollBarUI extends BasicScrollBarUI implements PropertyChangeList
 
         @Override
         protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
+            Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setComposite(AlphaComposite.SrcOver.derive(animate * 0.5f));
             g2.setColor(scrollbar.getForeground().brighter());

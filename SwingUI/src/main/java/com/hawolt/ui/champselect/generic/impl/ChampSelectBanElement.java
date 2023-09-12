@@ -42,12 +42,12 @@ public class ChampSelectBanElement extends LazyLoadedImageComponent {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if (completed || image == null || championId <= 0) return;
         Color infused = new Color((Color.WHITE.getRGB() & 0xFFFFFF) | (0x7F << 24), true);
-        Graphics2D g2d = (Graphics2D) g;
+        Graphics2D g2d = (Graphics2D) g.create();
         g2d.setColor(infused);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.fillRoundRect(x, y, dimension.width, dimension.height,
-                ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
-
+        g2d.fillRoundRect(x, y, dimension.width, dimension.height, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
+        g2d.dispose();
     }
 }

@@ -38,7 +38,7 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     public ChampSelectChatUI() {
         ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        //this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         //TODO make custon JTextArea
         LScrollPane scrollPane = new LScrollPane(document = new JTextArea());
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);

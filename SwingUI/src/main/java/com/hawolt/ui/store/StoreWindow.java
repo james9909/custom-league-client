@@ -7,7 +7,6 @@ import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
-import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LTabbedPane;
 import org.json.JSONArray;
@@ -32,8 +31,7 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
     public StoreWindow(LeagueClient client) {
         super(new BorderLayout());
         this.client = client;
-        this.setBackground(ColorPalette.backgroundColor);
-        pane = new LTabbedPane();
+        this.pane = new LTabbedPane();
         try {
             String jwt = client.getLedge().getInventoryService().getInventoryToken();
             JSONObject object = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));

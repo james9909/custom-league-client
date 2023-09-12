@@ -29,7 +29,7 @@ public abstract class ChampSelectHeaderUI extends ChampSelectUIComponent {
         this.scheduler.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);
         this.setBorder(
                 BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK),
+                        BorderFactory.createMatteBorder(0, 1, 0, 1, Color.DARK_GRAY),
                         new EmptyBorder(5, 5, 5, 5)
                 )
         );

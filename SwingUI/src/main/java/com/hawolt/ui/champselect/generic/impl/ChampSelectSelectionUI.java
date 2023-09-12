@@ -37,7 +37,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     public ChampSelectSelectionUI(ChampSelectType type, ChampSelectChoice callback) {
         ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        //this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         LScrollPane scrollPane = new LScrollPane(component);
         component.setBackground(ColorPalette.backgroundColor);
         component.setLayout(new GridLayout(0, 5, 5, 5));

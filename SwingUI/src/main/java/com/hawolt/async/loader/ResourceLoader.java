@@ -40,6 +40,7 @@ public class ResourceLoader {
     private static final Map<String, byte[]> cache = new HashMap<>();
     private static final Map<String, Object> locks = new HashMap<>();
     private static final Set<String> hashes = new HashSet<>();
+    private static final Object lock = new Object();
 
     static {
         try (InputStream configStream = RunLevel.get("sql/config.json")) {
@@ -82,8 +83,12 @@ public class ResourceLoader {
 
     private static void load(String path, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
         String hash = MD5.hash(path);
-        if (!locks.containsKey(hash)) locks.put(hash, new Object());
-        synchronized (locks.get(hash)) {
+        Object lock;
+        synchronized (ResourceLoader.lock) {
+            if (!locks.containsKey(hash)) locks.put(hash, new Object());
+            lock = locks.get(hash);
+        }
+        synchronized (lock) {
             if (cached(hash)) {
                 try {
                     consumer.consume(path, Unsafe.cast(consumer.transform(get(hash))));
@@ -100,6 +105,7 @@ public class ResourceLoader {
                 }
             }
         }
+
     }
 
 
@@ -139,6 +145,19 @@ public class ResourceLoader {
         }));
     }
 
+    public static void forceLoadResource(String name, ExceptionalSupplier<byte[]> supplier, ResourceConsumer<?, byte[]> consumer) {
+        service.execute(() -> {
+            try {
+                String hash = MD5.hash(name);
+                pending.put(hash, new ArrayList<>());
+                pending.get(hash).add(consumer);
+                consume(name, hash, supplier.get());
+            } catch (Exception e) {
+                exceptional(name, e);
+            }
+        });
+    }
+
     private static void handle(String path, byte[] b) {
         String hash = MD5.hash(path);
         store(path, hash, b);
@@ -165,7 +184,7 @@ public class ResourceLoader {
 
     private static void consume(String o, String hash, byte[] b) {
         if (b.length != 0) {
-            synchronized (locks.get(hash)) {
+            synchronized (locks.getOrDefault(hash, new Object())) {
                 if (!pending.containsKey(hash)) Logger.error("attempt to load unknown value '{}' from cache", o);
                 List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(hash));
                 for (ResourceConsumer<?, byte[]> consumer : list) {

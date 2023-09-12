@@ -22,7 +22,6 @@ import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.paint.custom.GraphicalDrawableManager;
-import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -320,7 +319,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         if (clearChampion != null) {
             int imageX = (dimension.width >> 1) - (clearChampion.getWidth() >> 1);
             int imageY = (dimension.height >> 1) - (clearChampion.getHeight() >> 1);
-            g.drawImage(PaintHelper.circleize(clearChampion, ColorPalette.CARD_ROUNDING, imageX, imageY, dimension.width, dimension.height), 0, 0, null);
+            g.drawImage(clearChampion, imageX, imageY, null);
         }
         //INDICATE PICKING OR STATUS NOT LOCKED IN
         DraftMode mode = settingsContext.getDraftMode();
@@ -435,17 +434,21 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         switch (team) {
             case BLUE -> {
                 int baseX = dimension.width - 5 - SUMMONER_SPELL_DIMENSION.width;
-                g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX, 5, null);
-                //g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
-                g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, null);
-                //g.drawRect(baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
+                g.drawImage(spellTwo, baseX, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX, 5, null);
+                g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
+                g.drawImage(spellOne, baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, null);
+                g.drawRect(baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
             }
             case PURPLE -> {
                 int baseX = 5;
-                g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX, 5, null);
-                //g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
-                g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, null);
-                //g.drawRect(baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
+                g.drawImage(spellOne, baseX, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX, 5, null);
+                g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
+                g.drawImage(spellTwo, baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, null);
+                g.drawRect(baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
             }
         }
     }

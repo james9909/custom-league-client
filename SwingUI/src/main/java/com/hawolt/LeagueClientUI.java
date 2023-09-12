@@ -279,6 +279,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                 default -> showFailureDialog("Unhandled LeagueClientException");
             }
         } else if (throwable instanceof IOException) {
+            Logger.error(throwable);
             switch (throwable.getMessage()) {
                 case "PREFERENCE_FAILURE" -> showFailureDialog("Unable to load Player Preference");
                 default -> showFailureDialog("Unhandled IOException");

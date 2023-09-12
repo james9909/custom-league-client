@@ -36,7 +36,7 @@ public class ChampSelectGameSettingUI extends ChampSelectUIComponent {
     public ChampSelectGameSettingUI(Integer... allowedSpellIds) {
         this.setLayout(new BorderLayout());
         this.setBackground(ColorPalette.backgroundColor);
-        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
+        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.DARK_GRAY));
         //TODO find a data source for this
         List<Integer> temporaryWhiteList = Arrays.asList(allowedSpellIds);
         SpellIndex spellIndex = SpellSource.SPELL_SOURCE_INSTANCE.get();

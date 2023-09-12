@@ -98,8 +98,7 @@ public class LTabbedPane extends JTabbedPane {
                 g2d.setColor(ColorPalette.buttonSelectionColor);
                 g2d.fill(buttonArea);
             }
-
-
+            g2d.dispose();
         }
 
         @Override
@@ -109,7 +108,7 @@ public class LTabbedPane extends JTabbedPane {
                                  boolean isSelected) {
 
             g.setFont(font);
-            Graphics2D g2d = (Graphics2D) g;
+            Graphics2D g2d = (Graphics2D) g.create();
             g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             View v = getTextViewForTab(tabIndex);
             if (v != null) {

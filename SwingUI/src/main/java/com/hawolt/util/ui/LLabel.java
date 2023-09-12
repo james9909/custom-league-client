@@ -87,7 +87,7 @@ public class LLabel extends JPanel implements PropertyChangeListener {
         else
             PaintHelper.drawText(g2d, text, x, y, getForeground());
 
-
+        g2d.dispose();
     }
 
     public void drawTextStandalone(Graphics g) {

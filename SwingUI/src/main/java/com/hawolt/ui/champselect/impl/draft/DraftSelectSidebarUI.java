@@ -6,6 +6,7 @@ import com.hawolt.ui.champselect.generic.impl.ChampSelectBanElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
 import com.hawolt.util.panel.ChildUIComponent;
 
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class DraftSelectSidebarUI extends ChampSelectSidebarUI {
     public DraftSelectSidebarUI(ChampSelectTeam team) {
         super(team);
         ChildUIComponent bans = new ChildUIComponent(new GridLayout(0, 5, 5, 0));
+        bans.setBorder(new MatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
         bans.setPreferredSize(new Dimension(0, 60));
         for (int i = 0; i < elements.length; i++) {
             ChampSelectBanElement element = new ChampSelectBanElement(new Dimension(48, 48));

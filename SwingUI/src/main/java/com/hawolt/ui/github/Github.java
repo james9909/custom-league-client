@@ -129,11 +129,11 @@ public class Github {
     }
 
     public static String getCurrentReleaseDate() {
-        return date(getVersion().getByKeyOrDefault("published_at", null).toString());
+        return date(getVersion().getByKeyOrDefault("published_at", null));
     }
 
     public static String getLatestReleaseDate() {
-        return date(getLatestRelease().getByKeyOrDefault("published_at", null).toString());
+        return date(getLatestRelease().getByKeyOrDefault("published_at", null));
     }
 
     public static void submitBug() {

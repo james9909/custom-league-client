@@ -41,13 +41,13 @@ public class ChatSidebarFooter extends ChildUIComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
+        Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         //Drawing bot left rounding
         int width = getWidth();
         int height = getHeight();
         g2d.setColor(ColorPalette.accentColor);
         g2d.fillRect(0, 0, width, height);
-
+        g2d.dispose();
     }
 }

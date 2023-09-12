@@ -21,6 +21,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
     private final ChildUIComponent center;
     private final QueueWindow queue;
     private final StoreWindow store;
+    //private final ProfileWindow profile;
     private final ChampSelectUI champSelect;
 
     public LayoutManager(LeagueClientUI leagueClientUI) {
@@ -33,6 +34,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.center.add("home", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
+        //this.center.add("profile", profile = new ProfileWindow(leagueClientUI));
         this.center.add("champselect", champSelect = new ChampSelectUI(leagueClientUI));
         layout.show(center, "github");
     }
