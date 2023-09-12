@@ -62,6 +62,7 @@ public class ChatSidebarFriend extends LFlatButton {
         this.setFont(new Font("Dialog", Font.BOLD, 18));
         this.setText(providedUsername);
         this.color = getBaseColor();
+        setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 clickEvent(evt);
@@ -89,9 +90,9 @@ public class ChatSidebarFriend extends LFlatButton {
 
     private Color getBaseColor() {
         return switch (getConnectionStatus()) {
-            case ONLINE -> ColorPalette.FRIEND_ONLINE;
-            case MOBILE -> ColorPalette.FRIEND_MOBILE;
-            default -> ColorPalette.FRIEND_OFFLINE;
+            case ONLINE -> ColorPalette.friendOnline;
+            case MOBILE -> ColorPalette.friendMobile;
+            default -> ColorPalette.friendOffline;
         };
     }
 
@@ -119,7 +120,7 @@ public class ChatSidebarFriend extends LFlatButton {
     }
 
     private void handleLOR(LOR gameInfo) {
-        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        this.color = ColorPalette.friendInOtherGame;
         if ("bacon_availability_in_game".equals(gameInfo.getAvailability())) {
             this.status = "Playing Legends of Runeterra";
         } else {
@@ -128,12 +129,12 @@ public class ChatSidebarFriend extends LFlatButton {
     }
 
     private void handleWildrift(Wildrift gameInfo) {
-        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        this.color = ColorPalette.friendInOtherGame;
         this.status = "Playing Wildrift";
     }
 
     private void handleValorant(Valorant gameInfo) {
-        this.color = ColorPalette.FRIEND_IN_OTHER_GAME;
+        this.color = ColorPalette.friendInOtherGame;
         String sessionLoopState = gameInfo.getSessionLoopState();
         if (sessionLoopState != null) {
             if (sessionLoopState.contains("INGAME")) {
@@ -147,17 +148,17 @@ public class ChatSidebarFriend extends LFlatButton {
     }
 
     private void handleRiotMobile(Ritoplus gameInfo) {
-        this.color = ColorPalette.FRIEND_MOBILE;
+        this.color = ColorPalette.friendMobile;
         this.status = "Riot Mobile";
     }
 
     private void handleLOL(BasicPresence presence, LOL gameInfo) {
         if ("away".equals(presence.getShow())) {
-            this.color = ColorPalette.FRIEND_DND;
+            this.color = ColorPalette.friendDND;
             this.status = "Do not Disturb";
         } else {
             switch (gameInfo.getLeagueGameStatus()) {
-                case CHAMP_SELECT, QUEUE, IN_GAME -> this.color = ColorPalette.FRIEND_IN_GAME;
+                case CHAMP_SELECT, QUEUE, IN_GAME -> this.color = ColorPalette.friendInGame;
             }
             String gameStatus = switch (gameInfo.getLeagueGameStatus()) {
                 case ONLINE -> {
@@ -228,6 +229,7 @@ public class ChatSidebarFriend extends LFlatButton {
         int computedX = getWidth() - width - getWidth() / 20;
         int computedY = getHeight() / 2 - height / 2;
 
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         int consumedSpace = dimension.width - computedX;
         if (status != null) PaintHelper.drawShadowText(
                 graphics2D,
@@ -270,7 +272,7 @@ public class ChatSidebarFriend extends LFlatButton {
         int y = rectangle.y + (rectangle.height >> 1) + (metrics.getAscent() >> 1) - 1;
         g.setColor(Color.BLACK);
         g.drawString(text, x + 1, y + 1);
-        g.setColor(Color.WHITE);
+        g.setColor(ColorPalette.textColor);
         g.drawString(text, x, y);
     }
 
@@ -287,7 +289,6 @@ public class ChatSidebarFriend extends LFlatButton {
     public void clickEvent(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e)) {
             LeagueClientUI.service.execute(runnable);
-            this.setBackground(Color.GRAY);
             this.repaint();
         } else if (SwingUtilities.isRightMouseButton(e)) {
             JPopupMenu menu = new JPopupMenu();

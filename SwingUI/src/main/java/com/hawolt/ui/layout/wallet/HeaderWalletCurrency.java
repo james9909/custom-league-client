@@ -23,7 +23,8 @@ public class HeaderWalletCurrency extends ChildUIComponent implements ResourceCo
     private int amount;
 
     public HeaderWalletCurrency(String resource) {
-        this.setBackground(ColorPalette.ACCENT_COLOR);
+        ColorPalette.addThemeListener(this);
+        this.setBackground(ColorPalette.backgroundColor);
         ResourceLoader.loadResource(resource, this);
     }
 

@@ -4,6 +4,7 @@ import com.hawolt.rtmp.amf.Pair;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LScrollPane;
 import com.hawolt.util.ui.SmartScroller;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
@@ -12,6 +13,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,7 @@ import java.util.List;
 
 public class ChatWindowContent extends ChildUIComponent {
     private final List<Pair<ChatPerspective, String>> queue = new ArrayList<>();
-    private final JPanel history = new JPanel();
+    private final ChildUIComponent history = new ChildUIComponent();
     private final Object lock = new Object();
     private final LHintTextField input;
     private final LScrollPane pane;
@@ -33,18 +35,22 @@ public class ChatWindowContent extends ChildUIComponent {
 
     public ChatWindowContent(String jid, VirtualRiotXMPPClient xmppClient, LayoutManager layout) {
         super(layout);
+        setBackground(ColorPalette.popupWindowColor);
         history.setLayout(new BoxLayout(history, BoxLayout.Y_AXIS));
-        history.setBackground(ColorPalette.BACKGROUND_COLOR);
+        history.setBackground(ColorPalette.popupWindowColor);
         history.setBorder(new EmptyBorder(5, 0, 5, 0));
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
         component.add(history, BorderLayout.NORTH);
+        component.setBackground(ColorPalette.popupWindowColor);
         this.pane = new LScrollPane(component);
         SmartScroller.configure(pane);
         pane.getVerticalScrollBar().setUnitIncrement(15);
         pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        pane.setBackground(ColorPalette.popupWindowColor);
         this.add(pane, BorderLayout.CENTER);
         this.pane.setBorder(new MatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
         this.add(input = new LHintTextField("Message..."), BorderLayout.SOUTH);
+        input.setBackground(ColorPalette.popupWindowColor);
         this.input.setFont(new Font(Font.DIALOG, Font.PLAIN, 18));
         this.input.addActionListener(listener -> {
             String message = input.getText();
@@ -90,7 +96,7 @@ public class ChatWindowContent extends ChildUIComponent {
     private ChildUIComponent createFillComponent() {
         ChildUIComponent filler = new ChildUIComponent(null);
         filler.setPreferredSize(new Dimension(0, 5));
-        filler.setBackground(ColorPalette.BACKGROUND_COLOR);
+        filler.setBackground(ColorPalette.popupWindowColor);
         return filler;
     }
 

@@ -22,8 +22,8 @@ public class ChatMessage extends ChildUIComponent {
 
     public ChatMessage(ChatPerspective perspective) {
         super(null);
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.color = perspective == ChatPerspective.SELF ? ColorPalette.MESSAGE_OUT : ColorPalette.MESSAGE_IN;
+        this.setBackground(ColorPalette.popupWindowColor);
+        this.color = perspective == ChatPerspective.SELF ? ColorPalette.messageOut : ColorPalette.messageIn;
         this.perspective = perspective;
         ChildUIComponent test = new ChildUIComponent(null);
         add(test, BorderLayout.CENTER);

@@ -42,6 +42,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, SortOrder.ASCENDING);
     private final StoreElementComparator comparator;
     private final Debouncer debouncer = new Debouncer();
+    private final ChildUIComponent inputPanel;
     private String filter = "";
     private boolean chromaFilter = false;
 
@@ -51,10 +52,11 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         this.owned = owned;
         this.name = name;
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
-        grid = new ChildUIComponent(new GridLayout(0, 5, 5, 5));
+        grid = new ChildUIComponent(new GridLayout(0, 5, 15, 15));
         add(component, BorderLayout.NORTH);
         component.add(grid, BorderLayout.NORTH);
         LScrollPane scrollPane = new LScrollPane(component);
+        scrollPane.setBackground(ColorPalette.backgroundColor);
         scrollPane.getViewport().addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -79,16 +81,16 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
         comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, SortOrder.DESCENDING);
-        JPanel inputPanel = createInputPanel(properties);
+        inputPanel = createInputPanel(properties);
         this.add(inputPanel, BorderLayout.NORTH);
     }
 
     @NotNull
-    private JPanel createInputPanel(StoreSortProperty[] properties) {
+    private ChildUIComponent createInputPanel(StoreSortProperty[] properties) {
         LComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
 
-        JPanel inputPanel = new JPanel();
-        inputPanel.setBackground(ColorPalette.BACKGROUND_COLOR);
+        ChildUIComponent inputPanel = new ChildUIComponent();
+        inputPanel.setBackground(ColorPalette.backgroundColor);
         inputPanel.setLayout(new GridLayout(1, 2, 5, 0));
         inputPanel.add(sortBox);
         if (this.name.equals(InventoryType.CHAMPION_SKIN.name())) {
@@ -170,6 +172,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
                 .filter(champion -> champion.getItem().getName().toLowerCase().contains(filter))
                 .filter(skin -> skin.getItem().hasSubInventoryType() == chromaFilter)
                 .forEach(this.grid::add);
+        System.out.println("shop elements " + map.size());
         revalidate();
         repaint();
     }

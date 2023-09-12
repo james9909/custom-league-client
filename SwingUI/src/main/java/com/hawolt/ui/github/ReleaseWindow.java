@@ -5,6 +5,7 @@ import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LScrollPane;
+import org.intellij.lang.annotations.JdkConstants;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,19 +14,23 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class ReleaseWindow extends ChildUIComponent {
+public class ReleaseWindow extends ChildUIComponent implements PropertyChangeListener {
     private final JTextPane changelog;
 
     public ReleaseWindow() {
         super(new BorderLayout());
 
+        //TODO Make custom jtextpane
         LScrollPane pane = new LScrollPane(changelog = new JTextPane());
-        changelog.setBackground(ColorPalette.BACKGROUND_COLOR);
+        changelog.setBackground(ColorPalette.backgroundColor);
 
         StyledDocument document = changelog.getStyledDocument();
         Style style = changelog.addStyle("", null);
         StyleConstants.setForeground(style, Color.WHITE);
+        changelog.setFont(new Font("Dialog", Font.BOLD, 14));
 
         changelog.setEditable(false);
         changelog.setContentType("text/html");
@@ -60,5 +65,10 @@ public class ReleaseWindow extends ChildUIComponent {
                 Logger.error(ex);
             }
         }
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        super.propertyChange(evt);
+        changelog.setBackground(ColorPalette.backgroundColor);
     }
 }

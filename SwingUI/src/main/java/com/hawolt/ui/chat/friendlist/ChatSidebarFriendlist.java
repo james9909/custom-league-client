@@ -51,7 +51,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
         this.window.setIFriendListComponent(this);
         this.leagueClientUI = leagueClientUI;
         this.leagueClientUI.getSettingService().addSettingListener("autoFriends", this);
-        setBackground(ColorPalette.BACKGROUND_COLOR);
+        setBackground(ColorPalette.accentColor);
     }
 
     @Override
@@ -154,6 +154,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
 
     private void addFriendComponent(GenericFriend friend) {
         ChatSidebarFriend button = new ChatSidebarFriend(window.getXMPPClient(), friend, leagueClientUI);
+        button.setRoundingCorners(false, true, false, true);
         button.executeOnClick(() -> window.showChat(friend));
         addFriendComponent(button);
     }
@@ -161,12 +162,12 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
     //TODO ah no no no
     private void addPendingFriendRequest(GenericFriend genericFriend, boolean incoming) {
         ChildUIComponent request = new ChildUIComponent(new BorderLayout(5, 0));
-        request.setBackground(ColorPalette.BACKGROUND_COLOR);
+        request.setBackground(ColorPalette.accentColor);
         LLabel name = new LLabel(genericFriend.getName().toString(), LTextAlign.LEFT, true);
         request.add(name, BorderLayout.CENTER);
         request.setPreferredSize(new Dimension(0, 30));
         ChildUIComponent actions = new ChildUIComponent(new GridLayout(0, incoming ? 2 : 1, 5, 0));
-        actions.setBackground(ColorPalette.BACKGROUND_COLOR);
+        actions.setBackground(ColorPalette.accentColor);
         switch (friendHandling) {
             case "User choice" -> {
                 if (incoming) {

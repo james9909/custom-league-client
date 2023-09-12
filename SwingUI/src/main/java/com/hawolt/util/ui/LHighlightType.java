@@ -1,10 +1,10 @@
 package com.hawolt.util.ui;
 
-public enum LHighlightType
-{
+public enum LHighlightType {
     LEFT,
     TOP,
     RIGHT,
     BOTTOM,
-    COMPONENT
+    COMPONENT,
+    TEXT
 }

@@ -11,12 +11,14 @@ import com.hawolt.ui.champselect.data.MemberFunction;
 import com.hawolt.ui.champselect.data.TeamMemberFunction;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -35,22 +37,18 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
     protected ChampSelectTeamType type;
 
     public ChampSelectSidebarUI(ChampSelectTeam team) {
+        ColorPalette.addThemeListener(this);
         this.team = team;
         this.setLayout(new BorderLayout());
         this.display = new ChildUIComponent();
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         this.main = new ChildUIComponent(new BorderLayout());
         this.setPreferredSize(new Dimension(300, 0));
-        this.display.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.main.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.display.setBackground(ColorPalette.backgroundColor);
+        this.main.setBackground(ColorPalette.backgroundColor);
         this.main.add(display, BorderLayout.CENTER);
         this.add(main, BorderLayout.CENTER);
-        this.display.setBorder(
-                BorderFactory.createCompoundBorder(
-                        new MatteBorder(1, 0, 0, 0, Color.BLACK),
-                        new EmptyBorder(5, 5, 5, 5)
-                )
-        );
+        this.display.setBorder(new EmptyBorder(5, 5, 5, 5));
     }
 
     @Override
@@ -60,7 +58,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
         this.display.removeAll();
         this.type = getChampSelectTeamType();
         ChampSelectMember[] members = get(type);
-        this.display.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.display.setBackground(ColorPalette.backgroundColor);
         populate(members);
         revalidate();
     }
@@ -70,6 +68,7 @@ public class ChampSelectSidebarUI extends ChampSelectUIComponent {
         for (ChampSelectMember member : members) {
             ExecutorService loader = ExecutorManager.getService("name-loader");
             ChampSelectMemberElement element = new ChampSelectMemberElement(type, team, member);
+            element.setBackground(ColorPalette.backgroundColor);
             map.put(member.getCellId(), element);
             element.setIndex(context);
             loader.execute(element);

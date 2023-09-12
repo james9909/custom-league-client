@@ -2,14 +2,22 @@ package com.hawolt.ui.layout;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
+import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.ChampSelectUI;
 import com.hawolt.ui.github.ReleaseWindow;
 import com.hawolt.ui.queue.QueueWindow;
 import com.hawolt.ui.store.StoreWindow;
 import com.hawolt.util.panel.ChildUIComponent;
+import org.json.JSONObject;
 
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created: 09/08/2023 15:48
@@ -29,7 +37,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
 
         LeagueClient client = leagueClientUI.getLeagueClient();
         this.add(center = new ChildUIComponent(layout), BorderLayout.CENTER);
-        this.center.setBorder(new MatteBorder(2, 0, 0, 0, Color.DARK_GRAY));
+        //this.center.setBorder(new MatteBorder(2, 0, 0, 0, Color.DARK_GRAY));
 
         this.center.add("home", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));

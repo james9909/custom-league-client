@@ -4,8 +4,10 @@ import com.hawolt.async.LazyLoadedImageComponent;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.ui.PaintHelper;
 
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 
 /**
  * Created: 31/08/2023 21:17
@@ -19,7 +21,7 @@ public class ChampSelectBanElement extends LazyLoadedImageComponent {
 
     public ChampSelectBanElement(Dimension dimension) {
         super(dimension);
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
     }
 
     public void reset() {
@@ -42,9 +44,12 @@ public class ChampSelectBanElement extends LazyLoadedImageComponent {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (completed || image == null || championId <= 0) return;
         Color infused = new Color((Color.WHITE.getRGB() & 0xFFFFFF) | (0x7F << 24), true);
-        g.setColor(infused);
-        g.fillRect(x, y, dimension.width, dimension.height);
+        Graphics2D g2d = (Graphics2D)g.create();
+        g2d.setColor(infused);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.fillRoundRect(x, y, dimension.width, dimension.height,
+                ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0,ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
+        g2d.dispose();
     }
 }

@@ -120,14 +120,25 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         }
         ChildUIComponent modes = new ChildUIComponent(new GridLayout(0, (int) map.keySet().stream().filter(o -> !o.contains("TUTORIAL")).count(), 5, 0));
         modes.setBorder(new EmptyBorder(5, 5, 5, 5));
-        main.setBackground(ColorPalette.BACKGROUND_COLOR);
-        modes.setBackground(ColorPalette.BACKGROUND_COLOR);
+        main.setBackground(ColorPalette.backgroundColor);
+        modes.setBackground(ColorPalette.backgroundColor);
         for (String key : map.keySet()) {
             if (key.contains("TUTORIAL")) continue;
             ChildUIComponent parent = new ChildUIComponent(new BorderLayout());
-            ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-            parent.setBackground(ColorPalette.BACKGROUND_COLOR);
-            grid.setBackground(ColorPalette.BACKGROUND_COLOR);
+            ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5)) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    //background issues fix if buttons are all grid long
+                    g2d.setColor(ColorPalette.backgroundColor);
+                    g2d.fillRect(getX(), getY(), getWidth(), getHeight());
+                    g2d.setColor(ColorPalette.cardColor);
+                    g2d.fillRoundRect(getX(), getY(), getWidth(), getHeight(), ColorPalette.CARD_ROUNDING, ColorPalette.CARD_ROUNDING);
+                    g2d.dispose();
+                }
+            };
+            parent.setBackground(ColorPalette.backgroundColor);
 
             //Mode label
             LLabel label = new LLabel(key, LTextAlign.CENTER, true);
@@ -140,7 +151,38 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     continue;
                 }
 
-                LFlatButton button = new LFlatButton(name, LTextAlign.LEFT, LHighlightType.COMPONENT);
+                //parse mode name
+                String modeName = "";
+                if (name.contains("NORMAL")) {
+                    modeName = "Normal";
+                    if (name.contains("DRAFT"))
+                        modeName += " Draft";
+                    else if(name.contains("BLIND"))
+                        modeName += " Blind";
+                } else if (name.contains("RANKED")) {
+                    modeName = "Ranked";
+                    if (name.contains("SOLO"))
+                        modeName += " Solo/Duo";
+                    else if (name.contains("FLEX"))
+                        modeName += " Flex";
+                    else if (name.contains("TURBO"))
+                        modeName = "Hyper Roll";
+                    else if (name.contains("DOUBLE"))
+                        modeName = "Double Up";
+                } else if(name.contains("BOTS")){
+                    modeName = "Bots";
+                    if(name.contains("INTRO"))
+                        modeName += " Intro";
+                    else if(name.contains("EASY"))
+                        modeName += " Easy";
+                    else if(name.contains("MEDIUM"))
+                        modeName += " Medium";
+                } else if (name.contains("ARAM"))
+                {
+                    modeName = "ARAM";
+                }
+
+                LFlatButton button = new LFlatButton(modeName.isEmpty() ? name : modeName, LTextAlign.CENTER, LHighlightType.COMPONENT);
 
                 button.setPreferredSize(new Dimension(grid.getWidth() / 4, 30));
 
@@ -155,6 +197,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 grid.add(button);
             }
             parent.add(grid, BorderLayout.NORTH);
+            parent.setPreferredSize(new Dimension(modes.getWidth() / 4, 0));
             modes.add(parent);
         }
         main.add(modes, BorderLayout.CENTER);

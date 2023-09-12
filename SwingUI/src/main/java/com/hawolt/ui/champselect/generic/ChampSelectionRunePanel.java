@@ -79,12 +79,12 @@ public class ChampSelectionRunePanel extends LazyLoadedImageComponent implements
     @Override
     protected void paintComponent(Graphics g) {
         Dimension dimension = getSize();
-        g.setColor(ColorPalette.BACKGROUND_COLOR);
+        g.setColor(ColorPalette.backgroundColor);
         g.fillRect(0, 0, dimension.width, dimension.height);
         Graphics2D graphics2D = (Graphics2D) g;
         if (selected && image != null) {
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            graphics2D.setColor(Color.GRAY);
+            graphics2D.setColor(ColorPalette.buttonSelectionColor);
             int arcWidth = (image.getWidth() + 10);
             int arcHeigth = (image.getHeight() + 10);
             int arcX = (dimension.width >> 1) - (arcWidth >> 1);

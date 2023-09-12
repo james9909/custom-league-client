@@ -1,4 +1,4 @@
-package com.hawolt.util.panel;
+package com.hawolt.util.ui;
 
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.themes.LThemeChoice;
@@ -8,20 +8,19 @@ import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-/**
- * Created: 06/08/2023 13:39
- * Author: Twitter @hawolt
- **/
+public class LTextArea extends JTextArea implements PropertyChangeListener {
 
-public class ChildUIComponent extends JPanel implements PropertyChangeListener {
-    public ChildUIComponent() {
-        ColorPalette.addThemeListener(this);
+    public LTextArea()
+    {
+        init();
     }
 
-    public ChildUIComponent(LayoutManager layout) {
+    private void init()
+    {
         ColorPalette.addThemeListener(this);
+        setFont(new Font("Dialog", Font.BOLD, 14));
         setBackground(ColorPalette.backgroundColor);
-        setLayout(layout);
+        setForeground(ColorPalette.textColor);
     }
 
     @Override

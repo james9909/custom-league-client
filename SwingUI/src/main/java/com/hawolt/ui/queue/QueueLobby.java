@@ -13,6 +13,7 @@ import com.hawolt.logger.Logger;
 import com.hawolt.rms.data.subject.service.IServiceMessageListener;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -58,9 +59,9 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         this.leagueClientUI = leagueClientUI;
         this.leagueClientUI.getLeagueClient().getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, this);
 
-        LFlatButton close = new LFlatButton("Return to previous Component", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        ChildUIComponent top = new ChildUIComponent(new GridBagLayout());
+        LFlatButton close = new LFlatButton("Choose mode", LTextAlign.CENTER, LHighlightType.COMPONENT);
         close.addActionListener(listener -> layout.show(parent, "modes"));
-        add(close, BorderLayout.NORTH);
 
         LFlatButton invite = new LFlatButton("Invite another Summoner", LTextAlign.CENTER, LHighlightType.COMPONENT);
         invite.addActionListener(listener -> {
@@ -83,15 +84,22 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
                 Logger.error(e);
             }
         });
-        component.add(invite, BorderLayout.NORTH);
+        top.add(close);
+        top.add(invite);
+        component.add(top, BorderLayout.NORTH);
         LeagueClientUI.service.execute(() -> createSpecificComponents(component));
 
         add(component, BorderLayout.CENTER);
-        ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
-        LFlatButton start = new LFlatButton("START QUEUE", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        ChildUIComponent bottom = new ChildUIComponent(new GridBagLayout());
+        LFlatButton start = new LFlatButton("  Start  ", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        start.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
+        start.setBackground(ColorPalette.buttonSelectionColor);
+        start.setHighlightColor(ColorPalette.buttonSelectionAltColor);
         start.addActionListener(listener -> startQueue());
-        bottom.add(start);
-        LFlatButton stop = new LFlatButton("STOP QUEUE", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        LFlatButton stop = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        stop.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
+        stop.setBackground(ColorPalette.buttonSelectionColor);
+        stop.setHighlightColor(ColorPalette.buttonSelectionAltColor);
         stop.addActionListener(listener -> {
             if (future != null) future.cancel(true);
             PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
@@ -105,6 +113,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
             }
         });
         bottom.add(stop);
+        bottom.add(start);
         add(bottom, BorderLayout.SOUTH);
     }
 

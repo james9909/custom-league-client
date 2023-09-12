@@ -60,8 +60,8 @@ public class PostGameHeader extends ChildUIComponent {
 
     private JLabel createTextLabel(Object o, int alignment) {
         JLabel label = new JLabel(o.toString(), alignment);
-        label.setBackground(ColorPalette.BACKGROUND_COLOR);
-        label.setForeground(Color.WHITE);
+        label.setBackground(ColorPalette.backgroundColor);
+        label.setForeground(ColorPalette.textColor);
         label.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
         return label;
     }

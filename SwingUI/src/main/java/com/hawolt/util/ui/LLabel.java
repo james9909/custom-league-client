@@ -1,10 +1,15 @@
 package com.hawolt.util.ui;
 
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Area;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class LLabel extends JPanel {
+public class LLabel extends JPanel implements PropertyChangeListener {
     private String text;
     private LTextAlign textAlign;
     private boolean useShadow;
@@ -23,9 +28,10 @@ public class LLabel extends JPanel {
     }
 
     private void init() {
+        ColorPalette.addThemeListener(this);
         setBackground(new Color(0, 0, 0, 0));
         setFont(new Font("Dialog", Font.BOLD, 18));
-        setForeground(Color.WHITE);
+        setForeground(ColorPalette.textColor);
     }
 
     public void setText(String text) {
@@ -38,6 +44,14 @@ public class LLabel extends JPanel {
 
     public void useShadow(boolean use) {
         useShadow = use;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        LThemeChoice old = (LThemeChoice) evt.getOldValue();
+
+        setBackground(ColorPalette.getNewColor(getBackground(), old));
+        setForeground(ColorPalette.getNewColor(getForeground(), old));
     }
 
     @Override

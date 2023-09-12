@@ -7,6 +7,7 @@ import com.hawolt.client.resources.communitydragon.rune.RuneIndex;
 import com.hawolt.client.resources.communitydragon.rune.RuneSource;
 import com.hawolt.client.resources.communitydragon.rune.RuneType;
 import com.hawolt.ui.champselect.IncompleteRunePageException;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
@@ -37,11 +38,15 @@ public class ChampSelectRuneSelection extends ChampSelectUIComponent {
 
     public ChampSelectRuneSelection(String patch) {
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        //this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         ChildUIComponent header;
         this.add(header = new ChildUIComponent(new BorderLayout()), BorderLayout.NORTH);
         header.add(close = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT), BorderLayout.EAST);
+        close.setRoundingCorners(true, false, true, false);
+        close.setRounding(ColorPalette.CARD_ROUNDING);
         header.add(save = new LFlatButton("Save", LTextAlign.CENTER, LHighlightType.COMPONENT), BorderLayout.WEST);
+        save.setRoundingCorners(false, true, false, true);
+        save.setRounding(ColorPalette.CARD_ROUNDING);
         save.addActionListener(listener -> setRuneSelection());
         ChildUIComponent panel = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         this.add(panel, BorderLayout.CENTER);

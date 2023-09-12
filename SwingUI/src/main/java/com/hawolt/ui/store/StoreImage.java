@@ -5,6 +5,8 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -73,8 +75,7 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
         if (image != null) {
             Dimension dimension = getSize();
             int x = (dimension.width >> 1) - (image.getWidth() >> 1);
-            int y = (dimension.height >> 1) - (image.getHeight() >> 1);
-            g.drawImage(image, x, y, null);
+            g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING, x, y, dimension.width, dimension.height), 0, 0, null);
             if (!item.hasDiscount()) return;
             paintDiscountLabel(g);
         }

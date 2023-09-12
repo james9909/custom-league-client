@@ -1,8 +1,10 @@
 package com.hawolt.util.ui;
 
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.PopupMenuEvent;
@@ -14,15 +16,17 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class LComboBox<E> extends JComboBox<E> {
+public class LComboBox<E> extends JComboBox<E> implements PropertyChangeListener {
     private String labelText = "";
     private boolean mouseOver;
 
     private LHighlightType highlightType;
     private int selectedIndicatorSize = 5;
 
-    private Color optionBackground = ColorPalette.ACCENT_COLOR;
+    private Color optionBackground = ColorPalette.dropdownColor;
 
     public LComboBox(E[] items) {
         init();
@@ -35,16 +39,15 @@ public class LComboBox<E> extends JComboBox<E> {
     }
 
     private void init() {
-        setBackground(ColorPalette.BACKGROUND_COLOR);
-        setBorder(
-                BorderFactory.createCompoundBorder(
-                        new MatteBorder(0, 0, 1, 0, Color.DARK_GRAY),
-                        new EmptyBorder(labelText.isEmpty() ? 5 : getHeight() * 10, 3, 5, 3)
-                )
-        );
+        ColorPalette.addThemeListener(this);
+        setBackground(ColorPalette.backgroundColor);
+        setBorder(new CompoundBorder(
+                new MatteBorder(0, 0, 1, 0, ColorPalette.inputUnderline),
+                new EmptyBorder(labelText.isEmpty() ? 5 : getHeight() * 10, 3, 5, 3)
+        ));
         setUI(new LComboUI(this));
 
-        setForeground(Color.WHITE); //Set text to white
+        setForeground(ColorPalette.textColor); //Set text to white
         setFont(new Font("Dialog", Font.BOLD, 18));
 
         highlightType = LHighlightType.COMPONENT;
@@ -55,7 +58,7 @@ public class LComboBox<E> extends JComboBox<E> {
                 Component com = super.getListCellRendererComponent(jlist, o, i, bln, bln1);
                 setBorder(
                         BorderFactory.createCompoundBorder(
-                                new MatteBorder(0, 1, 1, 1, Color.DARK_GRAY),
+                                new MatteBorder(0, 0, 1, 0, ColorPalette.inputUnderline),
                                 new EmptyBorder(5, 5, 5, 5)
                         )
                 );
@@ -65,12 +68,23 @@ public class LComboBox<E> extends JComboBox<E> {
                 com.setBackground(optionBackground);
 
                 if (bln) {
-                    com.setBackground(ColorPalette.BUTTON_SELECTION_COLOR);
+                    com.setBackground(ColorPalette.buttonSelectionColor);
                 }
                 return com;
             }
         });
 
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        LThemeChoice old = (LThemeChoice) evt.getOldValue();
+        setBackground(ColorPalette.getNewColor(getBackground(), old));
+        setOptionBackground(ColorPalette.dropdownColor);
+        setBorder(new CompoundBorder(
+                new MatteBorder(0, 0, 1, 0, ColorPalette.inputUnderline),
+                new EmptyBorder(labelText.isEmpty() ? 5 : getHeight() * 10, 3, 5, 3)
+        ));
     }
 
     public void setOptionBackground(Color color) {
@@ -142,7 +156,6 @@ public class LComboBox<E> extends JComboBox<E> {
                 protected LScrollPane createScroller() {
                     list.setFixedCellHeight(30);
                     LScrollPane scroll = new LScrollPane(list);
-                    scroll.setBackground(Color.WHITE);
                     return scroll;
                 }
             };
@@ -159,9 +172,9 @@ public class LComboBox<E> extends JComboBox<E> {
 
             if (show) {
                 if (mouseOver)
-                    arrowButton.setBackground(ColorPalette.BUTTON_SELECTION_COLOR.darker());
+                    arrowButton.setBackground(ColorPalette.buttonSelectionColor.darker());
                 else
-                    arrowButton.setBackground(ColorPalette.BUTTON_SELECTION_COLOR);
+                    arrowButton.setBackground(ColorPalette.buttonSelectionColor);
             }
 
             int x = 0, y = 0, width = getWidth(), height = getHeight();
@@ -186,7 +199,7 @@ public class LComboBox<E> extends JComboBox<E> {
                     break;
             }
             Area buttonArea = new Area(new Rectangle(x, y, width, height));
-            g2.setColor(ColorPalette.BUTTON_SELECTION_COLOR);
+            g2.setColor(ColorPalette.buttonSelectionColor);
             if (mouseOver)
                 g2.fill(buttonArea);
 
@@ -210,6 +223,18 @@ public class LComboBox<E> extends JComboBox<E> {
                 setContentAreaFilled(false);
                 setBorder(new EmptyBorder(5, 5, 5, 5));
                 setBackground(Color.WHITE);
+
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        mouseOver = true;
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        mouseOver = false;
+                    }
+                });
             }
 
             @Override

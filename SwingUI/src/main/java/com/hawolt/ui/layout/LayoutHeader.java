@@ -7,14 +7,18 @@ import com.hawolt.ui.chat.profile.ChatSidebarProfile;
 import com.hawolt.ui.layout.wallet.HeaderWallet;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
+import org.intellij.lang.annotations.Flow;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -31,13 +35,14 @@ public class LayoutHeader extends ChildUIComponent {
     private final ChatSidebarProfile profile;
     private final ILayoutManager manager;
     private final HeaderWallet wallet;
+    LazyLoadedImageComponent logo;
 
     private Point initialClick;
 
     public LayoutHeader(ILayoutManager manager, LeagueClient client) {
         super(new BorderLayout());
         this.manager = manager;
-        this.setBackground(ColorPalette.ACCENT_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         this.setPreferredSize(new Dimension(0, 90));
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -61,16 +66,16 @@ public class LayoutHeader extends ChildUIComponent {
 
         ChildUIComponent main = new ChildUIComponent(new BorderLayout());
         main.setBorder(new EmptyBorder(5, 5, 5, 5));
-        main.setBackground(ColorPalette.ACCENT_COLOR);
+        main.setBackground(ColorPalette.backgroundColor);
         add(main, BorderLayout.CENTER);
 
         LazyLoadedImageComponent component = new LazyLoadedImageComponent(new Dimension(80, 80), 5);
-        component.setBackground(ColorPalette.ACCENT_COLOR);
+        component.setBackground(ColorPalette.backgroundColor);
         ResourceLoader.loadLocalResource("fullsize-logo.png", component);
         add(component, BorderLayout.WEST);
 
         ChildUIComponent verticalButtonAlignment = new ChildUIComponent();
-        verticalButtonAlignment.setBackground(ColorPalette.ACCENT_COLOR);
+        verticalButtonAlignment.setBackground(ColorPalette.backgroundColor);
         verticalButtonAlignment.setLayout(new BoxLayout(verticalButtonAlignment, BoxLayout.X_AXIS));
         main.add(verticalButtonAlignment, BorderLayout.WEST);
 
@@ -89,7 +94,7 @@ public class LayoutHeader extends ChildUIComponent {
     }
 
     public LFlatButton createHeaderComponent(LayoutComponent component) {
-        LFlatButton button = new LFlatButton(component.name().replace("_", " "), LTextAlign.CENTER, LHighlightType.BOTTOM);
+        LFlatButton button = new LFlatButton(component.name().replace("_", " "), LTextAlign.CENTER, LHighlightType.TEXT);
         button.addActionListener(listener -> selectAndShowComponent(component));
         map.put(component, button);
         return button;
@@ -117,6 +122,7 @@ public class LayoutHeader extends ChildUIComponent {
     public ChatSidebarProfile getProfile() {
         return profile;
     }
+
 
     public HeaderWallet getWallet() {
         return wallet;

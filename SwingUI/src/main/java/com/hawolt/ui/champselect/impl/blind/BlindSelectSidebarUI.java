@@ -30,7 +30,7 @@ public class BlindSelectSidebarUI extends ChampSelectSidebarUI {
         this.display.removeAll();
         this.type = getChampSelectTeamType();
         ChampSelectMember[] members = get(type);
-        this.display.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.display.setBackground(ColorPalette.backgroundColor);
         if (members.length != 0) {
             populate(members);
         } else {

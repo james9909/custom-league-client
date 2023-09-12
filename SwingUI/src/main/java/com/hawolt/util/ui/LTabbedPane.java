@@ -37,11 +37,11 @@ public class LTabbedPane extends JTabbedPane {
     }
 
     private void init(Font font) {
-        setBackground(ColorPalette.BACKGROUND_COLOR);
+        setBackground(ColorPalette.backgroundColor);
         setBorder(new EmptyBorder(0, 0, 0, 0));
         setUI(new LTabbedUI(LHighlightType.BOTTOM));
         setFont(font);
-        setForeground(Color.WHITE);
+        setForeground(ColorPalette.textColor);
 
         //Look for better solutions to find out if mouse is hovering tab
         addMouseMotionListener(new MouseMotionAdapter() {
@@ -95,7 +95,7 @@ public class LTabbedPane extends JTabbedPane {
                         break;
                 }
                 Area buttonArea = new Area(new Rectangle(x, y, w, h));
-                g2d.setColor(ColorPalette.BUTTON_SELECTION_COLOR);
+                g2d.setColor(ColorPalette.buttonSelectionColor);
                 g2d.fill(buttonArea);
             }
 

@@ -45,7 +45,7 @@ public class LoginUI extends MainUIComponent implements ActionListener {
         this.login.setActionCommand("REGULAR");
         this.rememberMe = new JCheckBox("Remember Me");
         this.rememberMe.setForeground(Color.WHITE);
-        this.rememberMe.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.rememberMe.setBackground(ColorPalette.backgroundColor);
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setForeground(Color.WHITE);
         JLabel passwordLabel = new JLabel("Password");

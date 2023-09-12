@@ -18,20 +18,16 @@ public class ChampSelectDebugUI extends ChampSelectUIComponent {
     private final JLabel queueId, counter, phaseName;
 
     public ChampSelectDebugUI() {
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        ColorPalette.addThemeListener(this);
+        this.setBackground(ColorPalette.backgroundColor);
         this.setLayout(new GridLayout(0, 3, 5, 0));
-        this.setBorder(
-                BorderFactory.createCompoundBorder(
-                        new MatteBorder(0, 1, 1, 1, Color.BLACK),
-                        new EmptyBorder(2, 5, 2, 5)
-                )
-        );
+        this.setBorder(new EmptyBorder(2, 5, 2, 5));
         this.add(queueId = new JLabel("", SwingConstants.LEFT));
-        this.queueId.setForeground(Color.WHITE);
+        this.queueId.setForeground(ColorPalette.textColor);
         this.add(phaseName = new JLabel("", SwingConstants.CENTER));
-        this.phaseName.setForeground(Color.WHITE);
+        this.phaseName.setForeground(ColorPalette.textColor);
         this.add(counter = new JLabel("", SwingConstants.RIGHT));
-        this.counter.setForeground(Color.WHITE);
+        this.counter.setForeground(ColorPalette.textColor);
     }
 
     @Override

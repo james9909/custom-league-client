@@ -7,6 +7,7 @@ import com.hawolt.logger.Logger;
 import com.hawolt.rms.data.subject.service.IServiceMessageListener;
 import com.hawolt.rms.data.subject.service.MessageService;
 import com.hawolt.rms.data.subject.service.RiotMessageServiceMessage;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import org.json.JSONObject;
 
@@ -23,7 +24,8 @@ public class HeaderWallet extends ChildUIComponent implements Runnable, IService
     private final HeaderWalletCurrency be, rp;
 
     public HeaderWallet(LeagueClient LeagueClient) {
-        super(new GridLayout(0, 1, 0, 10));
+        super(new GridLayout(0, 1, 0, 5));
+        ColorPalette.removeThemeListener(this);
         this.setPreferredSize(new Dimension(120, 0));
         this.add(be = new HeaderWalletCurrency(String.join("/", BASE, "icon-be-150.png")));
         this.add(rp = new HeaderWalletCurrency(String.join("/", BASE, "icon-rp-72.png")));

@@ -10,11 +10,13 @@ import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,10 +37,11 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     private String filter = "";
 
     public ChampSelectSelectionUI(ChampSelectType type, ChampSelectChoice callback) {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        //this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         LScrollPane scrollPane = new LScrollPane(component);
-        component.setBackground(ColorPalette.BACKGROUND_COLOR);
+        component.setBackground(ColorPalette.backgroundColor);
         component.setLayout(new GridLayout(0, 5, 5, 5));
         component.setBorder(new EmptyBorder(5, 0, 0, 0));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);

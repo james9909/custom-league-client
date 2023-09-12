@@ -1,5 +1,7 @@
 package com.hawolt.ui.chat.profile;
 
+import com.hawolt.util.ColorPalette;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -37,7 +39,7 @@ public class ChatSidebarName extends JComponent {
     private void drawHighlightedText(Graphics g, String text, int x, int y) {
         g.setColor(Color.BLACK);
         g.drawString(text, x + 1, y + 1);
-        g.setColor(Color.WHITE);
+        g.setColor(ColorPalette.textColor);
         g.drawString(text, x, y);
     }
 }

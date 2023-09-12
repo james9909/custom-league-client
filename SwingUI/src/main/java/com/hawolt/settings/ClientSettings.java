@@ -25,4 +25,6 @@ public class ClientSettings extends DynamicObject {
         return getByKeyOrDefault("Volume", 100);
     }
     public int getClientVolumeMixer() { return getByKeyOrDefault("MixerVolume", 100); }
+
+    public int getClientTheme() {return getByKeyOrDefault("Theme", 0);}
 }

@@ -23,7 +23,7 @@ public class QueueState extends ChildUIComponent {
 
     public QueueState() {
         super(new BorderLayout());
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.accentColor);
         this.setPreferredSize(new Dimension(0, 30));
         this.setBorder(new MatteBorder(0, 0, 2, 0, Color.DARK_GRAY));
         this.service.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);

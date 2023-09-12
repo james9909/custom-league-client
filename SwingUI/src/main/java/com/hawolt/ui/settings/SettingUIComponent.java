@@ -12,10 +12,8 @@ import com.hawolt.ui.github.Github;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.LComboBox;
-import com.hawolt.util.ui.LFlatButton;
-import com.hawolt.util.ui.LHighlightType;
-import com.hawolt.util.ui.LTextAlign;
+import com.hawolt.util.themes.LThemeChoice;
+import com.hawolt.util.ui.*;
 import com.hawolt.virtual.misc.DynamicObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,6 +25,7 @@ import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -92,6 +91,7 @@ public class SettingUIComponent extends ChildUIComponent {
         pathContainer.add(pathField, BorderLayout.SOUTH);
 
         LFlatButton searchButton = new LFlatButton("Open", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        searchButton.setRounding(ColorPalette.CARD_ROUNDING);
         searchButton.setPreferredSize(new Dimension(80, 30));
         searchButton.addActionListener(listener -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -180,7 +180,8 @@ public class SettingUIComponent extends ChildUIComponent {
         labelContainer.add(labelMixer);
 
         JPanel volumeMixer = new JPanel(new BorderLayout());
-        JSlider mixerSlider = createVolumeSlider(settingService.getClientSettings().getClientVolumeMixer());
+        LSlider mixerSlider = createVolumeSlider(settingService.getClientSettings().getClientVolumeMixer());
+        //mixerSlider.setBackground(new Color(0,0,0,0));
         mixerSlider.addChangeListener(listener -> {
             AudioEngine.setMasterOutput(mixerSlider.getValue() / 100f);
         });
@@ -237,16 +238,16 @@ public class SettingUIComponent extends ChildUIComponent {
                 pos++;
                 builder.append(contributor.getString("login")).append("\n");
             }
-            JTextArea contributors = createTextArea(builder.toString());
+            LTextArea contributors = createTextArea(builder.toString());
             labelContainer.add(contributors);
         }
 
         String currentInfo = "Current version (Release date):\n\n" + Github.getCurrentVersion() + "\n" + Github.getCurrentReleaseDate();
-        JTextArea currentVersion = createTextArea(currentInfo);
+        LTextArea currentVersion = createTextArea(currentInfo);
         versionContainer.add(currentVersion);
         if (!Github.getCurrentVersion().equals(Github.getLatestVersion())) {
             String latestInfo = "Latest version (Release date):\n\n" + Github.getLatestVersion() + "\n" + Github.getLatestReleaseDate();
-            JTextArea latestVersion = createTextArea(latestInfo);
+            LTextArea latestVersion = createTextArea(latestInfo);
             versionContainer.add(latestVersion);
         }
         return result;
@@ -290,7 +291,7 @@ public class SettingUIComponent extends ChildUIComponent {
                 builder.append(title).append("\n");
             }
         }
-        JTextArea bugs = createTextArea(builder.toString());
+        LTextArea bugs = createTextArea(builder.toString());
         knownBugContainer.add(bugs);
 
         return result;
@@ -339,6 +340,42 @@ public class SettingUIComponent extends ChildUIComponent {
         }
     }
 
+    public static SettingUIComponent createComboBoxComponent(String name, SettingService settingService, String key, LComboBox comboBox) {
+        DynamicObject settings = settingService.getClientSettings();
+
+        SettingUIComponent result = new SettingUIComponent(new BorderLayout());
+        result.setPreferredSize(new Dimension(10, 64));
+
+        ChildUIComponent comboBoxContainer = new ChildUIComponent(new FlowLayout());
+        result.add(comboBoxContainer, BorderLayout.SOUTH);
+
+        ChildUIComponent labelContainer = new ChildUIComponent(new FlowLayout());
+        labelContainer.setBorder(new EmptyBorder(0, 16, 0, 0));
+        result.add(labelContainer, BorderLayout.WEST);
+
+        JLabel label = new JLabel(name);
+        label.setFont(textFont);
+        label.setForeground(Color.WHITE);
+        labelContainer.add(label);
+
+        comboBoxContainer.add(comboBox, BorderLayout.SOUTH);
+
+        result.addOnSaveActionListener(listener -> {
+            int value = comboBox.getSelectedIndex();
+            try {
+                settingService.write(SettingType.CLIENT, key, value);
+            } catch (InvalidPathException | NullPointerException e) {
+                Logger.warn(e.getMessage());
+            }
+        });
+
+        result.addOnQuitActionListener(listener -> {
+            comboBox.setSelectedIndex(settings.getByKeyOrDefault(key, 0));
+        });
+
+        return result;
+    }
+
     private void addOnSaveActionListener(ActionListener listener) {
         onSave.add(ActionListener.class, listener);
     }
@@ -354,19 +391,14 @@ public class SettingUIComponent extends ChildUIComponent {
         return result;
     }
 
-    private static JTextArea createTextArea(String text) {
-        JTextArea result = new JTextArea();
+    private static LTextArea createTextArea(String text) {
+        LTextArea result = new LTextArea();
         result.setText(text);
-        result.setFont(textFont);
-        result.setForeground(Color.WHITE);
-        result.setBackground(ColorPalette.BACKGROUND_COLOR);
         return result;
     }
 
-    private static JSlider createVolumeSlider(int start) {
-        JSlider result = new JSlider(JSlider.HORIZONTAL, 0, 100, start);
-        result.setBackground(ColorPalette.BACKGROUND_COLOR);
-        result.setForeground(Color.WHITE);
+    private static LSlider createVolumeSlider(int start) {
+        LSlider result = new LSlider(JSlider.HORIZONTAL, 0, 100, start);
         result.setMajorTickSpacing(10);
         result.setMinorTickSpacing(1);
         result.setPaintTicks(true);

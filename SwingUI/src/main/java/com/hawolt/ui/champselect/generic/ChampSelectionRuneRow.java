@@ -20,8 +20,9 @@ public class ChampSelectionRuneRow extends ChildUIComponent implements IRuneSele
     private int lastSelection = -1;
 
     public ChampSelectionRuneRow(IRuneSelection selection, int componentIndex, LinkedList<BasicRune> list, Dimension dimension) {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new GridLayout(0, list.size(), 5, 0));
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         this.selection = selection;
         this.componentIndex = componentIndex;
         this.components = new ChampSelectionRunePanel[list.size()];

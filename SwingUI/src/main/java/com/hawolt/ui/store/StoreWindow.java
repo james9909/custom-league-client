@@ -32,7 +32,7 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
     public StoreWindow(LeagueClient client) {
         super(new BorderLayout());
         this.client = client;
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         pane = new LTabbedPane();
         try {
             String jwt = client.getLedge().getInventoryService().getInventoryToken();

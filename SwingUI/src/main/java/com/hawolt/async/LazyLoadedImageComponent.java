@@ -3,12 +3,18 @@ package com.hawolt.async;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 
 /**
@@ -16,7 +22,7 @@ import java.io.ByteArrayInputStream;
  * Author: Twitter @hawolt
  **/
 
-public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer<BufferedImage, byte[]> {
+public class LazyLoadedImageComponent extends ChildUIComponent implements ResourceConsumer<BufferedImage, byte[]> {
     protected final Dimension dimension;
 
     protected BufferedImage image;
@@ -33,6 +39,7 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
 
     public LazyLoadedImageComponent(String uri, Dimension dimension) {
         this(uri, dimension, 0);
+        ColorPalette.addThemeListener(this);
     }
 
     public LazyLoadedImageComponent(String uri, Dimension dimension, int border) {
@@ -66,6 +73,6 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
         Dimension bounds = getSize();
         this.x = (bounds.width >> 1) - (image.getWidth() >> 1);
         this.y = (bounds.height >> 1) - (image.getHeight() >> 1);
-        g.drawImage(image, x, y, null);
+        g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING), x, y, null);
     }
 }

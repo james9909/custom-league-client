@@ -2,7 +2,10 @@ package com.hawolt.ui.settings;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.settings.SettingService;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
+import com.hawolt.util.ui.LComboBox;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
@@ -38,10 +41,12 @@ public class SettingsUI extends ChildUIComponent {
         CardLayout cl = new CardLayout();
         JPanel mainPanel = new JPanel(cl);
         SettingsPage clientGeneralPage = newClientGeneralPage();
+        SettingsPage themePage = newThemePage();
         SettingsPage clientAudioPage = newClientAudioPage();
         SettingsPage clientAboutPage = newClientAboutPage();
         SettingsPage clientHelpPage = newClientHelpPage();
         mainPanel.add("General", clientGeneralPage);
+        mainPanel.add("Client Theme", themePage);
         mainPanel.add("Audio", clientAudioPage);
         mainPanel.add("About", clientAboutPage);
         mainPanel.add("Help", clientHelpPage);
@@ -61,6 +66,8 @@ public class SettingsUI extends ChildUIComponent {
 
         LFlatButton clientGeneralButton = SettingsSidebar.newSectionButton("General", cl, mainPanel);
         clientGroup.addToContainer(clientGeneralButton);
+        LFlatButton themeButton = SettingsSidebar.newSectionButton("Client Theme", cl, mainPanel);
+        clientGroup.addToContainer(themeButton);
         LFlatButton clientAudioButton = SettingsSidebar.newSectionButton("Audio", cl, mainPanel);
         clientGroup.addToContainer(clientAudioButton);
         LFlatButton clientAboutButton = SettingsSidebar.newSectionButton("About", cl, mainPanel);
@@ -112,6 +119,26 @@ public class SettingsUI extends ChildUIComponent {
         result.add(SettingUIComponent.createPathComponent("League Base Directory Path", service, "GameBaseDir"));
         result.add(SettingUIComponent.createTagComponent("Friend requests"));
         result.add(SettingUIComponent.createAutoFriendComponent("Auto friend request handling", service, "autoFriends"));
+        return result;
+    }
+
+    private SettingsPage newThemePage() {
+        SettingService service = leagueClientUI.getSettingService();
+        SettingsPage result = new SettingsPage();
+
+        LComboBox<LThemeChoice> comboBox = new LComboBox<>(LThemeChoice.values());
+        comboBox.addItemListener(listener -> {
+            ColorPalette.setTheme(comboBox.getItemAt(comboBox.getSelectedIndex()));
+        });
+        comboBox.setSelectedIndex(service.getClientSettings().getClientTheme());
+        //ColorPalette.setTheme();
+
+        result.add(SettingUIComponent.createTagComponent("Theme"));
+
+
+        SettingUIComponent themeCombo = SettingUIComponent.createComboBoxComponent("Client Theme", service, "Theme", comboBox);
+
+        result.add(themeCombo);
         return result;
     }
 

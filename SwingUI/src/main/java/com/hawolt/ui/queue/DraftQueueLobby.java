@@ -19,6 +19,7 @@ import java.io.IOException;
 
 public class DraftQueueLobby extends QueueLobby {
     JComboBox<PositionPreference> main, other;
+
     public DraftQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(leagueClientUI, parent, layout);
 
@@ -28,7 +29,7 @@ public class DraftQueueLobby extends QueueLobby {
     @Override
     protected void createSpecificComponents(ChildUIComponent component) {
 
-        ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
+        ChildUIComponent roles = new ChildUIComponent(new GridBagLayout());
         main = new LComboBox<>(PositionPreference.values());
         main.addActionListener(this);
         roles.add(main);
@@ -49,12 +50,11 @@ public class DraftQueueLobby extends QueueLobby {
 
     @Override
     protected void createGrid(ChildUIComponent component) {
-        grid = new ChildUIComponent(new GridLayout(1,5));
+        grid = new ChildUIComponent(new GridLayout(1, 5));
         for (int i = 0; i < 5; i++) grid.add(new DraftSummonerComponent());
         grid.setBackground(Color.YELLOW);
         component.add(grid, BorderLayout.CENTER);
     }
-
 
 
     @Override
@@ -71,13 +71,13 @@ public class DraftQueueLobby extends QueueLobby {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e != null){
+        if (e != null) {
             try {
-            PositionPreference primary = main.getItemAt(main.getSelectedIndex());
-            PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
-            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
-            partiesLedge.metadata(primary, secondary);
-            //TODO revisit
+                PositionPreference primary = main.getItemAt(main.getSelectedIndex());
+                PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
+                PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+                partiesLedge.metadata(primary, secondary);
+                //TODO revisit
             /*PlayerPreferencesLedge playerPreferencesLedge = leagueClientUI.getLeagueClient().getLedge().getPlayerPreferences();
             JSONObject playerPrefs = playerPreferencesLedge.getPlayerPreferences();
             JSONObject partiesPosPref;
@@ -99,12 +99,11 @@ public class DraftQueueLobby extends QueueLobby {
             PlayerPreferencesService.get().getSettings().setPartiesPositionPreferences(partiesPosPref);
             PlayerPreferencesService.get().writeSettingsFile();*/
 
-        } catch (IOException ex) {
-            Logger.error(ex);
-        }
+            } catch (IOException ex) {
+                Logger.error(ex);
+            }
         }
     }
-
 
 
 }

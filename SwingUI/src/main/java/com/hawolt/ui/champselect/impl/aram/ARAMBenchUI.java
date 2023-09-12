@@ -31,8 +31,9 @@ public class ARAMBenchUI extends ChampSelectUIComponent {
     private final ChampSelectBenchElement[] elements = new ChampSelectBenchElement[10];
 
     public ARAMBenchUI(ChampSelectChoice callback) {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         this.setPreferredSize(new Dimension(0, 80));
         this.setBorder(
                 BorderFactory.createCompoundBorder(
