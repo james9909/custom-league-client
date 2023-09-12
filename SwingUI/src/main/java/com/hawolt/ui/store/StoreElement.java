@@ -60,7 +60,7 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
             buttons.add(button);
         }
         if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0) {
-            StoreButton button = new StoreButton(this, CurrencyType.IP, item.getCorrectRiotPointCost());
+            StoreButton button = new StoreButton(this, CurrencyType.RP, item.getCorrectRiotPointCost());
             button.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
             button.setBackground(ColorPalette.buttonSelectionColor);
             button.setHighlightColor(ColorPalette.buttonSelectionAltColor);
@@ -94,12 +94,12 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
     @Override
     protected void paintComponent(Graphics g) {
         //super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g.create();
+        Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setColor(getBackground());
         g2d.fillRoundRect(0, 0, getWidth(), getHeight(),
                 ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
-        g2d.dispose();
+
     }
 
     @Override

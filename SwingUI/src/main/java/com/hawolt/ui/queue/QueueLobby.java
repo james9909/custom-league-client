@@ -21,6 +21,7 @@ import com.hawolt.util.ui.LTextAlign;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,10 +49,6 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
     public ChildUIComponent grid;
     public ChildUIComponent component = new ChildUIComponent(new BorderLayout());
 
-    protected abstract void createSpecificComponents(ChildUIComponent component);
-
-    protected abstract void createGrid(ChildUIComponent component);
-
     public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
         super(new BorderLayout());
         createGrid(component);
@@ -59,7 +56,7 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         this.leagueClientUI = leagueClientUI;
         this.leagueClientUI.getLeagueClient().getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, this);
 
-        ChildUIComponent top = new ChildUIComponent(new GridBagLayout());
+        ChildUIComponent top = new ChildUIComponent(new GridLayout(0, 1, 0, 0));
         LFlatButton close = new LFlatButton("Choose mode", LTextAlign.CENTER, LHighlightType.COMPONENT);
         close.addActionListener(listener -> layout.show(parent, "modes"));
 
@@ -90,8 +87,9 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         LeagueClientUI.service.execute(() -> createSpecificComponents(component));
 
         add(component, BorderLayout.CENTER);
-        ChildUIComponent bottom = new ChildUIComponent(new GridBagLayout());
-        LFlatButton start = new LFlatButton("  Start  ", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        ChildUIComponent bottom = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
+        bottom.setBorder(new EmptyBorder(5, 5, 5, 5));
+        LFlatButton start = new LFlatButton("Start", LTextAlign.CENTER, LHighlightType.COMPONENT);
         start.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
         start.setBackground(ColorPalette.buttonSelectionColor);
         start.setHighlightColor(ColorPalette.buttonSelectionAltColor);
@@ -116,6 +114,10 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         bottom.add(start);
         add(bottom, BorderLayout.SOUTH);
     }
+
+    protected abstract void createSpecificComponents(ChildUIComponent component);
+
+    protected abstract void createGrid(ChildUIComponent component);
 
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {

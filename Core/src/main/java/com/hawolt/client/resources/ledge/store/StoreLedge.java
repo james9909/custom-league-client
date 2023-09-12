@@ -8,6 +8,7 @@ import com.hawolt.client.resources.ledge.store.objects.Wallet;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
+import com.hawolt.http.layer.impl.OkHttpResponse;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.json.JSONArray;
@@ -37,7 +38,7 @@ public class StoreLedge extends AbstractLedgeEndpoint {
         Request request = jsonRequest(uri)
                 .get()
                 .build();
-        IResponse response = OkHttp3Client.execute(request, gateway);
+        IResponse response = OkHttpResponse.from(request, gateway);
         JSONArray array = new JSONArray(response.asString());
         List<StoreItem> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {

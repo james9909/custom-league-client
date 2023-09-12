@@ -20,11 +20,20 @@ public class ClientSettings extends DynamicObject {
     public String getRememberMeUsername() {
         return getByKeyNonNullOrThrow("username", () -> new RuntimeException("NO_USERNAME_PRESENT"));
     }
-    public String getFriendHandling() { return getByKeyOrDefault("autoFriends", "User choice"); }
+
+    public String getFriendHandling() {
+        return getByKeyOrDefault("autoFriends", "User choice");
+    }
+
     public int getClientVolumeGain() {
         return getByKeyOrDefault("Volume", 100);
     }
-    public int getClientVolumeMixer() { return getByKeyOrDefault("MixerVolume", 100); }
 
-    public int getClientTheme() {return getByKeyOrDefault("Theme", 0);}
+    public int getClientVolumeMixer() {
+        return getByKeyOrDefault("MixerVolume", 100);
+    }
+
+    public int getClientTheme() {
+        return getByKeyOrDefault("Theme", 0);
+    }
 }

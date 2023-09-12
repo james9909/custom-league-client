@@ -12,7 +12,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 
 /**
  * Created: 09/08/2023 01:59

@@ -3,7 +3,6 @@ package com.hawolt.ui.champselect.context;
 import com.hawolt.ui.champselect.data.ActionObject;
 import com.hawolt.ui.champselect.data.ChampSelectMember;
 import com.hawolt.ui.champselect.data.ChampSelectTeamMember;
-import com.hawolt.ui.champselect.data.ChampSelectType;
 
 import java.util.List;
 import java.util.Optional;

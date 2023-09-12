@@ -10,14 +10,12 @@ import java.beans.PropertyChangeListener;
 
 public class LSlider extends JSlider implements PropertyChangeListener {
 
-    public LSlider(int orientation, int min, int max, int value)
-    {
+    public LSlider(int orientation, int min, int max, int value) {
         super(orientation, min, max, value);
         init();
     }
 
-    private void init()
-    {
+    private void init() {
         ColorPalette.addThemeListener(this);
         setFont(new Font("Dialog", Font.BOLD, 14));
         setBackground(ColorPalette.backgroundColor);

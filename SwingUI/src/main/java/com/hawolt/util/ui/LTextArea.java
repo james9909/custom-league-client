@@ -10,13 +10,11 @@ import java.beans.PropertyChangeListener;
 
 public class LTextArea extends JTextArea implements PropertyChangeListener {
 
-    public LTextArea()
-    {
+    public LTextArea() {
         init();
     }
 
-    private void init()
-    {
+    private void init() {
         ColorPalette.addThemeListener(this);
         setFont(new Font("Dialog", Font.BOLD, 14));
         setBackground(ColorPalette.backgroundColor);

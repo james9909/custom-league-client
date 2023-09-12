@@ -3,11 +3,9 @@ package com.hawolt.ui.champselect.impl.blind;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.ui.champselect.data.ChampSelectMember;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
-import com.hawolt.ui.champselect.generic.impl.ChampSelectBanElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectMemberElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.panel.ChildUIComponent;
 
 import java.awt.*;
 import java.util.concurrent.ExecutorService;

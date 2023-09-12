@@ -1,6 +1,5 @@
 package com.hawolt.ui.settings;
 
-import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.DynamicGridLayout;
 import com.hawolt.util.ui.LScrollPane;

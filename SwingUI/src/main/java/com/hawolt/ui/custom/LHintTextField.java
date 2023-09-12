@@ -2,7 +2,6 @@ package com.hawolt.ui.custom;
 
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.themes.LThemeChoice;
-import com.hawolt.util.ui.PaintHelper;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;

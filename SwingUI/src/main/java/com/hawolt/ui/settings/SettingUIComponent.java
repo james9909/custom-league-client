@@ -7,12 +7,10 @@ import com.hawolt.io.RunLevel;
 import com.hawolt.logger.Logger;
 import com.hawolt.settings.SettingService;
 import com.hawolt.settings.SettingType;
-import com.hawolt.ui.chat.friendlist.ChatSidebarFriendlist;
 import com.hawolt.ui.github.Github;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.*;
 import com.hawolt.virtual.misc.DynamicObject;
 import org.json.JSONArray;
@@ -25,7 +23,6 @@ import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -322,24 +319,6 @@ public class SettingUIComponent extends ChildUIComponent {
         return result;
     }
 
-    public void save() {
-        Object[] listeners = onSave.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ActionListener.class) {
-                ((ActionListener) listeners[i + 1]).actionPerformed(null);
-            }
-        }
-    }
-
-    public void close() {
-        Object[] listeners = onClose.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ActionListener.class) {
-                ((ActionListener) listeners[i + 1]).actionPerformed(null);
-            }
-        }
-    }
-
     public static SettingUIComponent createComboBoxComponent(String name, SettingService settingService, String key, LComboBox comboBox) {
         DynamicObject settings = settingService.getClientSettings();
 
@@ -376,14 +355,6 @@ public class SettingUIComponent extends ChildUIComponent {
         return result;
     }
 
-    private void addOnSaveActionListener(ActionListener listener) {
-        onSave.add(ActionListener.class, listener);
-    }
-
-    private void addOnQuitActionListener(ActionListener listener) {
-        onClose.add(ActionListener.class, listener);
-    }
-
     private static JLabel createLabel(String name) {
         JLabel result = new JLabel(name);
         result.setFont(textFont);
@@ -404,5 +375,31 @@ public class SettingUIComponent extends ChildUIComponent {
         result.setPaintTicks(true);
         result.setPaintLabels(true);
         return result;
+    }
+
+    public void save() {
+        Object[] listeners = onSave.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ActionListener.class) {
+                ((ActionListener) listeners[i + 1]).actionPerformed(null);
+            }
+        }
+    }
+
+    public void close() {
+        Object[] listeners = onClose.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ActionListener.class) {
+                ((ActionListener) listeners[i + 1]).actionPerformed(null);
+            }
+        }
+    }
+
+    private void addOnSaveActionListener(ActionListener listener) {
+        onSave.add(ActionListener.class, listener);
+    }
+
+    private void addOnQuitActionListener(ActionListener listener) {
+        onClose.add(ActionListener.class, listener);
     }
 }

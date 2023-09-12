@@ -31,31 +31,6 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
     private BufferedImage image;
     private boolean selected;
 
-    private class ChampSelectSelectionElementAdapter extends MouseAdapter {
-        private final ChampSelectChoice callback;
-
-        public ChampSelectSelectionElementAdapter(ChampSelectChoice callback) {
-            this.callback = callback;
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            try {
-                Logger.info("[champ-select] indicate {}", championId);
-                Dimension dimension = getSize();
-                int rectangleX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
-                Rectangle rectangle = new Rectangle(rectangleX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
-                selected = rectangle.contains(e.getPoint());
-                if (!selected) return;
-                Logger.info("[champ-select] forward {} as indicator", championId);
-                ChampSelectSelectionElement.this.repaint();
-                callback.onChoice(ChampSelectSelectionElement.this);
-            } catch (Exception ex) {
-                Logger.error(ex);
-            }
-        }
-    }
-
     public ChampSelectSelectionElement(ChampSelectChoice callback, ChampSelectType type, int championId, String name) {
         super(new BorderLayout());
         this.name = name;
@@ -71,7 +46,7 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
         Dimension dimension = getSize();
         int imageX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
         if (image != null) {
-            g.drawImage(PaintHelper.circleize(image,ColorPalette.CARD_ROUNDING), imageX, 0, null);
+            g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING), imageX, 0, null);
         }
         Graphics2D graphics2D = (Graphics2D) g;
         graphics2D.setFont(FONT);
@@ -90,10 +65,9 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             graphics2D.setColor(infused);
             graphics2D.fillRoundRect(imageX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height,
-                    ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0,ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
+                    ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
         }
     }
-
 
     public void setSelected(boolean b) {
         this.selected = b;
@@ -132,6 +106,31 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
     @Override
     public BufferedImage transform(byte[] bytes) throws Exception {
         return ImageIO.read(new ByteArrayInputStream(bytes));
+    }
+
+    private class ChampSelectSelectionElementAdapter extends MouseAdapter {
+        private final ChampSelectChoice callback;
+
+        public ChampSelectSelectionElementAdapter(ChampSelectChoice callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            try {
+                Logger.info("[champ-select] indicate {}", championId);
+                Dimension dimension = getSize();
+                int rectangleX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
+                Rectangle rectangle = new Rectangle(rectangleX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
+                selected = rectangle.contains(e.getPoint());
+                if (!selected) return;
+                Logger.info("[champ-select] forward {} as indicator", championId);
+                ChampSelectSelectionElement.this.repaint();
+                callback.onChoice(ChampSelectSelectionElement.this);
+            } catch (Exception ex) {
+                Logger.error(ex);
+            }
+        }
     }
 
 }

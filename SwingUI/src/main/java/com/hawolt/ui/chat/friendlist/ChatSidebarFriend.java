@@ -45,11 +45,14 @@ public class ChatSidebarFriend extends LFlatButton {
     private final VirtualRiotXMPPClient xmppClient;
     private final LeagueClientUI leagueClientUI;
     private final GenericFriend friend;
+    private final Font statusFont = new Font("Dialog", Font.BOLD, 12);
     private GenericPresence lastKnownPresence;
     private String providedUsername;
     private Runnable runnable;
     private int counter;
-
+    private ConnectionStatus connectionStatus;
+    private String status;
+    private Color color;
 
     public ChatSidebarFriend(VirtualRiotXMPPClient xmppClient, GenericFriend friend, LeagueClientUI leagueClientUI) {
         super();
@@ -84,39 +87,12 @@ public class ChatSidebarFriend extends LFlatButton {
         return friend;
     }
 
-    private ConnectionStatus connectionStatus;
-    private String status;
-    private Color color;
-
     private Color getBaseColor() {
         return switch (getConnectionStatus()) {
             case ONLINE -> ColorPalette.friendOnline;
             case MOBILE -> ColorPalette.friendMobile;
             default -> ColorPalette.friendOffline;
         };
-    }
-
-    public void setLastKnownPresence(GenericPresence lastKnownPresence) {
-        this.lastKnownPresence = lastKnownPresence;
-        this.connectionStatus = getConnectionStatus();
-        this.color = getBaseColor();
-        Map<String, BasicGame> map = lastKnownPresence.getGameMap();
-        for (String key : map.keySet()) {
-            if ("keystone".equals(key)) continue;
-            switch (key) {
-                case "league_of_legends" -> handleLOL(
-                        Unsafe.cast(lastKnownPresence),
-                        lastKnownPresence.getGameInfo(GameType.LEAGUE_OF_LEGENDS,
-                                null)
-                );
-                case "valorant" -> handleValorant(lastKnownPresence.getGameInfo(GameType.VALORANT, null));
-                case "ritoplus" -> handleRiotMobile(lastKnownPresence.getGameInfo(GameType.RITOPLUS, null));
-                case "wildrift" -> handleWildrift(lastKnownPresence.getGameInfo(GameType.WILDRIFT, null));
-                case "bacon" -> handleLOR(lastKnownPresence.getGameInfo(GameType.BACON, null));
-            }
-        }
-        if (lastKnownPresence instanceof MobilePresence) handleRiotMobile(null);
-        if (lastKnownPresence instanceof OfflinePresence) this.status = "";
     }
 
     private void handleLOR(LOR gameInfo) {
@@ -207,6 +183,29 @@ public class ChatSidebarFriend extends LFlatButton {
         return lastKnownPresence;
     }
 
+    public void setLastKnownPresence(GenericPresence lastKnownPresence) {
+        this.lastKnownPresence = lastKnownPresence;
+        this.connectionStatus = getConnectionStatus();
+        this.color = getBaseColor();
+        Map<String, BasicGame> map = lastKnownPresence.getGameMap();
+        for (String key : map.keySet()) {
+            if ("keystone".equals(key)) continue;
+            switch (key) {
+                case "league_of_legends" -> handleLOL(
+                        Unsafe.cast(lastKnownPresence),
+                        lastKnownPresence.getGameInfo(GameType.LEAGUE_OF_LEGENDS,
+                                null)
+                );
+                case "valorant" -> handleValorant(lastKnownPresence.getGameInfo(GameType.VALORANT, null));
+                case "ritoplus" -> handleRiotMobile(lastKnownPresence.getGameInfo(GameType.RITOPLUS, null));
+                case "wildrift" -> handleWildrift(lastKnownPresence.getGameInfo(GameType.WILDRIFT, null));
+                case "bacon" -> handleLOR(lastKnownPresence.getGameInfo(GameType.BACON, null));
+            }
+        }
+        if (lastKnownPresence instanceof MobilePresence) handleRiotMobile(null);
+        if (lastKnownPresence instanceof OfflinePresence) this.status = "";
+    }
+
     public ConnectionStatus getConnectionStatus() {
         return lastKnownPresence != null ? lastKnownPresence.getConnectionStatus() : ConnectionStatus.OFFLINE;
     }
@@ -214,8 +213,6 @@ public class ChatSidebarFriend extends LFlatButton {
     public void executeOnClick(Runnable runnable) {
         this.runnable = runnable;
     }
-
-    private final Font statusFont = new Font("Dialog", Font.BOLD, 12);
 
     @Override
     protected void paintComponent(Graphics g) {

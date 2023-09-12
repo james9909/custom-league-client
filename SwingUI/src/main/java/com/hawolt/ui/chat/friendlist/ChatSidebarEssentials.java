@@ -5,15 +5,10 @@ import com.hawolt.ui.queue.GameInvites;
 import com.hawolt.ui.queue.QueueState;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
-import com.hawolt.util.ui.PaintHelper;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 
 /**
  * Created: 09/08/2023 01:43

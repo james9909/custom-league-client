@@ -2,22 +2,13 @@ package com.hawolt.ui.layout;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.LeagueClient;
-import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.ChampSelectUI;
 import com.hawolt.ui.github.ReleaseWindow;
 import com.hawolt.ui.queue.QueueWindow;
 import com.hawolt.ui.store.StoreWindow;
 import com.hawolt.util.panel.ChildUIComponent;
-import org.json.JSONObject;
 
-import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created: 09/08/2023 15:48
@@ -42,7 +33,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.center.add("home", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
-        this.center.add("champion_select", champSelect = new ChampSelectUI(leagueClientUI));
+        this.center.add("champselect", champSelect = new ChampSelectUI(leagueClientUI));
         layout.show(center, "github");
     }
 

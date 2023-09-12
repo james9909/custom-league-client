@@ -7,7 +7,9 @@ import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
 import com.hawolt.logger.Logger;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

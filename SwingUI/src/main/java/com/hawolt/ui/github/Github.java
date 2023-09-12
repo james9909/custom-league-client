@@ -4,6 +4,7 @@ import com.hawolt.generic.util.Network;
 import com.hawolt.http.NativeHttpClient;
 import com.hawolt.http.layer.IResponse;
 import com.hawolt.logger.Logger;
+import com.hawolt.virtual.misc.DynamicObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,21 +30,31 @@ public class Github {
     private Github() {
     }
 
-    public static JSONObject getLatestRelease() {
+    public static DynamicObject getLatestRelease() {
         String url = BASE_URL + "/releases/latest";
 
         if (latestRelease == null) {
-            latestRelease = doObjectRequest(url);
+            try {
+                IResponse response = doRequest(url);
+                latestRelease = response.code() == 200 ? new JSONObject(response.asString()) : new JSONObject();
+            } catch (IOException | InterruptedException e) {
+                latestRelease = new JSONObject();
+            }
         }
 
-        return latestRelease;
+        return new DynamicObject(latestRelease);
     }
 
     public static JSONArray getReleases() {
         String url = BASE_URL + "/releases";
 
         if (releases == null) {
-            releases = doArrayRequest(url);
+            try {
+                IResponse response = doRequest(url);
+                releases = response.code() == 200 ? new JSONArray(response.asString()) : new JSONArray();
+            } catch (IOException | InterruptedException e) {
+                releases = new JSONArray();
+            }
         }
 
         return releases;
@@ -53,7 +64,12 @@ public class Github {
         String url = BASE_URL + "/contributors";
 
         if (contributorsList == null) {
-            contributorsList = doArrayRequest(url);
+            try {
+                IResponse response = doRequest(url);
+                contributorsList = response.code() == 200 ? new JSONArray(response.asString()) : new JSONArray();
+            } catch (IOException | InterruptedException e) {
+                contributorsList = new JSONArray();
+            }
         }
 
         return contributorsList;
@@ -63,39 +79,25 @@ public class Github {
         String url = BASE_URL + "/issues";
 
         if (issues == null) {
-            issues = doArrayRequest(url);
+            try {
+                IResponse response = doRequest(url);
+                issues = response.code() == 200 ? new JSONArray(response.asString()) : new JSONArray();
+            } catch (IOException | InterruptedException e) {
+                issues = new JSONArray();
+            }
         }
 
         return issues;
     }
 
-    private static JSONObject doObjectRequest(String url) {
+    private static IResponse doRequest(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .build();
-        try {
-            IResponse response = NativeHttpClient.execute(request);
-            return new JSONObject(response.asString());
-        } catch (IOException | InterruptedException e) {
-            Logger.error("request failed to " + url);
-            return new JSONObject();
-        }
+        return NativeHttpClient.execute(request);
     }
 
-    private static JSONArray doArrayRequest(String url) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .build();
-        try {
-            IResponse response = NativeHttpClient.execute(request);
-            return new JSONArray(response.asString());
-        } catch (IOException | InterruptedException e) {
-            Logger.error("request failed to " + url);
-            return new JSONArray();
-        }
-    }
-
-    private static JSONObject getVersion() {
+    private static DynamicObject getVersion() {
         JSONObject currentVersion = new JSONObject();
         JSONArray versions = getReleases();
         Properties props = new Properties();
@@ -111,27 +113,27 @@ public class Github {
             if (version.equals(versions.getJSONObject(i).get("name")))
                 currentVersion = versions.getJSONObject(i);
         }
-        return currentVersion;
+        return new DynamicObject(currentVersion);
     }
 
     public static String getChangelog() {
-        return getVersion().get("body").toString();
+        return getVersion().getByKeyOrDefault("body", "RATE-LIMITED").toString();
     }
 
     public static String getCurrentVersion() {
-        return getVersion().get("name").toString();
+        return getVersion().getByKeyOrDefault("name", "RATE-LIMITED").toString();
     }
 
     public static String getLatestVersion() {
-        return getLatestRelease().get("name").toString();
+        return getLatestRelease().getByKeyOrDefault("name", "RATE-LIMITED").toString();
     }
 
     public static String getCurrentReleaseDate() {
-        return date(getVersion().get("published_at").toString());
+        return date(getVersion().getByKeyOrDefault("published_at", null).toString());
     }
 
     public static String getLatestReleaseDate() {
-        return date(getLatestRelease().get("published_at").toString());
+        return date(getLatestRelease().getByKeyOrDefault("published_at", null).toString());
     }
 
     public static void submitBug() {
@@ -143,6 +145,7 @@ public class Github {
     }
 
     private static String date(String date) {
+        if (date == null) return Date.from(Instant.now()).toString();
         Date release = Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(date)));
         return release.toString();
     }

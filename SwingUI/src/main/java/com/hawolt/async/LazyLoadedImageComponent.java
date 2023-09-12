@@ -5,16 +5,12 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 
 /**

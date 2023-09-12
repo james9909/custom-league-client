@@ -3,7 +3,9 @@ package com.hawolt.ui.champselect.impl.draft;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectType;
-import com.hawolt.ui.champselect.generic.impl.*;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectCenterUI;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectHeaderUI;
+import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
 import com.hawolt.ui.champselect.impl.MatchmadeRenderInstance;
 
 import java.awt.event.ActionListener;

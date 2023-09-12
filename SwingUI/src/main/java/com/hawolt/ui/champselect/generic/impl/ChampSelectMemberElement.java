@@ -21,8 +21,8 @@ import com.hawolt.ui.champselect.data.*;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.impl.Debouncer;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.ui.PaintHelper;
 import com.hawolt.util.paint.custom.GraphicalDrawableManager;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -46,14 +46,28 @@ import java.util.concurrent.TimeUnit;
 public class ChampSelectMemberElement extends ChampSelectUIComponent implements Runnable, DataTypeConverter<byte[], BufferedImage> {
     private static final String SPRITE_PATH = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/%s/%s.jpg";
     private static final Dimension SUMMONER_SPELL_DIMENSION = new Dimension(28, 28);
+    private static final Color HIGHLIGHT_NOT_LOCKED = new Color(0xFF, 0xFF, 0xFF, 0x4F);
+    private static final Color HIGHLIGHT_PICKING = new Color(155, 224, 155, 179);
     private final ResourceManager<BufferedImage> manager = new ResourceManager<>(this);
     private final ChampSelectTeamType teamType;
     private final ChampSelectTeam team;
-
+    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("trade-blocker");
     private int championId, indicatorId, skinId, spell1Id, spell2Id;
     private BufferedImage sprite, spellOne, spellTwo, clearChampion;
     private ChampSelectMember member;
     private String hero, puuid;
+    private GraphicalDrawableManager drawables;
+    private ScheduledFuture<?> future;
+
+    public ChampSelectMemberElement(ChampSelectTeamType teamType, ChampSelectTeam team, ChampSelectMember member) {
+        ColorPalette.addThemeListener(this);
+        this.addComponentListener(new ChampSelectSelectMemberResizeAdapter());
+        this.setBackground(ColorPalette.backgroundColor);
+        this.teamType = teamType;
+        this.member = member;
+        this.team = team;
+        this.drawables();
+    }
 
     @Override
     public void run() {
@@ -89,38 +103,11 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         this.repaint();
     }
 
-    private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
-        private static final Debouncer debouncer = new Debouncer();
-
-        @Override
-        public void componentResized(ComponentEvent e) {
-            if (sprite == null) return;
-            debouncer.debounce(
-                    String.valueOf(member.getCellId()),
-                    ChampSelectMemberElement.this::adjust,
-                    200, TimeUnit.MILLISECONDS
-            );
-        }
-    }
-
     private void adjust() {
         Dimension dimension = getSize();
         clearChampion = Scalr.resize(sprite, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_WIDTH, dimension.width);
         repaint();
     }
-
-
-    public ChampSelectMemberElement(ChampSelectTeamType teamType, ChampSelectTeam team, ChampSelectMember member) {
-        ColorPalette.addThemeListener(this);
-        this.addComponentListener(new ChampSelectSelectMemberResizeAdapter());
-        this.setBackground(ColorPalette.backgroundColor);
-        this.teamType = teamType;
-        this.member = member;
-        this.team = team;
-        this.drawables();
-    }
-
-    private GraphicalDrawableManager drawables;
 
     private void drawables() {
         this.drawables = new GraphicalDrawableManager(this);
@@ -262,9 +249,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
     }
 
-    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("trade-blocker");
-    private ScheduledFuture<?> future;
-
     public void update(ChampSelectMember member) {
         this.member = member;
         this.updateChamp(member);
@@ -325,9 +309,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
         this.repaint();
     }
-
-    private static final Color HIGHLIGHT_NOT_LOCKED = new Color(0xFF, 0xFF, 0xFF, 0x4F);
-    private static final Color HIGHLIGHT_PICKING = new Color(155, 224, 155, 179);
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -476,5 +457,19 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     @Override
     public BufferedImage apply(byte[] b) throws Exception {
         return ImageIO.read(new ByteArrayInputStream(b));
+    }
+
+    private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
+        private static final Debouncer debouncer = new Debouncer();
+
+        @Override
+        public void componentResized(ComponentEvent e) {
+            if (sprite == null) return;
+            debouncer.debounce(
+                    String.valueOf(member.getCellId()),
+                    ChampSelectMemberElement.this::adjust,
+                    200, TimeUnit.MILLISECONDS
+            );
+        }
     }
 }

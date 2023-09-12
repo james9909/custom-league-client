@@ -5,7 +5,6 @@ import com.hawolt.logger.Logger;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LScrollPane;
-import org.intellij.lang.annotations.JdkConstants;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

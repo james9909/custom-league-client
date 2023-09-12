@@ -16,6 +16,7 @@ import java.util.ListIterator;
 
 public class ChatMessage extends ChildUIComponent {
     private final ChatPerspective perspective;
+    private final Font font = new Font(Font.DIALOG, Font.PLAIN, 16);
     private String[] computed;
     private String message;
     private Color color;
@@ -155,8 +156,6 @@ public class ChatMessage extends ChildUIComponent {
 
         return result;
     }
-
-    private final Font font = new Font(Font.DIALOG, Font.PLAIN, 16);
 
     @Override
     protected void paintComponent(Graphics g) {

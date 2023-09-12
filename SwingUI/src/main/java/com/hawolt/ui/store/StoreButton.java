@@ -4,14 +4,12 @@ import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.purchasewidget.CurrencyType;
 import com.hawolt.logger.Logger;
-import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;

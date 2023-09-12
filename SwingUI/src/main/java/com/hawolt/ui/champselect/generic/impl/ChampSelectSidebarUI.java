@@ -2,23 +2,14 @@ package com.hawolt.ui.champselect.generic.impl;
 
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
-import com.hawolt.ui.champselect.data.ChampSelectTeam;
-import com.hawolt.ui.champselect.data.ChampSelectTeamType;
+import com.hawolt.ui.champselect.data.*;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
-import com.hawolt.ui.champselect.data.ChampSelectMember;
-import com.hawolt.ui.champselect.data.ChampSelectTeamMember;
-import com.hawolt.ui.champselect.data.MemberFunction;
-import com.hawolt.ui.champselect.data.TeamMemberFunction;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;

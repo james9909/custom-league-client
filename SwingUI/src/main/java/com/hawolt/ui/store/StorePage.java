@@ -172,7 +172,6 @@ public class StorePage extends ChildUIComponent implements IStorePage {
                 .filter(champion -> champion.getItem().getName().toLowerCase().contains(filter))
                 .filter(skin -> skin.getItem().hasSubInventoryType() == chromaFilter)
                 .forEach(this.grid::add);
-        System.out.println("shop elements " + map.size());
         revalidate();
         repaint();
     }

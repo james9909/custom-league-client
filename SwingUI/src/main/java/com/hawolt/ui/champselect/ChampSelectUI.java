@@ -67,16 +67,16 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
         this.showBlankPanel();
     }
 
+    public ChampSelectUI() {
+        this(null);
+    }
+
     public void showPostGamePanel() {
         this.layout.show(main, "summary");
     }
 
     public void showBlankPanel() {
         this.layout.show(main, "blank");
-    }
-
-    public ChampSelectUI() {
-        this(null);
     }
 
     public PostGameUI getPostGameUI() {
@@ -108,7 +108,7 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
             Logger.info("[champ-select] switch to card {}", card);
             this.layout.show(main, card);
             if (leagueClientUI != null) {
-                leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPION_SELECT);
+                leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPSELECT);
             }
         }
         for (AbstractRenderInstance instance : instances) {
@@ -146,7 +146,7 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
         IResponse response = leagueClient.getLedge().getUnclassified().getEndOfGame(gameId);
         postGameUI.build(response, leagueNotifications);
         this.showPostGamePanel();
-        this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPION_SELECT);
+        this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPSELECT);
         boolean processed = leagueClient.getLedge().getChallenge().notify(gameId);
         if (!processed) {
             Logger.error("unable to submit game {} as processed", gameId);

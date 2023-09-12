@@ -4,7 +4,6 @@ import com.hawolt.rtmp.amf.Pair;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LScrollPane;
 import com.hawolt.util.ui.SmartScroller;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
@@ -13,7 +12,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +26,6 @@ public class ChatWindowContent extends ChildUIComponent {
     private final Object lock = new Object();
     private final LHintTextField input;
     private final LScrollPane pane;
-
-    public LHintTextField getInput() {
-        return input;
-    }
 
     public ChatWindowContent(String jid, VirtualRiotXMPPClient xmppClient, LayoutManager layout) {
         super(layout);
@@ -58,6 +52,10 @@ public class ChatWindowContent extends ChildUIComponent {
             addMessage(ChatPerspective.SELF, message);
             input.setText("");
         });
+    }
+
+    public LHintTextField getInput() {
+        return input;
     }
 
     protected void drain() {

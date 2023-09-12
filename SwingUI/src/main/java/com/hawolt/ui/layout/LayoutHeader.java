@@ -7,18 +7,14 @@ import com.hawolt.ui.chat.profile.ChatSidebarProfile;
 import com.hawolt.ui.layout.wallet.HeaderWallet;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
-import org.intellij.lang.annotations.Flow;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;

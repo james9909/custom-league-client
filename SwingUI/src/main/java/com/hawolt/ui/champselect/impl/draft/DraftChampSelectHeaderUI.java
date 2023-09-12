@@ -1,20 +1,11 @@
 package com.hawolt.ui.champselect.impl.draft;
 
-import com.hawolt.async.ExecutorManager;
-import com.hawolt.ui.champselect.context.ChampSelectSettingsContext;
 import com.hawolt.ui.champselect.context.ChampSelectUtilityContext;
 import com.hawolt.ui.champselect.data.ActionObject;
-import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.champselect.data.ChampSelectPhase;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectHeaderUI;
-import com.hawolt.util.ColorPalette;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created: 31/08/2023 17:17

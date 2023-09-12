@@ -10,7 +10,6 @@ import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -27,9 +26,8 @@ public class ChatSidebarProfileIcon extends ChildUIComponent implements Resource
     private final Color GAINED = new Color(93, 156, 89);
 
     private final Font font = new Font("Arial", Font.BOLD, 16);
-
-    private int current, total, level;
     private final int ICON_SIZE = 70;
+    private int current, total, level;
     private BufferedImage icon;
 
     public ChatSidebarProfileIcon(UserInformation information, LayoutManager layout) {

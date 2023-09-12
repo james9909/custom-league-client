@@ -40,6 +40,8 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
     private final ChatListComparator statusComparator = new ChatListComparator(ChatListComparatorType.STATUS, SortOrder.DESCENDING);
     private final Map<String, ChatSidebarFriend> map = new HashMap<>();
     private final IChatWindow window;
+    private final Object lock = new Object();
+    private final List<GenericPresence> buffer = new LinkedList<>();
     private String name, friendHandling;
     private JComponent component;
     private LeagueClientUI leagueClientUI;
@@ -59,8 +61,6 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
         this.name = name;
         this.filter(name);
     }
-
-    private final Object lock = new Object();
 
     private void filter(String name) {
         List<ChatSidebarFriend> list = new ArrayList<>(map.values());
@@ -139,8 +139,6 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
         repaint();
         revalidate();
     }
-
-    private final List<GenericPresence> buffer = new LinkedList<>();
 
     private void handle(GenericPresence presence) {
         if (!map.containsKey(presence.getBareFromJID())) {

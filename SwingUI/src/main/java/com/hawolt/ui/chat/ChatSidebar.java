@@ -9,9 +9,7 @@ import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 
 /**
  * Created: 08/08/2023 17:08

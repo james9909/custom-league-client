@@ -10,13 +10,11 @@ import com.hawolt.ui.champselect.data.ChampSelectType;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

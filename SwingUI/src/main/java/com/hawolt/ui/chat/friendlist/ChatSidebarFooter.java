@@ -4,14 +4,13 @@ import com.hawolt.ui.github.Github;
 import com.hawolt.ui.settings.SettingsUI;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.*;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.beans.PropertyChangeEvent;
 
 public class ChatSidebarFooter extends ChildUIComponent {
     private static final Font font = new Font("", Font.BOLD, 20);
@@ -42,13 +41,13 @@ public class ChatSidebarFooter extends ChildUIComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g.create();
+        Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         //Drawing bot left rounding
         int width = getWidth();
         int height = getHeight();
         g2d.setColor(ColorPalette.accentColor);
         g2d.fillRect(0, 0, width, height);
-        g2d.dispose();
+
     }
 }

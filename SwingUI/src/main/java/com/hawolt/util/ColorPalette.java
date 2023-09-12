@@ -5,10 +5,35 @@ import com.hawolt.util.themes.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.lang.reflect.Type;
 
 public class ColorPalette {
+    public static final int CARD_ROUNDING = 25;
+    public static final int BUTTON_LARGE_ROUNDING = 50;
+    public static final int BUTTON_SMALL_ROUNDING = 20;
+    public static Color backgroundColor = new Color(47, 54, 64);
+    public static Color accentColor = new Color(38, 44, 52);
+    public static Color buttonSelectionColor = new Color(64, 115, 158);
+    public static Color buttonSelectionAltColor = new Color(64, 115, 158).brighter();
+    public static Color textColor = new Color(255, 255, 255);
+    public static Color secondaryTextColor = new Color(255, 255, 255);
+    public static Color cardColor = new Color(38, 44, 52);
+    public static Color dropdownColor = new Color(38, 44, 52);
+    public static Color friendDND = new Color(194, 54, 22);
+    public static Color friendOffline = new Color(113, 128, 147);
+    public static Color friendMobile = new Color(155, 204, 155);
+    public static Color friendOnline = new Color(68, 189, 50);
+    public static Color friendInGame = new Color(0, 151, 230);
+    public static Color friendInOtherGame = new Color(225, 177, 44);
+    public static Color messageNotification = new Color(225, 177, 44);
+    public static Color scrollHandleColor = new Color(150, 150, 150);
+    public static Color inputUnderline = Color.DARK_GRAY;
+    public static Color popupWindowColor = new Color(47, 54, 64).brighter();
+    public static Color messageOut = new Color(120, 90, 40);
+    public static Color messageIn = new Color(30, 35, 40);
+    public static boolean useRoundedCorners = true;
     private static LThemeChoice currentThemeChoice = LThemeChoice.DEEPSEA;
+    //Change listener
+    private static PropertyChangeSupport themeProperty = new PropertyChangeSupport(currentThemeChoice);
 
     public static void setTheme(LThemeChoice theme) {
         Theme newTheme = null;
@@ -42,35 +67,6 @@ public class ColorPalette {
         messageIn = newTheme.messageIn;
         fireThemeEvent(theme);
     }
-
-    public static Color backgroundColor = new Color(47, 54, 64);
-    public static Color accentColor = new Color(38, 44, 52);
-    public static Color buttonSelectionColor = new Color(64, 115, 158);
-    public static Color buttonSelectionAltColor = new Color(64, 115, 158).brighter();
-    public static Color textColor = new Color(255, 255, 255);
-    public static Color secondaryTextColor = new Color(255, 255, 255);
-    public static Color cardColor = new Color(38, 44, 52);
-    public static Color dropdownColor = new Color(38, 44, 52);
-    public static Color friendDND = new Color(194, 54, 22);
-    public static Color friendOffline = new Color(113, 128, 147);
-    public static Color friendMobile = new Color(155, 204, 155);
-    public static Color friendOnline = new Color(68, 189, 50);
-    public static Color friendInGame = new Color(0, 151, 230);
-    public static Color friendInOtherGame = new Color(225, 177, 44);
-    public static Color messageNotification = new Color(225, 177, 44);
-    public static Color scrollHandleColor = new Color(150, 150, 150);
-    public static Color inputUnderline = Color.DARK_GRAY;
-    public static Color popupWindowColor = new Color(47, 54, 64).brighter();
-    public static Color messageOut = new Color(120, 90, 40);
-    public static Color messageIn = new Color(30, 35, 40);
-
-    public static boolean useRoundedCorners = true;
-    public static final int CARD_ROUNDING = 25;
-    public static final int BUTTON_LARGE_ROUNDING = 50;
-    public static final int BUTTON_SMALL_ROUNDING = 25;
-
-    //Change listener
-    private static PropertyChangeSupport themeProperty = new PropertyChangeSupport(currentThemeChoice);
 
     public static void addThemeListener(PropertyChangeListener listener) {
         themeProperty.addPropertyChangeListener(listener);
@@ -126,7 +122,7 @@ public class ColorPalette {
             return newTheme.friendDND;
         else if (color.equals(oldTheme.friendOffline))
             return newTheme.friendOffline;
-        else if(color.equals(oldTheme.friendMobile))
+        else if (color.equals(oldTheme.friendMobile))
             return newTheme.friendMobile;
         else if (color.equals(oldTheme.friendOnline))
             return newTheme.friendOnline;

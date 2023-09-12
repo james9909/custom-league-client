@@ -32,7 +32,7 @@ import java.util.Map;
 public class ChampSelectChatUI extends ChampSelectUIComponent {
     private final JTextArea document;
     private final LHintTextField input;
-
+    private final List<String> cache = new ArrayList<>();
     private MatchContext matchContext;
 
     public ChampSelectChatUI() {
@@ -92,8 +92,6 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
         }
     }
 
-    private final List<String> cache = new ArrayList<>();
-
     private void handle(ChampSelectTeamMember member, IncomingMessage incomingMessage) {
         Map<String, String> resolver = context.getChampSelectDataContext().getPUUIDResolver();
         if (!cache.isEmpty()) forward(resolver);
@@ -132,9 +130,8 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
+    public void propertyChange(PropertyChangeEvent evt) {
         super.propertyChange(evt);
-        document.setBackground(ColorPalette.getNewColor(document.getBackground(),(LThemeChoice)evt.getOldValue()));
+        document.setBackground(ColorPalette.getNewColor(document.getBackground(), (LThemeChoice) evt.getOldValue()));
     }
 }

@@ -38,6 +38,7 @@ public class ResourceLoader {
 
     private static final Map<String, List<ResourceConsumer<?, byte[]>>> pending = new HashMap<>();
     private static final Map<String, byte[]> cache = new HashMap<>();
+    private static final Map<String, Object> locks = new HashMap<>();
     private static final Set<String> hashes = new HashSet<>();
 
     static {
@@ -62,7 +63,7 @@ public class ResourceLoader {
             try (Connection connection = Hikari.getManager().getConnection()) {
                 try (PreparedStatement statement = connection.prepareStatement("SELECT HASH FROM CACHE")) {
                     try (ResultSet set = statement.executeQuery()) {
-                        List<String> list = ResultSetTransformer.parse(set, String::valueOf);
+                        List<String> list = ResultSetTransformer.parse(set, o -> o[0].toString());
                         Collections.addAll(hashes, list.toArray(String[]::new));
                     }
                 }
@@ -81,18 +82,23 @@ public class ResourceLoader {
 
     private static void load(String path, ResourceConsumer<?, byte[]> consumer, Runnable runnable) {
         String hash = MD5.hash(path);
-        if (cached(hash)) {
-            try {
-                consumer.consume(path, Unsafe.cast(consumer.transform(get(hash))));
-            } catch (Exception e) {
-                consumer.onException(path, e);
+        if (!locks.containsKey(hash)) locks.put(hash, new Object());
+        synchronized (locks.get(hash)) {
+            if (cached(hash)) {
+                try {
+                    consumer.consume(path, Unsafe.cast(consumer.transform(get(hash))));
+                } catch (Exception e) {
+                    consumer.onException(path, e);
+                }
+            } else {
+                if (pending.containsKey(hash)) {
+                    pending.get(hash).add(consumer);
+                } else {
+                    pending.put(hash, new ArrayList<>());
+                    pending.get(hash).add(consumer);
+                    service.execute(runnable);
+                }
             }
-        } else if (pending.containsKey(hash)) {
-            pending.get(hash).add(consumer);
-        } else {
-            pending.put(hash, new ArrayList<>());
-            pending.get(hash).add(consumer);
-            service.execute(runnable);
         }
     }
 
@@ -100,7 +106,7 @@ public class ResourceLoader {
     public static void loadResource(String uri, ExceptionalSupplier<byte[]> supplier, ResourceConsumer<?, byte[]> consumer) {
         service.execute(() -> load(uri, consumer, () -> {
             try {
-                consume(uri, supplier.get());
+                handle(uri, supplier.get());
             } catch (Exception e) {
                 exceptional(uri, e);
             }
@@ -116,7 +122,7 @@ public class ResourceLoader {
                     .build();
             try {
                 IResponse response = OkHttpResponse.from(request);
-                consume(uri, response.response());
+                handle(uri, response.response());
             } catch (IOException e) {
                 exceptional(uri, e);
             }
@@ -126,11 +132,17 @@ public class ResourceLoader {
     public static void loadLocalResource(String name, ResourceConsumer<?, byte[]> consumer) {
         service.execute(() -> load(name, consumer, () -> {
             try (InputStream stream = RunLevel.get(name)) {
-                consume(name, Core.read(stream).toByteArray());
+                handle(name, Core.read(stream).toByteArray());
             } catch (IOException e) {
                 exceptional(name, e);
             }
         }));
+    }
+
+    private static void handle(String path, byte[] b) {
+        String hash = MD5.hash(path);
+        store(path, hash, b);
+        consume(path, hash, b);
     }
 
     private static void store(String o, String hash, byte[] b) {
@@ -142,6 +154,7 @@ public class ResourceLoader {
                     statement.setBytes(3, b);
                     statement.setBytes(4, b);
                     statement.execute();
+                    ResourceLoader.cache(hash, b);
                     Logger.debug("stored '{}' in database as {}", o, hash);
                 }
             } catch (SQLException e) {
@@ -150,20 +163,20 @@ public class ResourceLoader {
         });
     }
 
-    private static void consume(String o, byte[] b) {
-        String hash = MD5.hash(o);
+    private static void consume(String o, String hash, byte[] b) {
         if (b.length != 0) {
-            store(o, hash, b);
-            if (!pending.containsKey(hash)) Logger.error("attempt to load unknown value '{}' from cache", o);
-            List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(hash));
-            for (ResourceConsumer<?, byte[]> consumer : list) {
-                try {
-                    consumer.consume(o, convert(consumer.transform(b)));
-                } catch (Exception e) {
-                    Logger.error(e);
+            synchronized (locks.get(hash)) {
+                if (!pending.containsKey(hash)) Logger.error("attempt to load unknown value '{}' from cache", o);
+                List<ResourceConsumer<?, byte[]>> list = new ArrayList<>(pending.get(hash));
+                for (ResourceConsumer<?, byte[]> consumer : list) {
+                    try {
+                        consumer.consume(o, convert(consumer.transform(b)));
+                    } catch (Exception e) {
+                        Logger.error(e);
+                    }
                 }
+                pending.remove(hash);
             }
-            pending.remove(hash);
         } else {
             exceptional(o, new IOException(String.format("%s has loaded with 0 bytes", hash)));
         }
@@ -192,7 +205,6 @@ public class ResourceLoader {
                 statement.setString(1, hash);
                 try (ResultSet set = statement.executeQuery()) {
                     byte[] b = ResultSetTransformer.singleton(set, o -> o.length > 0 && o[0] != null ? (byte[]) o[0] : new byte[0]);
-                    ResourceLoader.cache(hash, b);
                     if (b.length == 0) {
                         throw new IOException(String.format("Cache contains bad binary for hash %s", hash));
                     } else {

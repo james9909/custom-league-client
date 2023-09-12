@@ -47,9 +47,10 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     private final ChildUIComponent parent;
     private final DraftQueueLobby lobby;
     private final TFTQueueLobby tftLobby;
+    private final List<String> supportedModes = Arrays.asList("ARAM", "BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
     Boolean init = false;
-
     ChildUIComponent main = new ChildUIComponent(new BorderLayout());
+
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
@@ -59,7 +60,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout);
         LeagueClientUI.service.execute(this);
     }
-
 
     public DraftQueueLobby getDraftLobby() {
         Component[] components = this.parent.getComponents();
@@ -76,7 +76,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         return lobby;
     }
 
-
     public TFTQueueLobby getTftLobby() {
         Component[] components = this.parent.getComponents();
         boolean alreadyShown = false;
@@ -91,8 +90,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         }
         return tftLobby;
     }
-
-    private final List<String> supportedModes = Arrays.asList("ARAM", "BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) throws Exception {
@@ -128,14 +125,14 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             ChildUIComponent grid = new ChildUIComponent(new GridLayout(0, 1, 0, 5)) {
                 @Override
                 protected void paintComponent(Graphics g) {
-                    Graphics2D g2d = (Graphics2D) g.create();
+                    Graphics2D g2d = (Graphics2D) g;
                     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     //background issues fix if buttons are all grid long
                     g2d.setColor(ColorPalette.backgroundColor);
                     g2d.fillRect(getX(), getY(), getWidth(), getHeight());
                     g2d.setColor(ColorPalette.cardColor);
                     g2d.fillRoundRect(getX(), getY(), getWidth(), getHeight(), ColorPalette.CARD_ROUNDING, ColorPalette.CARD_ROUNDING);
-                    g2d.dispose();
+                    
                 }
             };
             parent.setBackground(ColorPalette.backgroundColor);
@@ -157,7 +154,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     modeName = "Normal";
                     if (name.contains("DRAFT"))
                         modeName += " Draft";
-                    else if(name.contains("BLIND"))
+                    else if (name.contains("BLIND"))
                         modeName += " Blind";
                 } else if (name.contains("RANKED")) {
                     modeName = "Ranked";
@@ -169,16 +166,15 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                         modeName = "Hyper Roll";
                     else if (name.contains("DOUBLE"))
                         modeName = "Double Up";
-                } else if(name.contains("BOTS")){
+                } else if (name.contains("BOTS")) {
                     modeName = "Bots";
-                    if(name.contains("INTRO"))
+                    if (name.contains("INTRO"))
                         modeName += " Intro";
-                    else if(name.contains("EASY"))
+                    else if (name.contains("EASY"))
                         modeName += " Easy";
-                    else if(name.contains("MEDIUM"))
+                    else if (name.contains("MEDIUM"))
                         modeName += " Medium";
-                } else if (name.contains("ARAM"))
-                {
+                } else if (name.contains("ARAM")) {
                     modeName = "ARAM";
                 }
 

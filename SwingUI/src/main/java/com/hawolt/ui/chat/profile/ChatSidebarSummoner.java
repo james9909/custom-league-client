@@ -5,8 +5,6 @@ import com.hawolt.util.panel.ChildUIComponent;
 
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * Created: 08/08/2023 17:42

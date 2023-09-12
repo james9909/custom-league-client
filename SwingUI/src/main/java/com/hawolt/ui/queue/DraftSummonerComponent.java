@@ -14,7 +14,7 @@ public class DraftSummonerComponent extends SummonerComponent {
     private static final Font ROLE_FONT = new Font("Arial", Font.BOLD, 16);
 
 
-    public DraftSummonerComponent()  {
+    public DraftSummonerComponent() {
         super();
     }
 

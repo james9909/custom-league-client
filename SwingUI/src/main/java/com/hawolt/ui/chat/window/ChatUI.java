@@ -12,7 +12,6 @@ import com.hawolt.xmpp.event.objects.conversation.history.impl.OutgoingMessage;
 import com.hawolt.xmpp.event.objects.friends.GenericFriend;
 import com.hawolt.xmpp.event.objects.friends.impl.OnlineFriend;
 
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;

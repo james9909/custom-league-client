@@ -1,8 +1,6 @@
 package com.hawolt.ui;
 
-import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.MainUIComponent;
-import com.hawolt.util.themes.LThemeChoice;
 
 import javax.swing.*;
 import java.awt.*;

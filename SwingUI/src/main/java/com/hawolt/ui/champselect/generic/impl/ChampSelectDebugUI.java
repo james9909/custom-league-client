@@ -6,7 +6,6 @@ import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**

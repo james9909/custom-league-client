@@ -8,16 +8,16 @@ import org.json.JSONObject;
  **/
 
 public class Spell {
+    public final static String BASE = "https://raw.communitydragon.org/latest/game/data/spells/icons2d";
     public static Spell DUMMY = new Spell(
             new JSONObject()
                     .put("id", -1)
                     .put("iconPath", "/dummy.jpg")
                     .put("name", "dummy")
     );
-    public final static String BASE = "https://raw.communitydragon.org/latest/game/data/spells/icons2d";
     private final String name, iconName;
-    private String iconPath;
     private final int id;
+    private String iconPath;
 
     public Spell(JSONObject o) {
         this.id = o.getInt("id");

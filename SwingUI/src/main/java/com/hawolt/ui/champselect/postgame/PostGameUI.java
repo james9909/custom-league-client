@@ -1,11 +1,8 @@
 package com.hawolt.ui.champselect.postgame;
 
 import com.hawolt.LeagueClientUI;
-import com.hawolt.client.LeagueClient;
-import com.hawolt.client.resources.ledge.leagues.objects.LeagueLedgeNotifications;
 import com.hawolt.client.resources.ledge.leagues.objects.LeagueNotification;
 import com.hawolt.http.layer.IResponse;
-import com.hawolt.io.RunLevel;
 import com.hawolt.ui.layout.LayoutComponent;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
@@ -13,15 +10,10 @@ import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 /**

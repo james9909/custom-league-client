@@ -22,6 +22,9 @@ public class ChatSideBarUIControl extends JComponent implements ActionListener {
     private final ChildUIComponent buttons = new ChildUIComponent(new GridLayout(0, 3, 3, 0));
 
     private LFlatButton minimize, maximize, close;
+    private boolean maximized;
+    private Rectangle bounds;
+    private int state;
 
     public ChatSideBarUIControl() {
         this.setLayout(new BorderLayout());
@@ -29,10 +32,6 @@ public class ChatSideBarUIControl extends JComponent implements ActionListener {
         this.add(buttons, BorderLayout.EAST);
         this.setup();
     }
-
-    private boolean maximized;
-    private Rectangle bounds;
-    private int state;
 
     @Override
     public void actionPerformed(ActionEvent e) {
