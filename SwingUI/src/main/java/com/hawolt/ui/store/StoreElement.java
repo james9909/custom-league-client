@@ -12,7 +12,6 @@ import com.hawolt.util.ColorPalette;
 import com.hawolt.util.audio.AudioEngine;
 import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
-import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LLabel;
 import com.hawolt.util.ui.LTextAlign;
 import org.json.JSONObject;
@@ -31,11 +30,10 @@ import java.util.List;
 public class StoreElement extends ChildUIComponent implements IStoreElement {
     private final List<StoreButton> buttons = new ArrayList<>();
     private final LeagueClient client;
-    private JPanel imageContainer;
+    private final JPanel imageContainer;
     private final StoreImage image;
     private final StoreItem item;
     private final IStorePage page;
-    private final StoreItem item;
 
     public StoreElement(LeagueClient client, IStorePage page, StoreItem item) {
         super(new BorderLayout());
@@ -44,7 +42,6 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
         imageContainer.add(image = new StoreImage(item), BorderLayout.CENTER);
         imageContainer.setBackground(new Color(0, 0, 0, 0));
         image.setSize(imageContainer.getSize());
-        //imageContainer.setBorder(new EmptyBorder(0,0,50,0));
         this.add(imageContainer, BorderLayout.CENTER);
         this.setBackground(ColorPalette.cardColor);
         this.setPreferredSize(new Dimension(150, 300));

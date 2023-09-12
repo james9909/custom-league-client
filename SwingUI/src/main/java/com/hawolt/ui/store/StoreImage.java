@@ -75,6 +75,7 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
         if (image != null) {
             Dimension dimension = getSize();
             int x = (dimension.width >> 1) - (image.getWidth() >> 1);
+            int y = (dimension.height >> 1) - (image.getHeight() >> 1);
             g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING, x, y, dimension.width, dimension.height), 0, 0, null);
             if (!item.hasDiscount()) return;
             paintDiscountLabel(g);
