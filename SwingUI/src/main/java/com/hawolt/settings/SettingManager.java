@@ -1,6 +1,8 @@
 package com.hawolt.settings;
 
+import com.hawolt.LeagueClientUI;
 import com.hawolt.StaticConstant;
+import com.hawolt.generic.data.Unsafe;
 import com.hawolt.logger.Logger;
 import com.hawolt.virtual.misc.DynamicObject;
 import org.json.JSONObject;
@@ -10,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created: 28/08/2023 18:55
@@ -17,6 +23,7 @@ import java.nio.file.StandardOpenOption;
  **/
 
 public class SettingManager implements SettingService {
+    private final Map<String, List<SettingListener<?>>> map = new HashMap<>();
     private final ClientSettings client;
     private UserSettings player;
     private String username;
@@ -47,6 +54,21 @@ public class SettingManager implements SettingService {
         switch (type) {
             case CLIENT -> write(SettingType.CLIENT);
             case PLAYER -> write(SettingType.PLAYER);
+        }
+        this.dispatch(name, o);
+    }
+
+    @Override
+    public void addSettingListener(String name, SettingListener<?> listener) {
+        if (!map.containsKey(name)) map.put(name, new ArrayList<>());
+        this.map.get(name).add(listener);
+    }
+
+    private void dispatch(String name, Object value) {
+        List<SettingListener<?>> list = map.get(name);
+        if (list == null) return;
+        for (SettingListener<?> listener : list) {
+            LeagueClientUI.service.execute(() -> listener.onSettingWrite(name, Unsafe.cast(value)));
         }
     }
 

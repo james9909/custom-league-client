@@ -5,7 +5,6 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.logger.Logger;
-import com.hawolt.util.ColorPalette;
 import org.imgscalr.Scalr;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -89,7 +88,11 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
         g2.setStroke(new BasicStroke(3));
         g2.drawOval(4,4,40,40);
         g2.setColor(Color.WHITE);
-        g2.drawString("-" + Math.round(item.getDiscount() * 100) + "%", 7, 30);
+        if (item.hasDiscountBE()) {
+            g2.drawString("-" + Math.round(item.getDiscountBE() * 100) + "%", 7, 30);
+        } else {
+            g2.drawString("-" + Math.round(item.getDiscountRP() * 100) + "%", 7, 30);
+        }
     }
 
     @Override

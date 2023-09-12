@@ -30,21 +30,12 @@ public class StoreItemComparator implements Comparator<StoreItem> {
     @Override
     public int compare(StoreItem o1, StoreItem o2) {
         if (this.property == null) return -1;
-        if (o1.hasDiscount() || o2.hasDiscount()) {
-            return switch (this.property) {
-                case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
-                case RIOT_POINT -> compareValues(o1, o2, StoreItem::getDiscountedCost);
-                case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getBlueEssenceCost);
-                case NAME -> compareValues(o1, o2, StoreItem::getName);
-            };
-        } else {
-            return switch (this.property) {
-                case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
-                case RIOT_POINT -> compareValues(o1, o2, StoreItem::getRiotPointCost);
-                case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getBlueEssenceCost);
-                case NAME -> compareValues(o1, o2, StoreItem::getName);
-            };
-        }
+        return switch (this.property) {
+            case RELEASE_DATE -> compareValues(o1, o2, StoreItem::getReleaseDate);
+            case RIOT_POINT -> compareValues(o1, o2, StoreItem::getCorrectRiotPointCost);
+            case BLUE_ESSENCE -> compareValues(o1, o2, StoreItem::getCorrectBlueEssenceCost);
+            case NAME -> compareValues(o1, o2, StoreItem::getName);
+        };
     }
 
     public <R extends Comparable<R>> int compareValues(StoreItem o1, StoreItem o2, Function<StoreItem, R> getValue) {

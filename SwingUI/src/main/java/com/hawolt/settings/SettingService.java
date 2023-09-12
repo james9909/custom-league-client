@@ -13,4 +13,6 @@ public interface SettingService {
     ClientSettings getClientSettings();
 
     void write(SettingType type, String name, Object o);
+
+    void addSettingListener(String name, SettingListener<?> listener);
 }

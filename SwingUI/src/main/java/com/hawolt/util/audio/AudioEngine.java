@@ -45,6 +45,10 @@ public class AudioEngine {
         AudioEngine.gain = gain;
     }
 
+    public static void setMasterOutput(float volume) {
+        AudioEngineMasterOutput.setMasterOutputVolume(volume);
+    }
+
     public static Mixer getDefaultMixer() {
         if (SUPPORTED.isEmpty()) return null;
         return SUPPORTED.get(0);

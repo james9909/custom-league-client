@@ -13,7 +13,6 @@ import com.hawolt.util.ui.LTabbedPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +39,7 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
             JSONObject object = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
             JSONObject items = object.getJSONObject("items");
             JSONArray champions = items.getJSONArray("CHAMPION");
-            List<Long> list = champions.toList()
+            List<Long> list_ch = champions.toList()
                     .stream()
                     .map(Object::toString)
                     .map(Long::parseLong)
@@ -49,11 +48,15 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
                     InventoryType.CHAMPION.name(),
                     new StorePage(
                             client,
-                            list,
+                            InventoryType.CHAMPION.name(),
+                            list_ch,
                             StoreSortProperty.values()
                     )
             );
-            //  pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client));
+            //TODO get better at handling lots of images - I'm too stupid ~Lett4s
+            //JSONArray skins = items.getJSONArray("CHAMPION_SKIN");
+            //List<Long> list_sk = skins.toList().stream().map(Object::toString).map(Long::parseLong).toList();
+            //pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client, InventoryType.CHAMPION_SKIN.name(), list_sk, StoreSortProperty.values()));
         } catch (Exception e) {
             Logger.error(e);
         }

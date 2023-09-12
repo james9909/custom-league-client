@@ -1,5 +1,10 @@
 package com.hawolt.ui.settings;
 
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -19,6 +24,7 @@ public class SettingsSidebar extends JPanel {
         this.setPreferredSize(sidebarDimension);
 
         panel = new JPanel();
+        panel.setBackground(ColorPalette.ACCENT_COLOR);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -29,10 +35,11 @@ public class SettingsSidebar extends JPanel {
         this.add(panel);
     }
 
-    protected static JButton newSectionButton(String name, CardLayout cl, JPanel main) {
-        JButton button = new JButton(name);
+    protected static LFlatButton newSectionButton(String name, CardLayout cl, JPanel main) {
+        LFlatButton button = new LFlatButton(name, LTextAlign.CENTER, LHighlightType.COMPONENT);
         button.setActionCommand(name);
         button.setFont(sectionFont);
+        button.setBackground(ColorPalette.ACCENT_COLOR);
         button.setMaximumSize(sectionDimension);
 
         button.addActionListener(listener -> {
@@ -44,6 +51,7 @@ public class SettingsSidebar extends JPanel {
 
     protected GroupTab addGroupTab(String name) {
         GroupTab result = new GroupTab(name);
+        result.setBackground(ColorPalette.ACCENT_COLOR);
         panel.add(result);
         return result;
     }
@@ -56,6 +64,7 @@ public class SettingsSidebar extends JPanel {
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
             container = new JPanel();
+            container.setBackground(ColorPalette.ACCENT_COLOR);
             container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
             container.setPreferredSize(sectionDimension);
             container.setBorder(
@@ -66,6 +75,7 @@ public class SettingsSidebar extends JPanel {
 
             JLabel header = new JLabel(name);
             header.setFont(headerFont);
+            header.setForeground(Color.WHITE);
             header.setMaximumSize(headerDimension);
 
             this.add(header);

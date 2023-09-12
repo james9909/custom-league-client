@@ -1,6 +1,7 @@
 package com.hawolt.ui.store;
 
 import com.hawolt.client.LeagueClient;
+import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.misc.SortOrder;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
@@ -19,10 +20,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,15 +35,19 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     private final LeagueClient client;
     private final ChildUIComponent grid;
     private final List<Long> owned;
+    private final String name;
+    private final String[] options = {"SKINS", "CHROMAS"};
     private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, SortOrder.ASCENDING);
     private final StoreElementComparator comparator;
     private final Debouncer debouncer = new Debouncer();
     private String filter = "";
+    private boolean chromaFilter = false;
 
-    public StorePage(LeagueClient client, List<Long> owned, StoreSortProperty... properties) {
+    public StorePage(LeagueClient client, String name, List<Long> owned, StoreSortProperty... properties) {
         super(new BorderLayout(0, 5));
         this.client = client;
         this.owned = owned;
+        this.name = name;
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
         grid = new ChildUIComponent(new GridLayout(0, 5, 5, 5));
         add(component, BorderLayout.NORTH);
@@ -84,6 +87,14 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         inputPanel.setBackground(ColorPalette.BACKGROUND_COLOR);
         inputPanel.setLayout(new GridLayout(1, 2, 5, 0));
         inputPanel.add(sortBox);
+        if (this.name.equals(InventoryType.CHAMPION_SKIN.name())) {
+            LComboBox<String> options = new LComboBox<>(this.options);
+            options.addItemListener(listener -> {
+                chromaFilter = !Objects.equals(options.getSelectedItem(), this.options[0]);
+                updateElements();
+            });
+            inputPanel.add(options);
+        }
         LHintTextField search = new LHintTextField("Search...");
 
         search.addKeyListener(new KeyAdapter() {
@@ -127,6 +138,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         try {
             for (StoreItem item : items) {
                 if (owned.contains(item.getItemId())) continue;
+                if (item.getRiotPointCost() == 0 && !item.isBlueEssencePurchaseAvailable()) continue;
                 JSONObject object = item.asJSON();
                 long itemId = object.getLong("itemId");
                 StoreElement element = new StoreElement(client, this, item);
@@ -153,6 +165,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
                 .sorted(this.alphabeticalComparator)
                 .sorted(this.comparator)
                 .filter(champion -> champion.getItem().getName().toLowerCase().contains(filter))
+                .filter(skin -> skin.getItem().hasSubInventoryType() == chromaFilter)
                 .forEach(this.grid::add);
         revalidate();
         repaint();

@@ -20,11 +20,12 @@ public class StoreItem {
     private List<Price> list = new ArrayList<>();
     private String offerId, name, description;
     private InventoryType inventoryType;
+    private SubInventoryType subInventoryType;
     private boolean active, valid;
     private JSONObject object;
     private long itemId;
-    private float discount;
-    private int discountCost;
+    private float discountBE, discountRP;
+    private int discountCostBE, discountCostRP;
     private Date releaseDate;
 
     public StoreItem(JSONArray array) {
@@ -33,6 +34,8 @@ public class StoreItem {
         JSONObject item = array.getJSONObject(0);
         if (item.has("offerId")) this.offerId = item.getString("offerId");
         this.inventoryType = InventoryType.valueOf(item.getString("inventoryType"));
+        if (item.has("subInventoryType"))
+            this.subInventoryType = SubInventoryType.valueOf(item.getString("subInventoryType"));
         this.active = item.getBoolean("active");
         this.itemId = item.getLong("itemId");
         JSONArray prices = item.getJSONArray("prices");
@@ -43,12 +46,20 @@ public class StoreItem {
             JSONObject sale = item.getJSONObject("sale");
             if (sale.has("prices")) {
                 JSONArray salePrices = sale.getJSONArray("prices");
-                //TODO does not support BE sale prices
                 for (int i = 0; i < salePrices.length(); i++) {
                     JSONObject salePrice = salePrices.getJSONObject(i);
-                    if (!salePrice.has("discount")) continue;
-                    this.discount = salePrice.getFloat("discount");
-                    this.discountCost = salePrice.getInt("cost");
+                    if (salePrice.getString("currency").equals("IP")) {
+                        this.discountCostBE = salePrice.getInt("cost");
+                        if (!salePrice.has("discount")) continue;
+                        if (salePrice.getFloat("discount") == 0) continue;
+                        this.discountBE = salePrice.getFloat("discount");
+                    }
+                    if (salePrice.getString("currency").equals("RP")) {
+                        this.discountCostRP = salePrice.getInt("cost");
+                        if (!salePrice.has("discount")) continue;
+                        if (salePrice.getFloat("discount") == 0) continue;
+                        this.discountRP = salePrice.getFloat("discount");
+                    }
                 }
             }
         }
@@ -86,16 +97,36 @@ public class StoreItem {
     }
 
     public boolean hasDiscount() {
-        return discount != 0;
+        return hasDiscountBE() || hasDiscountRP();
     }
 
-    public float getDiscount() {
-        return discount;
+    public boolean hasDiscountBE() {
+        return discountBE != 0;
     }
 
-    public int getDiscountedCost() {
-        if (hasDiscount()) {
-            return discountCost;
+    public boolean hasDiscountRP() {
+        return discountRP != 0;
+    }
+
+    public float getDiscountBE() {
+        return discountBE;
+    }
+
+    public float getDiscountRP() {
+        return discountRP;
+    }
+
+    public int getCorrectBlueEssenceCost() {
+        if (hasDiscountBE()) {
+            return discountCostBE;
+        } else {
+            return getBlueEssenceCost();
+        }
+    }
+
+    public int getCorrectRiotPointCost() {
+        if (hasDiscountRP()) {
+            return discountCostRP;
         } else {
             return getRiotPointCost();
         }
@@ -133,6 +164,14 @@ public class StoreItem {
         return inventoryType;
     }
 
+    public boolean hasSubInventoryType() {
+        return subInventoryType != null;
+    }
+
+    public SubInventoryType getSubInventoryType() {
+        return subInventoryType;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -153,6 +192,7 @@ public class StoreItem {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", inventoryType=" + inventoryType +
+                ", subInventoryType=" + subInventoryType +
                 ", active=" + active +
                 ", valid=" + valid +
                 ", object=" + object +

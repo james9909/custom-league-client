@@ -3,6 +3,9 @@ package com.hawolt.ui.settings;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.settings.SettingService;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LTextAlign;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -27,6 +30,7 @@ public class SettingsUI extends ChildUIComponent {
         header.setPreferredSize(new Dimension(0, 40));
         JLabel label = new JLabel("Settings");
         label.setFont(font);
+        label.setForeground(Color.WHITE);
         label.setHorizontalAlignment(JLabel.CENTER);
         header.add(label, BorderLayout.CENTER);
 
@@ -35,8 +39,12 @@ public class SettingsUI extends ChildUIComponent {
         JPanel mainPanel = new JPanel(cl);
         SettingsPage clientGeneralPage = newClientGeneralPage();
         SettingsPage clientAudioPage = newClientAudioPage();
+        SettingsPage clientAboutPage = newClientAboutPage();
+        SettingsPage clientHelpPage = newClientHelpPage();
         mainPanel.add("General", clientGeneralPage);
         mainPanel.add("Audio", clientAudioPage);
+        mainPanel.add("About", clientAboutPage);
+        mainPanel.add("Help", clientHelpPage);
         for (int i = 0; i < mainPanel.getComponentCount(); i++) {
             pages.add((SettingsPage) mainPanel.getComponent(i));
         }
@@ -49,23 +57,28 @@ public class SettingsUI extends ChildUIComponent {
         add(sidebar, BorderLayout.WEST);
 
         SettingsSidebar.GroupTab clientGroup = sidebar.addGroupTab("Client");
+        SettingsSidebar.GroupTab aboutGroup = sidebar.addGroupTab("About");
 
-        JButton clientGeneralButton = SettingsSidebar.newSectionButton("General", cl, mainPanel);
+        LFlatButton clientGeneralButton = SettingsSidebar.newSectionButton("General", cl, mainPanel);
         clientGroup.addToContainer(clientGeneralButton);
-        JButton clientAudioButton = SettingsSidebar.newSectionButton("Audio", cl, mainPanel);
+        LFlatButton clientAudioButton = SettingsSidebar.newSectionButton("Audio", cl, mainPanel);
         clientGroup.addToContainer(clientAudioButton);
+        LFlatButton clientAboutButton = SettingsSidebar.newSectionButton("About", cl, mainPanel);
+        aboutGroup.addToContainer(clientAboutButton);
+        LFlatButton clientHelpButton = SettingsSidebar.newSectionButton("Help", cl, mainPanel);
+        aboutGroup.addToContainer(clientHelpButton);
 
         //Footer
         ChildUIComponent footer = new ChildUIComponent(new FlowLayout(FlowLayout.CENTER, 5, 5));
         add(footer, BorderLayout.SOUTH);
 
-        JButton saveButton = new JButton("Save");
+        LFlatButton saveButton = new LFlatButton("Save", LTextAlign.CENTER, LHighlightType.COMPONENT);
         saveButton.addActionListener(listener -> {
             save();
         });
         footer.add(saveButton);
 
-        JButton closeButton = new JButton("Close");
+        LFlatButton closeButton = new LFlatButton("Close", LTextAlign.CENTER, LHighlightType.COMPONENT);
         closeButton.addActionListener(listener -> {
             cl.first(mainPanel);
             close();
@@ -97,6 +110,8 @@ public class SettingsUI extends ChildUIComponent {
         SettingsPage result = new SettingsPage();
         result.add(SettingUIComponent.createTagComponent("Path"));
         result.add(SettingUIComponent.createPathComponent("League Base Directory Path", service, "GameBaseDir"));
+        result.add(SettingUIComponent.createTagComponent("Friend requests"));
+        result.add(SettingUIComponent.createAutoFriendComponent("Auto friend request handling", service, "autoFriends"));
         return result;
     }
 
@@ -104,7 +119,24 @@ public class SettingsUI extends ChildUIComponent {
         SettingService service = leagueClientUI.getSettingService();
         SettingsPage result = new SettingsPage();
         result.add(SettingUIComponent.createTagComponent("Volume"));
-        result.add(SettingUIComponent.createVolumeComponent("Client Master Volume", service, "Volume"));
+        result.add(SettingUIComponent.createVolumeComponent("Client Master Volume", service, "Volume", "MixerVolume"));
+        return result;
+    }
+
+    private SettingsPage newClientAboutPage() {
+        SettingsPage result = new SettingsPage();
+        result.add(SettingUIComponent.createTagComponent("About"));
+        result.add(SettingUIComponent.createAboutComponent("Swift-Rift-Crew"));
+        return result;
+    }
+
+    private SettingsPage newClientHelpPage() {
+        SettingsPage result = new SettingsPage();
+        result.add(SettingUIComponent.createTagComponent("Need help?"));
+        result.add(SettingUIComponent.createHelpComponent());
+        result.add(SettingUIComponent.createTagComponent("Bugs"));
+        result.add(SettingUIComponent.createKnownBugComponent());
+        result.add(SettingUIComponent.createSubmitBugComponent());
         return result;
     }
 }

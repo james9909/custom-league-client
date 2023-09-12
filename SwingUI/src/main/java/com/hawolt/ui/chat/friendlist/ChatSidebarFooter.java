@@ -34,7 +34,7 @@ public class ChatSidebarFooter extends ChildUIComponent {
             }
         });
         add(settingsButton, BorderLayout.EAST);
-        LLabel version = new LLabel(Github.getVersion(), LTextAlign.CENTER, true);
+        LLabel version = new LLabel(Github.getCurrentVersion(), LTextAlign.CENTER, true);
         add(version, BorderLayout.CENTER);
     }
 }

@@ -2,6 +2,7 @@ package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.misc.SortOrder;
+import com.hawolt.settings.SettingListener;
 import com.hawolt.ui.champselect.context.ChampSelectDataContext;
 import com.hawolt.ui.champselect.context.impl.ChampSelect;
 import com.hawolt.ui.chat.window.IChatWindow;
@@ -34,13 +35,12 @@ import java.util.*;
  * Author: Twitter @hawolt
  **/
 
-public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendListener, IPresenceListener, IFriendListComponent, EventListener<FriendList> {
-
+public class ChatSidebarFriendlist extends ChildUIComponent implements SettingListener<String>, IFriendListener, IPresenceListener, IFriendListComponent, EventListener<FriendList> {
     private final ChatListComparator alphabeticalComparator = new ChatListComparator(ChatListComparatorType.NAME, SortOrder.ASCENDING);
     private final ChatListComparator statusComparator = new ChatListComparator(ChatListComparatorType.STATUS, SortOrder.DESCENDING);
     private final Map<String, ChatSidebarFriend> map = new HashMap<>();
     private final IChatWindow window;
-    private String name;
+    private String name, friendHandling;
     private JComponent component;
     private LeagueClientUI leagueClientUI;
     private Map<GenericFriend, ChildUIComponent> tmp = new HashMap<>();
@@ -50,6 +50,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         this.window = window;
         this.window.setIFriendListComponent(this);
         this.leagueClientUI = leagueClientUI;
+        this.leagueClientUI.getSettingService().addSettingListener("autoFriends", this);
         setBackground(ColorPalette.BACKGROUND_COLOR);
     }
 
@@ -166,37 +167,53 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         request.setPreferredSize(new Dimension(0, 30));
         ChildUIComponent actions = new ChildUIComponent(new GridLayout(0, incoming ? 2 : 1, 5, 0));
         actions.setBackground(ColorPalette.BACKGROUND_COLOR);
-        if (incoming) {
-            LFlatButton accept = new LFlatButton("+", LTextAlign.CENTER, LHighlightType.COMPONENT);
-            accept.addActionListener(listener -> {
+        switch (friendHandling) {
+            case "User choice" -> {
+                if (incoming) {
+                    LFlatButton accept = new LFlatButton("+", LTextAlign.CENTER, LHighlightType.COMPONENT);
+                    accept.addActionListener(listener -> {
+                        VirtualRiotXMPPClient client = window.getXMPPClient();
+                        List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                        if (list.isEmpty()) return;
+                        client.addFriendByTag(list.get(0).getName().toString(), list.get(0).getTagline().toString());
+                        synchronized (lock) {
+                            component.remove(request);
+                        }
+                        component.revalidate();
+                    });
+                    accept.setPreferredSize(new Dimension(30, 0));
+                    actions.add(accept);
+                }
+                LFlatButton remove = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
+                remove.addActionListener(listener -> {
+                    VirtualRiotXMPPClient client = window.getXMPPClient();
+                    List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                    if (list.isEmpty()) return;
+                    client.removeFriend(list.get(0).getJID());
+                    synchronized (lock) {
+                        component.remove(request);
+                    }
+                });
+                remove.setPreferredSize(new Dimension(30, 0));
+                actions.add(remove);
+                tmp.put(genericFriend, request);
+                request.add(actions, BorderLayout.EAST);
+                synchronized (lock) {
+                    this.component.add(request);
+                }
+            }
+            case "Auto accept" -> {
                 VirtualRiotXMPPClient client = window.getXMPPClient();
                 List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
                 if (list.isEmpty()) return;
                 client.addFriendByTag(list.get(0).getName().toString(), list.get(0).getTagline().toString());
-                synchronized (lock) {
-                    component.remove(request);
-                }
-                component.revalidate();
-            });
-            accept.setPreferredSize(new Dimension(30, 0));
-            actions.add(accept);
-        }
-        LFlatButton remove = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
-        remove.addActionListener(listener -> {
-            VirtualRiotXMPPClient client = window.getXMPPClient();
-            List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
-            if (list.isEmpty()) return;
-            client.removeFriend(list.get(0).getJID());
-            synchronized (lock) {
-                component.remove(request);
             }
-        });
-        remove.setPreferredSize(new Dimension(30, 0));
-        actions.add(remove);
-        tmp.put(genericFriend, request);
-        request.add(actions, BorderLayout.EAST);
-        synchronized (lock) {
-            this.component.add(request);
+            case "Auto reject" -> {
+                VirtualRiotXMPPClient client = window.getXMPPClient();
+                List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                if (list.isEmpty()) return;
+                client.removeFriend(list.get(0).getJID());
+            }
         }
     }
 
@@ -316,5 +333,10 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onLeaveMucPresence(LeaveMucPresence presence) {
         handle(presence);
+    }
+
+    @Override
+    public void onSettingWrite(String name, String value) {
+        this.friendHandling = value;
     }
 }
