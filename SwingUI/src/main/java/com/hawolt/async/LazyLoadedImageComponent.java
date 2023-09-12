@@ -27,8 +27,16 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
         this(null, dimension);
     }
 
+    public LazyLoadedImageComponent(Dimension dimension, int border) {
+        this(null, dimension, border);
+    }
+
     public LazyLoadedImageComponent(String uri, Dimension dimension) {
-        this.setPreferredSize(dimension);
+        this(uri, dimension, 0);
+    }
+
+    public LazyLoadedImageComponent(String uri, Dimension dimension, int border) {
+        this.setPreferredSize(new Dimension(dimension.width + (border << 1), dimension.height + (border << 1)));
         this.dimension = dimension;
         if (uri == null) return;
         ResourceLoader.loadResource(uri, this);

@@ -12,6 +12,7 @@ import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -63,17 +64,19 @@ public class LayoutHeader extends ChildUIComponent {
         main.setBackground(ColorPalette.ACCENT_COLOR);
         add(main, BorderLayout.CENTER);
 
-        LazyLoadedImageComponent component = new LazyLoadedImageComponent(new Dimension(90, 90));
+        LazyLoadedImageComponent component = new LazyLoadedImageComponent(new Dimension(80, 80), 5);
         component.setBackground(ColorPalette.ACCENT_COLOR);
         ResourceLoader.loadLocalResource("fullsize-logo.png", component);
         add(component, BorderLayout.WEST);
 
-        ChildUIComponent buttons = new ChildUIComponent(new GridLayout(0, 5, 3, 0));
-        buttons.setBackground(ColorPalette.ACCENT_COLOR);
-        main.add(buttons, BorderLayout.WEST);
+        ChildUIComponent verticalButtonAlignment = new ChildUIComponent();
+        verticalButtonAlignment.setBackground(ColorPalette.ACCENT_COLOR);
+        verticalButtonAlignment.setLayout(new BoxLayout(verticalButtonAlignment, BoxLayout.X_AXIS));
+        main.add(verticalButtonAlignment, BorderLayout.WEST);
 
         for (LayoutComponent layoutComponent : LayoutComponent.values()) {
-            buttons.add(createHeaderComponent(layoutComponent));
+            verticalButtonAlignment.add(Box.createRigidArea(new Dimension(10, 0)));
+            verticalButtonAlignment.add(createHeaderComponent(layoutComponent));
         }
         selectAndShowComponent(LayoutComponent.HOME);
 
@@ -86,14 +89,15 @@ public class LayoutHeader extends ChildUIComponent {
     }
 
     public LFlatButton createHeaderComponent(LayoutComponent component) {
-        LFlatButton button = new LFlatButton(component.name(), LTextAlign.CENTER, LHighlightType.BOTTOM);
-        button.addActionListener(listener -> manager.showComponent(component.toString()));
+        LFlatButton button = new LFlatButton(component.name().replace("_", " "), LTextAlign.CENTER, LHighlightType.BOTTOM);
+        button.addActionListener(listener -> selectAndShowComponent(component));
         map.put(component, button);
         return button;
     }
 
     public void selectAndShowComponent(LayoutComponent component) {
         map.values().forEach(button -> button.setSelected(false));
+        manager.showComponent(component.toString());
         LFlatButton button = map.get(component);
         button.setSelected(true);
     }

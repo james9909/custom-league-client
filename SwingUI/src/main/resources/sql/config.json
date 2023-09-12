@@ -1,0 +1,7 @@
+{
+  "sql": {
+    "username": "sa",
+    "password": "",
+    "max": 10
+  }
+}

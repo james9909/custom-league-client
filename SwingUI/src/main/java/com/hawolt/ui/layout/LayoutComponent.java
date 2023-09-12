@@ -6,7 +6,7 @@ package com.hawolt.ui.layout;
  **/
 
 public enum LayoutComponent {
-    HOME, STORE, PLAY, SELECT;
+    HOME, STORE, PLAY, CHAMPION_SELECT;
 
     @Override
     public String toString() {

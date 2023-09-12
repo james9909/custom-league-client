@@ -34,7 +34,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
         this.center.add("home", new ReleaseWindow());
         this.center.add("store", store = new StoreWindow(client));
         this.center.add("play", queue = new QueueWindow(leagueClientUI));
-        this.center.add("select", champSelect = new ChampSelectUI(leagueClientUI));
+        this.center.add("champion_select", champSelect = new ChampSelectUI(leagueClientUI));
         layout.show(center, "github");
     }
 

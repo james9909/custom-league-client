@@ -107,7 +107,9 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
             String card = QUEUE_RENDERER_MAPPING.getOrDefault(settingsContext.getQueueId(), "blank");
             Logger.info("[champ-select] switch to card {}", card);
             this.layout.show(main, card);
-            if (leagueClientUI != null) leagueClientUI.getLayoutManager().showClientComponent("select");
+            if (leagueClientUI != null) {
+                leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPION_SELECT);
+            }
         }
         for (AbstractRenderInstance instance : instances) {
             instance.delegate(context, initialCounter);
@@ -144,7 +146,7 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
         IResponse response = leagueClient.getLedge().getUnclassified().getEndOfGame(gameId);
         postGameUI.build(response, leagueNotifications);
         this.showPostGamePanel();
-        this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.SELECT);
+        this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPION_SELECT);
         boolean processed = leagueClient.getLedge().getChallenge().notify(gameId);
         if (!processed) {
             Logger.error("unable to submit game {} as processed", gameId);
