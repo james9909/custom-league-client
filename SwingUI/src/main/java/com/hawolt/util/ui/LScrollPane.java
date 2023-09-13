@@ -18,6 +18,7 @@ public class LScrollPane extends JScrollPane implements PropertyChangeListener {
         setBorder(new EmptyBorder(0, 0, 0, 0));
         setViewportView(view);
         setBackground(ColorPalette.backgroundColor);
+        setForeground(ColorPalette.accentColor);
     }
 
     @Override
@@ -28,6 +29,7 @@ public class LScrollPane extends JScrollPane implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         setBackground(ColorPalette.getNewColor(getBackground(), (LThemeChoice) evt.getOldValue()));
+        setForeground(ColorPalette.getNewColor(getForeground(), (LThemeChoice) evt.getOldValue()));
     }
 
     @Override

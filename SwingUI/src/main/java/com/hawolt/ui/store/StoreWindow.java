@@ -36,32 +36,31 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
             String jwt = client.getLedge().getInventoryService().getInventoryToken();
             JSONObject object = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
             JSONObject items = object.getJSONObject("items");
-            JSONArray champions = items.getJSONArray("CHAMPION");
-            List<Long> championList = champions.toList()
-                    .stream()
-                    .map(Object::toString)
-                    .map(Long::parseLong)
-                    .toList();
             pane.addTab(
                     InventoryType.CHAMPION.name(),
-                    new StorePage(
+                    createStorePage(
                             client,
                             InventoryType.CHAMPION.name(),
-                            championList,
-                            StoreSortProperty.values()
+                            items
                     )
             );
             //TODO get better at handling lots of images - I'm too stupid ~Lett4s
             //no you are not, I fixed this for you :) ~hawolt
-            JSONArray skins = items.getJSONArray("CHAMPION_SKIN");
-            List<Long> skinList = skins.toList().stream().map(Object::toString).map(Long::parseLong).toList();
+            //kneel and bow down to King hawolt ~Lett4s
             pane.addTab(
                     InventoryType.CHAMPION_SKIN.name(),
-                    new StorePage(
+                    createStorePage(
                             client,
                             InventoryType.CHAMPION_SKIN.name(),
-                            skinList,
-                            StoreSortProperty.values()
+                            items
+                    )
+            );
+            pane.addTab(
+                    InventoryType.COMPANION.name(),
+                    createStorePage(
+                            client,
+                            InventoryType.COMPANION.name(),
+                            items
                     )
             );
         } catch (Exception e) {
@@ -79,6 +78,21 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
             }
         }
         return null;
+    }
+
+    public StorePage createStorePage(LeagueClient client, String type, JSONObject items) {
+        JSONArray itemTypeArray = items.getJSONArray(type);
+        List<Long> itemTypeList = itemTypeArray.toList()
+                .stream()
+                .map(Object::toString)
+                .map(Long::parseLong)
+                .toList();
+        return new StorePage(
+                client,
+                type,
+                itemTypeList,
+                StoreSortProperty.values()
+        );
     }
 
     @Override

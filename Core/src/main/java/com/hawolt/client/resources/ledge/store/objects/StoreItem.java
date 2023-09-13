@@ -90,7 +90,7 @@ public class StoreItem {
     }
 
     public boolean isRiotPointPurchaseAvailable() {
-        return prices.stream().anyMatch(price -> price.getCurrency().equals("RP"));
+        return getCorrectRiotPointCost() > 0 || prices.stream().anyMatch(price -> price.getCurrency().equals("RP"));
     }
 
     public int getRiotPointCost() {
@@ -102,11 +102,11 @@ public class StoreItem {
     }
 
     public boolean hasDiscountBE() {
-        return discountBE != 0;
+        return discountBE != 0 || discountCostBE > 0;
     }
 
     public boolean hasDiscountRP() {
-        return discountRP != 0;
+        return discountRP != 0 || discountCostRP > 0;
     }
 
     public float getDiscountBE() {
@@ -134,7 +134,7 @@ public class StoreItem {
     }
 
     public boolean isBlueEssencePurchaseAvailable() {
-        return prices.stream().anyMatch(price -> price.getCurrency().equals("IP"));
+        return getCorrectBlueEssenceCost() > 0 || prices.stream().anyMatch(price -> price.getCurrency().equals("IP"));
     }
 
     public int getBlueEssenceCost() {

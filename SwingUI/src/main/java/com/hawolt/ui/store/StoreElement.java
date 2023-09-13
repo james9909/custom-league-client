@@ -30,7 +30,7 @@ import java.util.List;
 public class StoreElement extends ChildUIComponent implements IStoreElement {
     private final List<StoreButton> buttons = new ArrayList<>();
     private final LeagueClient client;
-    private final JPanel imageContainer;
+    //private final JPanel imageContainer;
     private final StoreImage image;
     private final StoreItem item;
     private final IStorePage page;
@@ -38,11 +38,7 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
     public StoreElement(LeagueClient client, IStorePage page, StoreItem item) {
         super(new BorderLayout());
         this.setBorder(new EmptyBorder(15, 15, 15, 15));
-        imageContainer = new JPanel(new BorderLayout());
-        imageContainer.add(image = new StoreImage(item), BorderLayout.CENTER);
-        imageContainer.setBackground(new Color(0, 0, 0, 0));
-        image.setSize(imageContainer.getSize());
-        this.add(imageContainer, BorderLayout.CENTER);
+        this.add(image = new StoreImage(item), BorderLayout.CENTER);
         this.setBackground(ColorPalette.cardColor);
         this.setPreferredSize(new Dimension(150, 300));
         this.client = client;
@@ -52,14 +48,14 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
     }
 
     private void build() {
-        if (item.isBlueEssencePurchaseAvailable() && item.getBlueEssenceCost() > 0) {
+        if (item.isBlueEssencePurchaseAvailable() && item.getCorrectBlueEssenceCost() > 0) {
             StoreButton button = new StoreButton(this, CurrencyType.IP, item.getCorrectBlueEssenceCost());
             button.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
             button.setBackground(ColorPalette.buttonSelectionColor);
             button.setHighlightColor(ColorPalette.buttonSelectionAltColor);
             buttons.add(button);
         }
-        if (item.isRiotPointPurchaseAvailable() && item.getRiotPointCost() > 0) {
+        if (item.isRiotPointPurchaseAvailable() && item.getCorrectRiotPointCost() > 0) {
             StoreButton button = new StoreButton(this, CurrencyType.RP, item.getCorrectRiotPointCost());
             button.setRounding(ColorPalette.BUTTON_SMALL_ROUNDING);
             button.setBackground(ColorPalette.buttonSelectionColor);
@@ -93,7 +89,6 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
 
     @Override
     protected void paintComponent(Graphics g) {
-        //super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setColor(getBackground());

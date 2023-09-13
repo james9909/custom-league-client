@@ -44,6 +44,14 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
                     map.put(requirement.getString("inventoryType"), requirement.getLong("itemId"));
                 }
                 long skinId = map.getOrDefault(InventoryType.CHAMPION_SKIN.name(), itemId);
+                if (item.hasSubInventoryType()) {
+                    skinId = item.getItemId();
+                    return String.format(
+                            "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-chroma-images/%s/%s.png",
+                            map.get(InventoryType.CHAMPION.name()),
+                            skinId
+                    );
+                }
                 return String.format(
                         "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/%s/%s.jpg",
                         map.get(InventoryType.CHAMPION.name()),
@@ -67,6 +75,7 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
 
     public void unload() {
         this.image = null;
+        this.repaint();
     }
 
     @Override
@@ -83,24 +92,25 @@ public class StoreImage extends JComponent implements IStoreImage, ResourceConsu
     }
 
     private void paintDiscountLabel(Graphics g) {
-        super.paintComponent(g);
-        Font font = new Font("Arial", Font.BOLD, 15);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setFont(font);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(Color.RED.darker());
-        g2.fillOval(3, 3, 42, 42);
-        g2.setColor(Color.BLACK);
-        g2.drawOval(2, 2, 44, 44);
-        g2.drawOval(6, 6, 36, 36);
-        g2.setColor(new Color(179, 140, 69));
-        g2.setStroke(new BasicStroke(3));
-        g2.drawOval(4, 4, 40, 40);
-        g2.setColor(Color.WHITE);
-        if (item.hasDiscountBE()) {
-            g2.drawString("-" + Math.round(item.getDiscountBE() * 100) + "%", 7, 30);
-        } else {
-            g2.drawString("-" + Math.round(item.getDiscountRP() * 100) + "%", 7, 30);
+        if (item.getDiscountBE() > 0 || item.getDiscountRP() > 0) {
+            Font font = new Font("Arial", Font.BOLD, 15);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setFont(font);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(Color.RED.darker());
+            g2.fillOval(3, 3, 42, 42);
+            g2.setColor(Color.BLACK);
+            g2.drawOval(2, 2, 44, 44);
+            g2.drawOval(6, 6, 36, 36);
+            g2.setColor(new Color(179, 140, 69));
+            g2.setStroke(new BasicStroke(3));
+            g2.drawOval(4, 4, 40, 40);
+            g2.setColor(Color.WHITE);
+            if (item.hasDiscountBE()) {
+                g2.drawString("-" + Math.round(item.getDiscountBE() * 100) + "%", 7, 30);
+            } else {
+                g2.drawString("-" + Math.round(item.getDiscountRP() * 100) + "%", 7, 30);
+            }
         }
     }
 
