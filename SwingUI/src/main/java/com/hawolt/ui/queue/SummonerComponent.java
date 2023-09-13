@@ -36,7 +36,7 @@ public class SummonerComponent extends ChildUIComponent implements ResourceConsu
         super(null);
         ColorPalette.addThemeListener(evt -> {
             LThemeChoice old = (LThemeChoice) evt.getOldValue();
-            accent = ColorPalette.getNewColor(getBackground(), old);
+            accent = ColorPalette.getNewColor(accent, old);
         });
     }
 
