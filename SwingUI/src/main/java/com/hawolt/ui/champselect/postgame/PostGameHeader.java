@@ -16,23 +16,10 @@ import java.util.concurrent.TimeUnit;
  **/
 
 public class PostGameHeader extends ChildUIComponent {
-    public PostGameHeader(JSONObject data, List<LeagueNotification> notifications) {
+
+    public PostGameHeader() {
         super(new BorderLayout());
         this.setPreferredSize(new Dimension(0, 100));
-        int gameLengthInSeconds = data.getInt("gameLength");
-        String queueType = data.getString("queueType");
-        String gameMode = data.getString("gameMode");
-        long gameId = data.getLong("gameId");
-        ChildUIComponent basic = new ChildUIComponent(new GridLayout(0, 4, 5, 0));
-        basic.add(createTextLabel(gameMode, SwingConstants.LEFT));
-        basic.add(createTextLabel(queueType, SwingConstants.LEFT));
-        basic.add(createTextLabel(convertMStoTimestamp(TimeUnit.SECONDS.toMillis(gameLengthInSeconds)), SwingConstants.LEFT));
-        basic.add(createTextLabel(String.valueOf(gameId), SwingConstants.LEFT));
-        add(basic, BorderLayout.CENTER);
-        notifications.stream()
-                .filter(o -> o.getGameId() == gameId)
-                .findFirst()
-                .ifPresent(this::addNotification);
     }
 
     private String convertMStoTimestamp(long elapsed) {
@@ -56,6 +43,7 @@ public class PostGameHeader extends ChildUIComponent {
         additional.add(createTextLabel(String.format("%s LP", leagueNotification.getLeaguePointsDelta()), SwingConstants.RIGHT));
         additional.add(createTextLabel(rank, SwingConstants.RIGHT));
         add(additional, BorderLayout.EAST);
+        revalidate();
     }
 
     private JLabel createTextLabel(Object o, int alignment) {
@@ -64,5 +52,24 @@ public class PostGameHeader extends ChildUIComponent {
         label.setForeground(ColorPalette.textColor);
         label.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
         return label;
+    }
+
+    public void update(JSONObject data, List<LeagueNotification> notifications) {
+        removeAll();
+        int gameLengthInSeconds = data.getInt("gameLength");
+        String queueType = data.getString("queueType");
+        String gameMode = data.getString("gameMode");
+        long gameId = data.getLong("gameId");
+        ChildUIComponent basic = new ChildUIComponent(new GridLayout(0, 4, 5, 0));
+        basic.add(createTextLabel(gameMode, SwingConstants.LEFT));
+        basic.add(createTextLabel(queueType, SwingConstants.LEFT));
+        basic.add(createTextLabel(convertMStoTimestamp(TimeUnit.SECONDS.toMillis(gameLengthInSeconds)), SwingConstants.LEFT));
+        basic.add(createTextLabel(String.valueOf(gameId), SwingConstants.LEFT));
+        add(basic, BorderLayout.CENTER);
+        notifications.stream()
+                .filter(o -> o.getGameId() == gameId)
+                .findFirst()
+                .ifPresent(this::addNotification);
+        revalidate();
     }
 }

@@ -54,7 +54,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     private int championId, indicatorId, skinId, spell1Id, spell2Id;
     private BufferedImage sprite, spellOne, spellTwo, clearChampion;
     private ChampSelectMember member;
-    private String hero, puuid;
+    private String hero, puuid, name;
     private GraphicalDrawableManager drawables;
     private ScheduledFuture<?> future;
 
@@ -77,27 +77,28 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     }
 
     private void configure(ChampSelectTeamMember teamMember) {
-        if (this.puuid != null && this.puuid.equals(teamMember.getPUUID())) return;
+        LeagueClient client = dataContext.getLeagueClient();
+        if (client == null) {
+            Logger.warn("unable to fetch name for {}, client is null", puuid);
+            return;
+        }
+        if (puuid != null && puuid.equals(teamMember.getPUUID())) return;
         this.puuid = teamMember.getPUUID();
         Map<String, String> resolver = dataContext.getPUUIDResolver();
         if (!resolver.containsKey(puuid)) {
-            LeagueClient client = dataContext.getLeagueClient();
-            if (client == null) {
-                Logger.warn("unable to fetch name for {}, client is null", puuid);
-                return;
-            }
             SummonerLedge summonerLedge = dataContext.getLeagueClient().getLedge().getSummoner();
             try {
-                String name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
+                this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
                 switch (teamMember.getNameVisibilityType()) {
-                    case "UNHIDDEN" ->
-                            dataContext.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
+                    case "UNHIDDEN" -> dataContext.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
                     case "HIDDEN" -> dataContext.cache(teamMember.getPUUID(), getHiddenName());
                     case "VISIBLE" -> dataContext.cache(teamMember.getPUUID(), name);
                 }
             } catch (IOException e) {
                 Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
             }
+        } else {
+            this.name = resolver.get(puuid);
         }
         this.repaint();
     }
@@ -363,7 +364,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
                     case "UNHIDDEN" -> guidelineY - metrics.getAscent() - 7;
                     default -> guidelineY;
                 };
-                String resolved = dataContext.getPUUIDResolver().getOrDefault(teamMember.getPUUID(), getHiddenName());
+                String resolved = name == null ? getHiddenName() : name;
                 String name = switch (member.getNameVisibilityType()) {
                     case "HIDDEN", "UNHIDDEN" -> getHiddenName();
                     default -> String.valueOf(resolved);

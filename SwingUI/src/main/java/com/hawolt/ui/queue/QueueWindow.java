@@ -223,15 +223,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
             if (!info.has("backwardsTransitionReason")) return;
-            /*
-             * other existing backwardsTransitionReason
-             * 1.   AFK_CHECK_FAILED
-             */
-            switch (info.getString("backwardsTransitionReason")) {
-                case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION", "PLAYER_LEFT_CHAMPION_SELECT", "PLAYER_LEFT_MATCHMAKING" -> {
-                    leagueClientUI.getLayoutManager().getChampSelectUI().showBlankPanel();
-                }
-            }
+            handleBackwardsTransitionReason(info);
             leagueClientUI.getChatSidebar().getEssentials().disableQueueState();
             try {
                 leagueClientUI.getLeagueClient().getLedge().getParties().ready();
@@ -243,6 +235,9 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
             ChatSidebarEssentials essentials = leagueClientUI.getChatSidebar().getEssentials();
             if (phaseName.equals("MATCHMAKING")) {
                 JSONObject matchmakingState = payload.getJSONObject("matchmakingState");
+                if (matchmakingState.has("backwardsTransitionReason")) {
+                    handleBackwardsTransitionReason(matchmakingState);
+                }
                 long estimatedMatchmakingTimeMillis = matchmakingState.getLong("estimatedMatchmakingTimeMillis");
                 if (payload.getInt("counter") != 0) return;
                 essentials.toggleQueueState(System.currentTimeMillis(), estimatedMatchmakingTimeMillis);
@@ -264,6 +259,20 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                 }
             } else {
                 Logger.info("Ignored RMS Packet {}", riotMessageServiceMessage);
+            }
+        }
+    }
+
+    private void handleBackwardsTransitionReason(JSONObject info) {
+        /*
+         * other existing backwardsTransitionReason
+         * 1.   AFK_CHECK_FAILED
+         */
+        switch (info.getString("backwardsTransitionReason")) {
+            case "PLAYER_TIMED_OUT_ON_REQUIRED_ACTION",
+                    "PLAYER_LEFT_CHAMPION_SELECT",
+                    "PLAYER_LEFT_MATCHMAKING" -> {
+                leagueClientUI.getLayoutManager().getChampSelectUI().showBlankPanel();
             }
         }
     }

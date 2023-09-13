@@ -55,14 +55,6 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
                             items
                     )
             );
-            pane.addTab(
-                    InventoryType.COMPANION.name(),
-                    createStorePage(
-                            client,
-                            InventoryType.COMPANION.name(),
-                            items
-                    )
-            );
         } catch (Exception e) {
             Logger.error(e);
         }

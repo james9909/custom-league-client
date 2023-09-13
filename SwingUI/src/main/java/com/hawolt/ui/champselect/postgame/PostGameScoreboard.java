@@ -16,10 +16,8 @@ import java.awt.*;
 
 public class PostGameScoreboard extends ChildUIComponent {
 
-    public PostGameScoreboard(JSONObject data) {
+    public PostGameScoreboard() {
         super(new GridLayout(0, 1, 0, 20));
-        add(createScoreboard(data.getJSONArray("teamPlayerParticipantStats")));
-        add(createScoreboard(data.getJSONArray("otherTeamPlayerParticipantStats")));
     }
 
     private ChildUIComponent createScoreboard(JSONArray array) {
@@ -56,5 +54,12 @@ public class PostGameScoreboard extends ChildUIComponent {
         label.setForeground(ColorPalette.textColor);
         label.setFont(new Font(Font.MONOSPACED, Font.BOLD, 24));
         return label;
+    }
+
+    public void update(JSONObject data) {
+        removeAll();
+        add(createScoreboard(data.getJSONArray("teamPlayerParticipantStats")));
+        add(createScoreboard(data.getJSONArray("otherTeamPlayerParticipantStats")));
+        revalidate();
     }
 }

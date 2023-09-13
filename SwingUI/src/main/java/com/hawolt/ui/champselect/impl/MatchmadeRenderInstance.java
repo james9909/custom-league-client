@@ -79,16 +79,21 @@ public abstract class MatchmadeRenderInstance extends AbstractRenderInstance imp
     @Override
     public void init() {
         super.init();
-        //JOIN CHATROOM WHEN CHAMP SELECT STARTS
-        LeagueClientUI.service.execute(() -> {
-            LeagueClient client = context.getChampSelectDataContext().getLeagueClient();
-            if (client == null) return;
-            MatchContext context = client.getCachedValue(CacheType.MATCH_CONTEXT);
-            if (context == null) return;
-            chatUI.setMatchContext(context);
-            VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
-            xmppClient.joinUnprotectedMuc(context.getPayload().getChatRoomName(), context.getPayload().getTargetRegion());
-        });
+        int targetQueueId = context.getChampSelectSettingsContext().getQueueId();
+        int[] supportedQueueIds = getSupportedQueueIds();
+        for (int supportedQueueId : supportedQueueIds) {
+            if (supportedQueueId == targetQueueId) {
+                LeagueClientUI.service.execute(() -> {
+                    LeagueClient client = context.getChampSelectDataContext().getLeagueClient();
+                    if (client == null) return;
+                    MatchContext context = client.getCachedValue(CacheType.MATCH_CONTEXT);
+                    if (context == null) return;
+                    chatUI.setMatchContext(context);
+                    VirtualRiotXMPPClient xmppClient = client.getXMPPClient();
+                    xmppClient.joinUnprotectedMuc(context.getPayload().getChatRoomName(), context.getPayload().getTargetRegion());
+                });
+            }
+        }
     }
 
     private void build() {

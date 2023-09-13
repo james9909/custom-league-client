@@ -25,11 +25,15 @@ import java.util.List;
 
 public class PostGameUI extends ChildUIComponent implements ActionListener {
     private final LeagueClientUI leagueClientUI;
+    private final PostGameHeader header;
+    private final PostGameScoreboard scoreboard;
     private final LFlatButton close;
 
     public PostGameUI(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.setBorder(new EmptyBorder(5, 5, 5, 5));
+        this.add(header = new PostGameHeader(), BorderLayout.NORTH);
+        this.add(scoreboard = new PostGameScoreboard(), BorderLayout.CENTER);
         this.add(close = new LFlatButton("Play Again", LTextAlign.CENTER, LHighlightType.COMPONENT), BorderLayout.SOUTH);
         this.close.addActionListener(this);
         this.leagueClientUI = leagueClientUI;
@@ -41,8 +45,8 @@ public class PostGameUI extends ChildUIComponent implements ActionListener {
 
     public void build(String response, List<LeagueNotification> notifications) {
         JSONObject data = new JSONObject(response);
-        add(new PostGameHeader(data, notifications), BorderLayout.NORTH);
-        add(new PostGameScoreboard(data), BorderLayout.CENTER);
+        header.update(data, notifications);
+        scoreboard.update(data);
         /*JOIN POST GAME CHAT
         String xmppRoomName = data.getString("roomName");
         String xmppRoomPassword = data.getString("roomPassword");
@@ -57,6 +61,12 @@ public class PostGameUI extends ChildUIComponent implements ActionListener {
         LeagueClientUI.service.execute(() -> {
             try {
                 this.leagueClientUI.getLeagueClient().getLedge().getParties().ready();
+                this.leagueClientUI.getLayoutManager()
+                        .getChampSelectUI()
+                        .getChampSelect()
+                        .getChampSelectDataContext()
+                        .getPUUIDResolver()
+                        .clear();
             } catch (IOException ex) {
                 Logger.error(ex);
             }

@@ -1,7 +1,6 @@
 package com.hawolt.ui.champselect;
 
 import com.hawolt.LeagueClientUI;
-import com.hawolt.async.presence.PresenceManager;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.leagues.objects.LeagueLedgeNotifications;
@@ -55,7 +54,7 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
             this.postGameUI = new PostGameUI(leagueClientUI);
             this.leagueClient = leagueClientUI.getLeagueClient();
             this.champSelect = new ChampSelect(this);
-            this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, this);
+            this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.LOL_PLATFORM, this);
             this.leagueClient.getRTMPClient().addDefaultCallback(champSelect.getChampSelectDataContext().getPacketCallback());
             this.main.add("summary", postGameUI);
         } else {
@@ -135,19 +134,17 @@ public class ChampSelectUI extends ChildUIComponent implements IServiceMessageLi
     }
 
     @Override
-    public void onMessage(RiotMessageServiceMessage message) throws Exception {
-        RiotMessageMessagePayload base = message.getPayload();
-        if (!base.getResource().endsWith("lol-gsm-server/v1/gsm/game-update")) return;
+    public void onMessage(RiotMessageServiceMessage unspecified) throws Exception {
+        RiotMessageMessagePayload base = unspecified.getPayload();
+        if (!base.getResource().endsWith("lol-platform/v1/gsm/stats")) return;
         JSONObject payload = base.getPayload();
-        if (!payload.has("gameState")) return;
-        if (!"TERMINATED".equals(payload.getString("gameState"))) return;
-        long gameId = payload.getLong("id");
+        long gameId = payload.getLong("gameId");
         LeagueLedgeNotifications ledgeNotifications = leagueClient.getLedge().getLeague().getNotifications();
         List<LeagueNotification> leagueNotifications = ledgeNotifications.getLeagueNotifications();
         IResponse response = leagueClient.getLedge().getUnclassified().getEndOfGame(gameId);
         postGameUI.build(response, leagueNotifications);
-        this.showPostGamePanel();
-        this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPSELECT);
+        ChampSelectUI.this.showPostGamePanel();
+        ChampSelectUI.this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.CHAMPSELECT);
         boolean processed = leagueClient.getLedge().getChallenge().notify(gameId);
         if (!processed) {
             Logger.error("unable to submit game {} as processed", gameId);
