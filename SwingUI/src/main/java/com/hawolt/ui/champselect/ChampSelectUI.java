@@ -1,6 +1,7 @@
 package com.hawolt.ui.champselect;
 
 import com.hawolt.LeagueClientUI;
+import com.hawolt.async.presence.PresenceManager;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.resources.ledge.leagues.objects.LeagueLedgeNotifications;

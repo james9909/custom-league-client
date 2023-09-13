@@ -48,11 +48,14 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
     public int queueId;
     public ChildUIComponent grid;
     public ChildUIComponent component = new ChildUIComponent(new BorderLayout());
+    private CurrentParty party;
+    private String puuid;
 
-    public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
+    public QueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout, QueueWindow queueWindow) {
         super(new BorderLayout());
-        createGrid(component);
 
+        createGrid(component);
+        ChildUIComponent newButton = new ChildUIComponent(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.leagueClientUI.getLeagueClient().getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, this);
 
@@ -61,6 +64,23 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         close.addActionListener(listener -> layout.show(parent, "modes"));
 
         LFlatButton invite = new LFlatButton("Invite another Summoner", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        LFlatButton leave = new LFlatButton("Leave Party", LTextAlign.CENTER, LHighlightType.COMPONENT);
+        leave.addActionListener(listener -> {
+            layout.show(parent, "modes");
+            try {
+                leagueClientUI.getLeagueClient().getLedge().getParties().role(PartyRole.DECLINED);
+                queueId = 0;
+                queueWindow.rebase();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        newButton.add(leave, BorderLayout.NORTH);
+        close.addActionListener(listener -> {
+            layout.show(parent, "modes");
+        });
+        newButton.add(close, BorderLayout.CENTER);
+        add(newButton, BorderLayout.NORTH);
         invite.addActionListener(listener -> {
             String name = (String) JOptionPane.showInputDialog(
                     this,
@@ -124,19 +144,19 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
         if (!payload.has("player") || payload.isNull("player")) return;
         PartiesRegistration registration = new PartiesRegistration(payload.getJSONObject("player"));
-        String puuid = registration.getPUUID();
-        CurrentParty party = registration.getCurrentParty();
+        puuid = registration.getPUUID();
+        party = registration.getCurrentParty();
+        List<PartyParticipant> partyParticipants = party.getPlayers();
         if (party == null) return;
         PartyRestriction restriction = party.getPartyRestriction();
         if (restriction != null) handleGatekeeperRestriction(restriction.getRestrictionList());
-        List<PartyParticipant> list = party.getPlayers();
-        list.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
+        partyParticipants.stream().filter(participant -> participant.getPUUID().equals(puuid)).findFirst().ifPresent(self -> {
             SummonerLedge summonerLedge = leagueClientUI.getLeagueClient().getLedge().getSummoner();
             try {
                 getSummonerComponentAt(0).update(self, summonerLedge.resolveSummonerByPUUD(puuid));
-                list.remove(self);
+                partyParticipants.remove(self);
                 int memberPosition = 1;
-                for (PartyParticipant participant : list) {
+                for (PartyParticipant participant : partyParticipants) {
                     Summoner summoner = summonerLedge.resolveSummonerByPUUD(participant.getPUUID());
                     if (participant.getRole().equals("MEMBER") || participant.getRole().equals("LEADER")) {
                         getSummonerComponentAt(memberPosition++).update(participant, summoner);
@@ -184,7 +204,6 @@ abstract public class QueueLobby extends ChildUIComponent implements ActionListe
                 Logger.error(e);
             }
         }, gatekeeperRestriction.getRemainingMillis(), TimeUnit.MILLISECONDS);
-
     }
 
     abstract public SummonerComponent getSummonerComponentAt(int id);

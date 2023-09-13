@@ -64,6 +64,7 @@ public class ChampSelectData extends ChampSelectContextProvider implements Champ
 
     @Override
     public void onPacket(RtmpPacket rtmpPacket, TypedObject typedObject) throws Exception {
+        
         if (typedObject == null || !typedObject.containsKey("data")) return;
         TypedObject data = typedObject.getTypedObject("data");
         if (data == null || !data.containsKey("flex.messaging.messages.AsyncMessage")) return;

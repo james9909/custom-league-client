@@ -2,6 +2,7 @@ package com.hawolt.client.resources.ledge;
 
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.challenges.ChallengeLedge;
+import com.hawolt.client.resources.ledge.championmastery.ChampionMasteryLedge;
 import com.hawolt.client.resources.ledge.gsm.GameServiceMessageLedge;
 import com.hawolt.client.resources.ledge.inventory.InventoryServiceLedge;
 import com.hawolt.client.resources.ledge.leagues.LeagueLedge;
@@ -23,6 +24,7 @@ public class LedgeEndpoint {
     private final GameServiceMessageLedge gameServiceMessageLedge;
     private final PlayerPreferencesLedge playerPreferencesLedge;
     private final InventoryServiceLedge inventoryServiceLedge;
+    private final ChampionMasteryLedge championMasteryLedge;
     private final UnclassifiedLedge unclassifiedLedge;
     private final TeamBuilderLedge teamBuilderLedge;
     private final ChallengeLedge challengeLedge;
@@ -43,6 +45,7 @@ public class LedgeEndpoint {
         this.challengeLedge = new ChallengeLedge(client);
         this.teamBuilderLedge = new TeamBuilderLedge(client);
         this.unclassifiedLedge = new UnclassifiedLedge(client);
+        this.championMasteryLedge = new ChampionMasteryLedge(client);
         this.inventoryServiceLedge = new InventoryServiceLedge(client);
         this.playerPreferencesLedge = new PlayerPreferencesLedge(client);
         this.gameServiceMessageLedge = new GameServiceMessageLedge(client);
@@ -82,6 +85,10 @@ public class LedgeEndpoint {
 
     public PerksLedge getPerks() {
         return perksLedge;
+    }
+
+    public ChampionMasteryLedge getChampionMastery() {
+        return championMasteryLedge;
     }
 
     public PlayerPreferencesLedge getPlayerPreferences() {

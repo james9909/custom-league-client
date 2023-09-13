@@ -42,7 +42,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements SettingLi
     private final IChatWindow window;
     private final Object lock = new Object();
     private final List<GenericPresence> buffer = new LinkedList<>();
-    private String name, friendHandling;
+    private String name, friendHandling = "User choice";
     private JComponent component;
     private LeagueClientUI leagueClientUI;
     private Map<GenericFriend, ChildUIComponent> tmp = new HashMap<>();

@@ -3,9 +3,13 @@ package com.hawolt.ui.queue;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
+import com.hawolt.client.resources.ledge.preferences.PlayerPreferencesLedge;
+import com.hawolt.client.resources.ledge.preferences.objects.PreferenceType;
 import com.hawolt.logger.Logger;
+import com.hawolt.settings.SettingType;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LComboBox;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -19,13 +23,12 @@ import java.io.IOException;
  **/
 
 public class DraftQueueLobby extends QueueLobby {
-    JComboBox<PositionPreference> main, other;
+    private LComboBox<PositionPreference> main, other;
+    private boolean initialized = false;
 
-    public DraftQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
-        super(leagueClientUI, parent, layout);
-
+    public DraftQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout, QueueWindow queueWindow) {
+        super(leagueClientUI, parent, layout, queueWindow);
     }
-
 
     @Override
     protected void createSpecificComponents(ChildUIComponent component) {
@@ -63,17 +66,29 @@ public class DraftQueueLobby extends QueueLobby {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e != null) {
+        if (e != null && initialized) {
             try {
                 PositionPreference primary = main.getItemAt(main.getSelectedIndex());
                 PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
                 PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
                 partiesLedge.metadata(primary, secondary);
+                PlayerPreferencesLedge playerPreferencesLedge = leagueClientUI.getLeagueClient().getLedge().getPlayerPreferences();
+                JSONObject preference = leagueClientUI.getSettingService().getUserSettings().setPartyPositionPreference(
+                        new JSONObject()
+                                .put("firstPreference", main.getItemAt(main.getSelectedIndex()).toString())
+                                .put("secondPreference", other.getItemAt(other.getSelectedIndex()).toString())
+                );
+                playerPreferencesLedge.setPreferences(PreferenceType.LCU_PREFERENCES, preference.toString());
+                leagueClientUI.getSettingService().write(SettingType.PLAYER, "preferences", preference);
             } catch (IOException ex) {
                 Logger.error(ex);
             }
+        } else {
+            initialized = false;
         }
+        JSONObject data = leagueClientUI.getSettingService().getUserSettings().getPartyPositionPreference();
+        main.setSelectedItem(PositionPreference.valueOf(data.getString("firstPreference")));
+        other.setSelectedItem(PositionPreference.valueOf(data.getString("secondPreference")));
+        initialized = true;
     }
-
-
 }

@@ -3,10 +3,12 @@ package com.hawolt.client;
 import com.hawolt.client.cache.CacheType;
 import com.hawolt.client.cache.Cacheable;
 import com.hawolt.client.cache.CachedValueLoader;
+import com.hawolt.client.cache.ExceptionalSupplier;
 import com.hawolt.client.handler.RMSHandler;
 import com.hawolt.client.handler.RTMPHandler;
 import com.hawolt.client.handler.XMPPHandler;
 import com.hawolt.client.resources.ledge.LedgeEndpoint;
+import com.hawolt.client.resources.ledge.preferences.objects.PreferenceType;
 import com.hawolt.client.resources.platform.PlatformEndpoint;
 import com.hawolt.client.resources.purchasewidget.PurchaseWidget;
 import com.hawolt.generic.data.Platform;
@@ -22,6 +24,7 @@ import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -65,9 +68,15 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
 
     private void cache() {
         ExecutorService service = Executors.newCachedThreadPool();
-        service.execute(new CachedValueLoader<>(CacheType.PARTY_REGISTRATION, () -> ledge.getParties().register(), this));
+        // TODO DONT STORE TOKEN LIKE THIS FIX
         service.execute(new CachedValueLoader<>(CacheType.INVENTORY_TOKEN, () -> ledge.getInventoryService().getInventoryToken(), this));
+        service.execute(new CachedValueLoader<>(CacheType.CHAT_STATUS, () -> getLedge().getPlayerPreferences().getPreferences(PreferenceType.LCU_SOCIAL_PREFERENCES).getString("chat-status-message"), this));
+        service.execute(new CachedValueLoader<>(CacheType.SUMMONER_ID, () -> getVirtualLeagueClientInstance().getUserInformation().getUserInformationLeagueAccount().getSummonerId(), this));
+        service.execute(new CachedValueLoader<>(CacheType.ACCOUNT_ID, () -> getVirtualLeagueClientInstance().getUserInformation().getUserInformationLeague().getCUID(), this));
+        // TODO DONT STORE TOKEN LIKE THIS FIX
         service.execute(new CachedValueLoader<>(CacheType.CHAMPION_DATA, () -> ledge.getInventoryService().getInventoryToken(), this));
+        service.execute(new CachedValueLoader<>(CacheType.PUUID, () -> getVirtualRiotClient().getRiotClientUser().getPUUID(), this));
+        service.execute(new CachedValueLoader<>(CacheType.PARTY_REGISTRATION, () -> ledge.getParties().register(), this));
         service.shutdown();
     }
 
@@ -89,6 +98,25 @@ public class LeagueClient implements Cacheable, Consumer<CachedValueLoader<?>> {
     public <T> T getCachedValue(CacheType type) {
         Logger.info("Get cache value for {}", type);
         return Unsafe.cast(cache.get(type));
+    }
+
+    public <T> T getCachedValueOrElse(CacheType type, ExceptionalSupplier<T> supplier) throws Exception {
+        if (cache.containsKey(type)) {
+            return getCachedValue(type);
+        } else {
+            T reference = supplier.get();
+            cache.put(type, reference);
+            return reference;
+        }
+    }
+
+    public <T> Optional<T> getCachedValueOrElse(CacheType type, ExceptionalSupplier<T> supplier, Consumer<Exception> consumer) {
+        try {
+            return Optional.of(getCachedValueOrElse(type, supplier));
+        } catch (Exception e) {
+            consumer.accept(e);
+            return Optional.empty();
+        }
     }
 
     public IVirtualLeagueClientInstance getVirtualLeagueClientInstance() {

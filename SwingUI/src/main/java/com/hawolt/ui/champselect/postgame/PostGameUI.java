@@ -3,6 +3,7 @@ package com.hawolt.ui.champselect.postgame;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.resources.ledge.leagues.objects.LeagueNotification;
 import com.hawolt.http.layer.IResponse;
+import com.hawolt.logger.Logger;
 import com.hawolt.ui.layout.LayoutComponent;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
@@ -14,6 +15,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -52,5 +54,12 @@ public class PostGameUI extends ChildUIComponent implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         this.leagueClientUI.getHeader().selectAndShowComponent(LayoutComponent.PLAY);
+        LeagueClientUI.service.execute(() -> {
+            try {
+                this.leagueClientUI.getLeagueClient().getLedge().getParties().ready();
+            } catch (IOException ex) {
+                Logger.error(ex);
+            }
+        });
     }
 }

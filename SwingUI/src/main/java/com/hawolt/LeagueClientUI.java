@@ -5,6 +5,7 @@ import com.hawolt.async.gsm.ActiveGameInformation;
 import com.hawolt.async.loader.PreferenceLoader;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
+import com.hawolt.async.presence.PresenceManager;
 import com.hawolt.async.rms.GameStartListener;
 import com.hawolt.authentication.LocalCookieSupplier;
 import com.hawolt.client.IClientCallback;
@@ -72,6 +73,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         }
     }
 
+    private PresenceManager presence;
     private ShutdownManager shutdownManager;
     private LeagueClient leagueClient;
     private RiotClient riotClient;
@@ -126,6 +128,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
     private void bootstrap(LeagueClient client) {
         this.leagueClient = client;
         this.shutdownManager = new ShutdownManager(client);
+        this.presence = new PresenceManager(this);
         this.configure(loginUI == null || loginUI.getRememberMe().isSelected());
     }
 
@@ -151,6 +154,10 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
 
     private void wrap() {
         this.setVisible(true);
+        this.leagueClient.getRTMPClient().addDefaultCallback(presence);
+        this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, presence);
+        this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.PARTIES, presence);
+        this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.TEAMBUILDER, presence);
         this.leagueClient.getRMSClient().getHandler().addMessageServiceListener(MessageService.GSM, new GameStartListener(this));
         LeagueClientUI.service.execute(new ActiveGameInformation(this));
         VirtualRiotXMPPClient xmppClient = leagueClient.getXMPPClient();
@@ -161,6 +168,7 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
                 (EventListener<PlainData>) event -> buildSidebarUI(xmppClient)
         );
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
+        xmppClient.addHandler(EventType.ON_READY, o -> presence.setIdlePresence());
         xmppClient.addMessageListener(getLayoutManager().getChampSelectUI().getChampSelect().getChampSelectDataContext().getMessageListener());
         xmppClient.addPresenceListener(friendlist);
         xmppClient.addFriendListener(friendlist);
@@ -187,12 +195,14 @@ public class LeagueClientUI extends JFrame implements IClientCallback, ILoginCal
         temporary.add(manager, BorderLayout.CENTER);
         temporary.add(chatSidebar, BorderLayout.EAST);
         temporary.add(headerUI = new LayoutHeader(manager, client), BorderLayout.NORTH);
+        manager.setHeader(headerUI);
         mainUI.setMainComponent(temporary);
         mainUI.revalidate();
     }
 
     private void buildSidebarUI(VirtualRiotXMPPClient xmppClient) {
         headerUI.getProfile().getSummoner().getStatus().setXMPPClient(xmppClient);
+        headerUI.getProfile().getSummoner().getStatus().setLeagueClient(leagueClient);
         ChatSidebarFriendlist friendlist = chatSidebar.getChatSidebarFriendlist();
         LeagueClientUI.service.execute(() -> {
             friendlist.onEvent(xmppClient.getFriendList());

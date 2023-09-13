@@ -3,6 +3,7 @@ package com.hawolt.client.resources.ledge.preferences;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.client.misc.Base64RawInflate;
 import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
+import com.hawolt.client.resources.ledge.preferences.objects.PreferenceType;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
 import com.hawolt.http.layer.IResponse;
@@ -19,12 +20,14 @@ public class PlayerPreferencesLedge extends AbstractLedgeEndpoint {
         super(client);
     }
 
-    public JSONObject getPlayerPreferences() throws IOException {
-        String uri = String.format("https://playerpreferences.riotgames.com/%s/v%s/getPreference/%s/%s/LCUPreferences/",
+
+    public JSONObject getPreferences(PreferenceType preferenceType) throws IOException {
+        String uri = String.format("https://playerpreferences.riotgames.com/%s/v%s/getPreference/%s/%s/%s/",
                 name(),
                 version(),
                 userInformation.getPvpnetAccountId(),
-                client.getVirtualLeagueClientInstance().getPlatform()
+                client.getVirtualLeagueClientInstance().getPlatform(),
+                preferenceType.getName()
         );
         Request request = jsonRequest(uri)
                 .get()
@@ -37,17 +40,17 @@ public class PlayerPreferencesLedge extends AbstractLedgeEndpoint {
         return convertYamlToJson(inflated);
     }
 
-    public int setPlayerPreferences(String data) throws IOException {
+    public int setPreferences(PreferenceType preferenceType, String content) throws IOException {
         String uri = String.format("https://playerpreferences.riotgames.com/%s/v%s/savePreference/%s/%s",
                 name(),
                 version(),
                 userInformation.getPvpnetAccountId(),
                 client.getVirtualLeagueClientInstance().getPlatform()
         );
-        String s = Base64RawInflate.encode(Base64RawInflate.deflate(convertJsonToYaml(new JSONObject(data)).getBytes()));
+        String s = Base64RawInflate.encode(Base64RawInflate.deflate(convertJsonToYaml(new JSONObject(content)).getBytes()));
         JSONObject sendData = new JSONObject();
         sendData.put("data", s);
-        sendData.put("type", "LCUPreferences");
+        sendData.put("type", preferenceType.getName());
         sendData.put("version", "1.0");
         Request request = jsonRequest(uri)
                 .put(RequestBody.create(sendData.toString(), Constant.APPLICATION_JSON))

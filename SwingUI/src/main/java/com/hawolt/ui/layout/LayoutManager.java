@@ -23,6 +23,7 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
     private final StoreWindow store;
     //private final ProfileWindow profile;
     private final ChampSelectUI champSelect;
+    private LayoutHeader header;
 
     public LayoutManager(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
@@ -42,6 +43,15 @@ public class LayoutManager extends ChildUIComponent implements ILayoutManager {
     public void showClientComponent(String name) {
         layout.show(center, name);
     }
+
+    public LayoutHeader getHeader() {
+        return header;
+    }
+
+    public void setHeader(LayoutHeader header) {
+        this.header = header;
+    }
+
 
     public ChampSelectUI getChampSelectUI() {
         return champSelect;

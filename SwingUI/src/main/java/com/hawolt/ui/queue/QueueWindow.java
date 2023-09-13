@@ -50,14 +50,15 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
     private final List<String> supportedModes = Arrays.asList("ARAM", "BOTS", "BLIND", "DRAFT", "RANKED-FLEX", "RANKED-SOLO", "TFT");
     Boolean init = false;
     ChildUIComponent main = new ChildUIComponent(new BorderLayout());
+    private LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER);
 
 
     public QueueWindow(LeagueClientUI leagueClientUI) {
         super(new BorderLayout());
         this.leagueClientUI = leagueClientUI;
         this.add(parent = new ChildUIComponent(layout), BorderLayout.CENTER);
-        lobby = new DraftQueueLobby(leagueClientUI, parent, layout);
-        tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout);
+        lobby = new DraftQueueLobby(leagueClientUI, parent, layout, this);
+        tftLobby = new TFTQueueLobby(leagueClientUI, parent, layout, this);
         LeagueClientUI.service.execute(this);
     }
 
@@ -73,6 +74,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         if (!alreadyShown) {
             this.parent.add("lobby", lobby);
         }
+        layout.show(parent, "lobby");
         return lobby;
     }
 
@@ -88,6 +90,7 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         if (!alreadyShown) {
             this.parent.add("lobby", tftLobby);
         }
+        layout.show(parent, "lobby");
         return tftLobby;
     }
 
@@ -216,7 +219,6 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
 
     @Override
     public void onMessage(RiotMessageServiceMessage riotMessageServiceMessage) {
-        Logger.debug(riotMessageServiceMessage);
         JSONObject payload = riotMessageServiceMessage.getPayload().getPayload();
         if (payload.has("backwardsTransitionInfo")) {
             JSONObject info = payload.getJSONObject("backwardsTransitionInfo");
@@ -271,9 +273,11 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
         if (mode.equals("CLASSIC") || mode.equals("ARAM")) {
             this.parent.add("lobby", lobby);
             layout.show(parent, "lobby");
+            lobby.actionPerformed(null);
         } else if (mode.equals("TFT")) {
             this.parent.add("lobby", tftLobby);
             layout.show(parent, "lobby");
+            lobby.actionPerformed(null);
         }
         if (!init) {
             LFlatButton button = new LFlatButton("Show Lobby", LTextAlign.CENTER, LHighlightType.COMPONENT);
@@ -299,14 +303,13 @@ public class QueueWindow extends ChildUIComponent implements Runnable, PacketCal
                     queueId
             );
             partiesLedge.partytype(PartyType.OPEN);
-            //TODO revisit
-            /*JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
-            JSONObject data = partiesPositionPreferences.getJSONObject("data");
-            PositionPreference primary = PositionPreference.valueOf(data.getString("firstPreference"));
-            PositionPreference secondary = PositionPreference.valueOf(data.getString("secondPreference"));
-            partiesLedge.metadata(primary, secondary);*/
         } catch (IOException ex) {
             Logger.error(ex);
         }
+    }
+
+    public void rebase() {
+        main.remove(button);
+        init = false;
     }
 }

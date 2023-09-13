@@ -124,4 +124,8 @@ public class LayoutHeader extends ChildUIComponent {
     public HeaderWallet getWallet() {
         return wallet;
     }
+
+    public String getChatStatus() {
+        return profile.getSummoner().getStatus().getBoxStatus();
+    }
 }

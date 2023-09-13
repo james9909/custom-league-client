@@ -17,4 +17,39 @@ public class UserSettings extends DynamicObject {
     public JSONArray getCookies() {
         return getByKeyNonNullOrThrow("cookies", () -> new RuntimeException("NO_COOKIES_PRESENT"));
     }
+
+    public JSONObject getPartyPositionPreference() {
+        if (has("preferences")) {
+            JSONObject prefs = getJSONObject("preferences");
+            if (prefs.has("partiesPositionPreferences")) {
+                JSONObject partyPosPrefs = prefs.getJSONObject("partiesPositionPreferences");
+                if (partyPosPrefs.has("data")) {
+                    return (partyPosPrefs.getJSONObject("data"));
+                }
+            }
+        }
+        return new JSONObject().put("firstPreference", "UNSELECTED").put("secondPreference", "UNSELECTED");
+    }
+
+    public JSONObject setPartyPositionPreference(JSONObject data) {
+        if (has("preferences")) {
+            JSONObject prefs = getJSONObject("preferences");
+            if (prefs.has("partiesPositionPreferences")) {
+                JSONObject partiesPosPrefs = prefs.getJSONObject("partiesPositionPreferences");
+                if (partiesPosPrefs.has("data")) {
+                    JSONObject pppData = partiesPosPrefs.getJSONObject("data");
+                    pppData.remove("firstPreference");
+                    pppData.remove("secondPreference");
+                    pppData.put("firstPreference", data.getString("firstPreference"));
+                    pppData.put("secondPreference", data.getString("secondPreference"));
+                } else {
+                    partiesPosPrefs.put("data", new JSONObject().put("firstPreference", data.getString("firstPreference")).put("secondPreference", data.getString("secondPreference")));
+                }
+                prefs.put("partiesPositionPreferences", new JSONObject().put("data", new JSONObject().put("firstPreference", data.getString("firstPreference")).put("secondPreference", data.getString("secondPreference"))).put("schemaVersion", 0));
+                prefs.getJSONObject("partiesPositionPreferences").put("data", new JSONObject().put("firstPreference", data.getString("firstPreference")).put("secondPreference", data.getString("secondPreference")));
+            }
+        }
+        return getJSONObject("preferences");
+    }
+
 }
