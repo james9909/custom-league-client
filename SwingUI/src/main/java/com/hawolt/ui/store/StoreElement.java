@@ -102,7 +102,7 @@ public class StoreElement extends ChildUIComponent implements IStoreElement {
         LeagueClientUI.service.execute(() -> {
             try {
                 PurchaseWidget widget = client.getPurchaseWidget();
-                JSONObject response = new JSONObject(widget.purchase(currencyType, InventoryType.CHAMPION, item.getItemId(), price));
+                JSONObject response = new JSONObject(widget.purchase(currencyType, item.getInventoryType(), item.getItemId(), price));
                 if (response.has("errorCode")) {
                     AudioEngine.play(Sound.ERROR);
                 } else {
