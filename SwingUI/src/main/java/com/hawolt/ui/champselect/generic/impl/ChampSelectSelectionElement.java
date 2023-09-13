@@ -3,7 +3,9 @@ package com.hawolt.ui.champselect.generic.impl;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.logger.Logger;
 import com.hawolt.ui.champselect.data.ChampSelectType;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -29,31 +31,6 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
     private BufferedImage image;
     private boolean selected;
 
-    private class ChampSelectSelectionElementAdapter extends MouseAdapter {
-        private final ChampSelectChoice callback;
-
-        public ChampSelectSelectionElementAdapter(ChampSelectChoice callback) {
-            this.callback = callback;
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            try {
-                Logger.info("[champ-select] indicate {}", championId);
-                Dimension dimension = getSize();
-                int rectangleX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
-                Rectangle rectangle = new Rectangle(rectangleX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
-                selected = rectangle.contains(e.getPoint());
-                if (!selected) return;
-                Logger.info("[champ-select] forward {} as indicator", championId);
-                ChampSelectSelectionElement.this.repaint();
-                callback.onChoice(ChampSelectSelectionElement.this);
-            } catch (Exception ex) {
-                Logger.error(ex);
-            }
-        }
-    }
-
     public ChampSelectSelectionElement(ChampSelectChoice callback, ChampSelectType type, int championId, String name) {
         super(new BorderLayout());
         this.name = name;
@@ -69,7 +46,7 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
         Dimension dimension = getSize();
         int imageX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
         if (image != null) {
-            g.drawImage(image, imageX, 0, null);
+            g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING), imageX, 0, null);
         }
         Graphics2D graphics2D = (Graphics2D) g;
         graphics2D.setFont(FONT);
@@ -77,7 +54,7 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
         FontMetrics metrics = graphics2D.getFontMetrics();
         int textWidth = metrics.stringWidth(name);
         if (textWidth <= dimension.width) {
-            graphics2D.setColor(Color.WHITE);
+            graphics2D.setColor(ColorPalette.textColor);
             int textX = (dimension.width >> 1) - (textWidth >> 1);
             int textY = 15 + (metrics.getAscent() >> 1);
             graphics2D.drawString(name, textX, IMAGE_TARGET_DIMENSION.height + textY);
@@ -85,11 +62,12 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
         if (selected) {
             Color color = type == ChampSelectType.PICK ? Color.CYAN : Color.RED;
             Color infused = new Color((color.getRGB() & 0xFFFFFF) | (0x7F << 24), true);
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             graphics2D.setColor(infused);
-            graphics2D.fillRect(imageX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
+            graphics2D.fillRoundRect(imageX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height,
+                    ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0, ColorPalette.useRoundedCorners ? ColorPalette.CARD_ROUNDING : 0);
         }
     }
-
 
     public void setSelected(boolean b) {
         this.selected = b;
@@ -128,6 +106,31 @@ public class ChampSelectSelectionElement extends ChildUIComponent implements Res
     @Override
     public BufferedImage transform(byte[] bytes) throws Exception {
         return ImageIO.read(new ByteArrayInputStream(bytes));
+    }
+
+    private class ChampSelectSelectionElementAdapter extends MouseAdapter {
+        private final ChampSelectChoice callback;
+
+        public ChampSelectSelectionElementAdapter(ChampSelectChoice callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            try {
+                Logger.info("[champ-select] indicate {}", championId);
+                Dimension dimension = getSize();
+                int rectangleX = (dimension.width >> 1) - (IMAGE_TARGET_DIMENSION.width >> 1);
+                Rectangle rectangle = new Rectangle(rectangleX, 0, IMAGE_TARGET_DIMENSION.width, IMAGE_TARGET_DIMENSION.height);
+                selected = rectangle.contains(e.getPoint());
+                if (!selected) return;
+                Logger.info("[champ-select] forward {} as indicator", championId);
+                ChampSelectSelectionElement.this.repaint();
+                callback.onChoice(ChampSelectSelectionElement.this);
+            } catch (Exception ex) {
+                Logger.error(ex);
+            }
+        }
     }
 
 }

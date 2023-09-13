@@ -1,5 +1,7 @@
 package com.hawolt.util.ui;
 
+import com.hawolt.util.ColorPalette;
+
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicScrollBarUI;
@@ -9,10 +11,12 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LScrollBarUI extends BasicScrollBarUI {
+public class LScrollBarUI extends BasicScrollBarUI implements PropertyChangeListener {
     private final int scrollSize = 14;
     private final MouseAdapter mouseEvent;
     private float animate;
@@ -21,6 +25,7 @@ public class LScrollBarUI extends BasicScrollBarUI {
     private boolean press;
 
     public LScrollBarUI() {
+        ColorPalette.addThemeListener(this);
         mouseEvent = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -58,11 +63,16 @@ public class LScrollBarUI extends BasicScrollBarUI {
     }
 
     @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        scrollbar.setForeground(ColorPalette.scrollHandleColor);
+    }
+
+    @Override
     public void installUI(JComponent component) {
         super.installUI(component);
         component.setPreferredSize(new Dimension(scrollSize, scrollSize));
         component.addMouseListener(mouseEvent);
-        component.setForeground(new Color(150, 150, 150));
+        component.setForeground(ColorPalette.scrollHandleColor);
     }
 
     private void start(boolean show) {

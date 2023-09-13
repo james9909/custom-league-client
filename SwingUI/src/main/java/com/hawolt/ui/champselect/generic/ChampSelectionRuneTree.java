@@ -27,8 +27,9 @@ public class ChampSelectionRuneTree extends ChildUIComponent implements IRuneSel
     }
 
     public ChampSelectionRuneTree(RuneType type, boolean secondary, boolean skip) {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new GridLayout(0, 1, 0, 5));
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBackground(ColorPalette.backgroundColor);
         this.special = secondary && skip;
         this.secondary = secondary;
         this.type = type;

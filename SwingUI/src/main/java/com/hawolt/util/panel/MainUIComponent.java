@@ -1,26 +1,30 @@
 package com.hawolt.util.panel;
 
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * Created: 06/08/2023 13:20
  * Author: Twitter @hawolt
  **/
 
-public class MainUIComponent extends JPanel {
+public class MainUIComponent extends JPanel implements PropertyChangeListener {
 
     private final JFrame frame;
 
     protected Container container;
 
     public MainUIComponent(JFrame frame) {
+        ColorPalette.addThemeListener(this);
         this.frame = frame;
         this.container = frame.getContentPane();
         this.container.removeAll();
-        setBackground(ColorPalette.BACKGROUND_COLOR);
+        setBackground(ColorPalette.backgroundColor);
     }
 
     public void init() {
@@ -31,5 +35,12 @@ public class MainUIComponent extends JPanel {
 
     public JFrame getJFrame() {
         return frame;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        LThemeChoice old = (LThemeChoice) evt.getOldValue();
+        setBackground(ColorPalette.getNewColor(getBackground(), old));
+        repaint();
     }
 }

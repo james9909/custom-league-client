@@ -4,8 +4,12 @@ import com.hawolt.client.LeagueClient;
 import com.hawolt.client.resources.ledge.AbstractLedgeEndpoint;
 import com.hawolt.generic.Constant;
 import com.hawolt.http.OkHttp3Client;
+import com.hawolt.http.layer.IResponse;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -30,6 +34,24 @@ public class ChallengeLedge extends AbstractLedgeEndpoint {
                 .post(RequestBody.create(new byte[0], Constant.APPLICATION_JSON))
                 .build();
         return OkHttp3Client.execute(request, gateway).code() == 204;
+    }
+
+    public JSONObject getChallengePoints() throws IOException {
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("https")
+                .host(base.substring(base.lastIndexOf('/') + 1))
+                .addPathSegment(name())
+                .addPathSegment("v" + version())
+                .addPathSegment("summary-player-data")
+                .addQueryParameter("puuid", userInformation.getSub())
+                .addQueryParameter("includeSelected", "true")
+                .build();
+        Request request = jsonRequest(url)
+                .post(RequestBody.create(new JSONArray().toString(), Constant.APPLICATION_JSON))
+                .build();
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        JSONObject object = new JSONObject(response.asString());
+        return object.getJSONObject("totalPoints");
     }
 
 

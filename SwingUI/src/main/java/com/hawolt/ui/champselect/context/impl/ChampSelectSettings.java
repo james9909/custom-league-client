@@ -24,11 +24,11 @@ import java.util.function.Function;
 public class ChampSelectSettings extends ChampSelectContextProvider implements ChampSelectSettingsContext {
 
     private final Map<Integer, List<ActionObject>> actionSetMapping = new ConcurrentHashMap<>();
+    protected int[] championsAvailableForBan;
     private boolean allowDuplicatePicks, skipChampionSelect, allowSkinSelection, allowOptingOutOfBanning;
     private int localPlayerCellId, currentActionSetIndex, counter, recoveryCounter, queueId;
     private long currentTotalTimeMillis, currentTimeRemainingMillis, gameId, lastUpdate;
     private String teamId, subphase, teamChatRoomId, phaseName, contextId, filter;
-    protected int[] championsAvailableForBan;
     private JSONArray trades, swaps, bench;
     private JSONObject cells;
 

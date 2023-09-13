@@ -3,24 +3,32 @@ package com.hawolt.ui.custom;
 import com.hawolt.util.ColorPalette;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * Created: 01/09/2023 01:37
  * Author: Twitter @hawolt
  **/
 
-public class LHintPasswordTextField extends JPasswordField {
+public class LHintPasswordTextField extends JPasswordField implements PropertyChangeListener {
     private final String hint;
 
     public LHintPasswordTextField(String hint) {
+        ColorPalette.addThemeListener(this);
         this.hint = hint;
         this.setForeground(Color.WHITE);
         this.setCaretColor(Color.WHITE);
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.setFont(new Font("Arial", Font.PLAIN, 22));
-        this.setBorder(new EmptyBorder(5, 5, 5, 5));
+        this.setBackground(ColorPalette.backgroundColor);
+        this.setFont(new Font("Dialog", Font.PLAIN, 22));
+        setBorder(new CompoundBorder(
+                new MatteBorder(0, 0, 1, 0, ColorPalette.inputUnderline),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
     }
 
     @Override
@@ -38,5 +46,14 @@ public class LHintPasswordTextField extends JPasswordField {
         int blend = ((background & mask) >>> 1) + ((foreground & mask) >>> 1);
         g.setColor(new Color(blend, true));
         g.drawString(hint, insets.left, height / 2 + fontMetrics.getAscent() / 2 - 2);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        setBackground(ColorPalette.backgroundColor);
+        setBorder(new CompoundBorder(
+                new MatteBorder(0, 0, 1, 0, ColorPalette.inputUnderline),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
     }
 }

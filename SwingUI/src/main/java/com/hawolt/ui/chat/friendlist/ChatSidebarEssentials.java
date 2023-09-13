@@ -7,9 +7,7 @@ import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
 
-import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 /**
@@ -19,29 +17,27 @@ import java.awt.*;
 
 public class ChatSidebarEssentials extends ChildUIComponent {
     private final QueueState state;
+    private ChildUIComponent display;
+    private ChildUIComponent requests;
 
     public ChatSidebarEssentials(LeagueClientUI leagueClientUI, IFriendListComponent component) {
         super(new BorderLayout());
-        this.setBorder(
-                BorderFactory.createCompoundBorder(
-                        new MatteBorder(2, 0, 2, 0, Color.DARK_GRAY),
-                        new EmptyBorder(0, 5, 5, 5)
-                )
-        );
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.setBorder(new EmptyBorder(0, 5, 5, 5));
+        this.setBackground(ColorPalette.accentColor);
         VirtualRiotXMPPClient xmppClient = leagueClientUI.getLeagueClient().getXMPPClient();
         ChatSidebarFriendEssentials essentials = new ChatSidebarFriendEssentials(xmppClient, component);
         this.add(essentials, BorderLayout.CENTER);
         this.state = new QueueState();
         this.state.setVisible(false);
-        ChildUIComponent display = new ChildUIComponent(new BorderLayout());
-        display.setBackground(ColorPalette.BACKGROUND_COLOR);
+        display = new ChildUIComponent(new BorderLayout());
+        display.setBackground(ColorPalette.accentColor);
+        display.setBorder(new EmptyBorder(0, 5, 0, 0));
         display.add(state, BorderLayout.NORTH);
         display.add(new GameInvites(leagueClientUI), BorderLayout.CENTER);
         this.add(display, BorderLayout.NORTH);
-        ChildUIComponent requests = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
-        requests.setBorder(new EmptyBorder(5, 0, 0, 0));
-        requests.setBackground(ColorPalette.BACKGROUND_COLOR);
+        requests = new ChildUIComponent(new GridLayout(0, 1, 0, 5));
+        requests.setBorder(new EmptyBorder(5, 5, 0, 0));
+        requests.setBackground(ColorPalette.accentColor);
         this.add(requests, BorderLayout.SOUTH);
         component.registerNotificationBar(requests);
     }
@@ -61,6 +57,4 @@ public class ChatSidebarEssentials extends ChildUIComponent {
         state.setVisible(false);
         revalidate();
     }
-
-
 }

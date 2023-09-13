@@ -44,6 +44,17 @@ public class LeagueLedge extends AbstractLedgeEndpoint {
         return new JSONObject(response.asString());
     }
 
+    public JSONObject getOwnRankedStats() throws IOException {
+        String uri = String.format("%s/%s/v%s/signedRankedStats",
+                base,
+                name(),
+                version()
+        );
+        Request request = jsonRequest(uri).get().build();
+        IResponse response = OkHttp3Client.execute(request, gateway);
+        return new JSONObject(response.asString());
+    }
+
     public LeagueLedgeNotifications getNotifications() throws IOException {
         String uri = String.format("%s/%s/v%s/notifications",
                 base,

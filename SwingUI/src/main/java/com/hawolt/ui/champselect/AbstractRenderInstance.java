@@ -30,14 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractRenderInstance extends ChampSelectUIComponent implements ChampSelectRenderer, ChampSelectChoice {
 
     protected final ChildUIComponent component = new ChildUIComponent(new BorderLayout());
+    private final Map<ChampSelectType, ChampSelectSelectionElement> map = new ConcurrentHashMap<>();
 
     public AbstractRenderInstance() {
         this.setLayout(new BorderLayout());
         this.add(component, BorderLayout.CENTER);
     }
-
-    private final Map<ChampSelectType, ChampSelectSelectionElement> map = new ConcurrentHashMap<>();
-
 
     public abstract void push(IncomingMessage incomingMessage);
 

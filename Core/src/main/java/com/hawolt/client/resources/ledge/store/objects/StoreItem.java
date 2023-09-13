@@ -17,15 +17,16 @@ import java.util.List;
  **/
 
 public class StoreItem {
-    private List<Price> list = new ArrayList<>();
+    private final List<Price> prices = new ArrayList<>();
     private String offerId, name, description;
+    private SubInventoryType subInventoryType;
+    private int discountCostBE, discountCostRP;
+    private float discountBE, discountRP;
     private InventoryType inventoryType;
     private boolean active, valid;
     private JSONObject object;
-    private long itemId;
-    private float discount;
-    private int discountCost;
     private Date releaseDate;
+    private long itemId;
 
     public StoreItem(JSONArray array) {
         this.valid = !array.isEmpty();
@@ -33,22 +34,33 @@ public class StoreItem {
         JSONObject item = array.getJSONObject(0);
         if (item.has("offerId")) this.offerId = item.getString("offerId");
         this.inventoryType = InventoryType.valueOf(item.getString("inventoryType"));
+        if (item.has("subInventoryType")) {
+            this.subInventoryType = SubInventoryType.valueOf(item.getString("subInventoryType").toUpperCase());
+        }
         this.active = item.getBoolean("active");
         this.itemId = item.getLong("itemId");
         JSONArray prices = item.getJSONArray("prices");
         for (int i = 0; i < prices.length(); i++) {
-            list.add(new Price(prices.getJSONObject(i)));
+            this.prices.add(new Price(prices.getJSONObject(i)));
         }
         if (item.has("sale")) {
             JSONObject sale = item.getJSONObject("sale");
             if (sale.has("prices")) {
                 JSONArray salePrices = sale.getJSONArray("prices");
-                //TODO does not support BE sale prices
                 for (int i = 0; i < salePrices.length(); i++) {
                     JSONObject salePrice = salePrices.getJSONObject(i);
-                    if (!salePrice.has("discount")) continue;
-                    this.discount = salePrice.getFloat("discount");
-                    this.discountCost = salePrice.getInt("cost");
+                    if (salePrice.getString("currency").equals("IP")) {
+                        this.discountCostBE = salePrice.getInt("cost");
+                        if (!salePrice.has("discount")) continue;
+                        if (salePrice.getFloat("discount") == 0) continue;
+                        this.discountBE = salePrice.getFloat("discount");
+                    }
+                    if (salePrice.getString("currency").equals("RP")) {
+                        this.discountCostRP = salePrice.getInt("cost");
+                        if (!salePrice.has("discount")) continue;
+                        if (salePrice.getFloat("discount") == 0) continue;
+                        this.discountRP = salePrice.getFloat("discount");
+                    }
                 }
             }
         }
@@ -78,43 +90,63 @@ public class StoreItem {
     }
 
     public boolean isRiotPointPurchaseAvailable() {
-        return list.stream().anyMatch(price -> price.getCurrency().equals("RP"));
+        return getCorrectRiotPointCost() > 0 || prices.stream().anyMatch(price -> price.getCurrency().equals("RP"));
     }
 
     public int getRiotPointCost() {
-        return list.stream().filter(price -> price.getCurrency().equals("RP")).mapToInt(Price::getCost).sum();
+        return prices.stream().filter(price -> price.getCurrency().equals("RP")).mapToInt(Price::getCost).sum();
     }
 
     public boolean hasDiscount() {
-        return discount != 0;
+        return hasDiscountBE() || hasDiscountRP();
     }
 
-    public float getDiscount() {
-        return discount;
+    public boolean hasDiscountBE() {
+        return discountBE != 0 || discountCostBE > 0;
     }
 
-    public int getDiscountedCost() {
-        if (hasDiscount()) {
-            return discountCost;
+    public boolean hasDiscountRP() {
+        return discountRP != 0 || discountCostRP > 0;
+    }
+
+    public float getDiscountBE() {
+        return discountBE;
+    }
+
+    public float getDiscountRP() {
+        return discountRP;
+    }
+
+    public int getCorrectBlueEssenceCost() {
+        if (hasDiscountBE()) {
+            return discountCostBE;
+        } else {
+            return getBlueEssenceCost();
+        }
+    }
+
+    public int getCorrectRiotPointCost() {
+        if (hasDiscountRP()) {
+            return discountCostRP;
         } else {
             return getRiotPointCost();
         }
     }
 
     public boolean isBlueEssencePurchaseAvailable() {
-        return list.stream().anyMatch(price -> price.getCurrency().equals("IP"));
+        return getCorrectBlueEssenceCost() > 0 || prices.stream().anyMatch(price -> price.getCurrency().equals("IP"));
     }
 
     public int getBlueEssenceCost() {
-        return list.stream().filter(price -> price.getCurrency().equals("IP")).mapToInt(Price::getCost).sum();
+        return prices.stream().filter(price -> price.getCurrency().equals("IP")).mapToInt(Price::getCost).sum();
     }
 
     public int getPointCost() {
         return (int) Math.ceil(getBlueEssenceCost() / 450D);
     }
 
-    public List<Price> getList() {
-        return list;
+    public List<Price> getPrices() {
+        return prices;
     }
 
     public String getOfferId() {
@@ -133,6 +165,14 @@ public class StoreItem {
         return inventoryType;
     }
 
+    public boolean hasSubInventoryType() {
+        return subInventoryType != null;
+    }
+
+    public SubInventoryType getSubInventoryType() {
+        return subInventoryType;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -148,11 +188,12 @@ public class StoreItem {
     @Override
     public String toString() {
         return "StoreItem{" +
-                "list=" + list +
+                "list=" + prices +
                 ", offerId='" + offerId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", inventoryType=" + inventoryType +
+                ", subInventoryType=" + subInventoryType +
                 ", active=" + active +
                 ", valid=" + valid +
                 ", object=" + object +

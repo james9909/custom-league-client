@@ -22,17 +22,16 @@ public class ChatSideBarUIControl extends JComponent implements ActionListener {
     private final ChildUIComponent buttons = new ChildUIComponent(new GridLayout(0, 3, 3, 0));
 
     private LFlatButton minimize, maximize, close;
-
-    public ChatSideBarUIControl() {
-        this.setLayout(new BorderLayout());
-        this.setBackground(ColorPalette.ACCENT_COLOR);
-        this.add(buttons, BorderLayout.EAST);
-        this.setup();
-    }
-
     private boolean maximized;
     private Rectangle bounds;
     private int state;
+
+    public ChatSideBarUIControl() {
+        this.setLayout(new BorderLayout());
+        this.setBackground(ColorPalette.accentColor);
+        this.add(buttons, BorderLayout.EAST);
+        this.setup();
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -59,7 +58,7 @@ public class ChatSideBarUIControl extends JComponent implements ActionListener {
     }
 
     private void setup() {
-        buttons.setBackground(ColorPalette.ACCENT_COLOR);
+        buttons.setBackground(ColorPalette.accentColor);
         minimize = new LFlatButton("—", LTextAlign.CENTER, LHighlightType.COMPONENT);
         minimize.addActionListener(this);
         buttons.add(minimize);
@@ -68,6 +67,7 @@ public class ChatSideBarUIControl extends JComponent implements ActionListener {
         buttons.add(maximize);
         close = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
         close.addActionListener(this);
+        close.setHighlightColor(Color.RED);
         buttons.add(close);
     }
 

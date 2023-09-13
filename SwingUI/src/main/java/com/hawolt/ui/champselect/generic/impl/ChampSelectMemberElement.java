@@ -45,14 +45,28 @@ import java.util.concurrent.TimeUnit;
 public class ChampSelectMemberElement extends ChampSelectUIComponent implements Runnable, DataTypeConverter<byte[], BufferedImage> {
     private static final String SPRITE_PATH = "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/v1/champion-splashes/%s/%s.jpg";
     private static final Dimension SUMMONER_SPELL_DIMENSION = new Dimension(28, 28);
+    private static final Color HIGHLIGHT_NOT_LOCKED = new Color(0xFF, 0xFF, 0xFF, 0x4F);
+    private static final Color HIGHLIGHT_PICKING = new Color(155, 224, 155, 179);
     private final ResourceManager<BufferedImage> manager = new ResourceManager<>(this);
     private final ChampSelectTeamType teamType;
     private final ChampSelectTeam team;
-
+    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("trade-blocker");
     private int championId, indicatorId, skinId, spell1Id, spell2Id;
     private BufferedImage sprite, spellOne, spellTwo, clearChampion;
     private ChampSelectMember member;
-    private String hero, puuid;
+    private String hero, puuid, name;
+    private GraphicalDrawableManager drawables;
+    private ScheduledFuture<?> future;
+
+    public ChampSelectMemberElement(ChampSelectTeamType teamType, ChampSelectTeam team, ChampSelectMember member) {
+        ColorPalette.addThemeListener(this);
+        this.addComponentListener(new ChampSelectSelectMemberResizeAdapter());
+        this.setBackground(ColorPalette.backgroundColor);
+        this.teamType = teamType;
+        this.member = member;
+        this.team = team;
+        this.drawables();
+    }
 
     @Override
     public void run() {
@@ -63,43 +77,30 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     }
 
     private void configure(ChampSelectTeamMember teamMember) {
-        if (this.puuid != null && this.puuid.equals(teamMember.getPUUID())) return;
+        LeagueClient client = dataContext.getLeagueClient();
+        if (client == null) {
+            Logger.warn("unable to fetch name for {}, client is null", puuid);
+            return;
+        }
+        if (puuid != null && puuid.equals(teamMember.getPUUID())) return;
         this.puuid = teamMember.getPUUID();
         Map<String, String> resolver = dataContext.getPUUIDResolver();
         if (!resolver.containsKey(puuid)) {
-            LeagueClient client = dataContext.getLeagueClient();
-            if (client == null) {
-                Logger.warn("unable to fetch name for {}, client is null", puuid);
-                return;
-            }
             SummonerLedge summonerLedge = dataContext.getLeagueClient().getLedge().getSummoner();
             try {
-                String name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
+                this.name = summonerLedge.resolveSummonerByPUUD(teamMember.getPUUID()).getName();
                 switch (teamMember.getNameVisibilityType()) {
-                    case "UNHIDDEN" ->
-                            dataContext.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
+                    case "UNHIDDEN" -> dataContext.cache(teamMember.getPUUID(), String.format("%s (%s)", name, getHiddenName()));
                     case "HIDDEN" -> dataContext.cache(teamMember.getPUUID(), getHiddenName());
                     case "VISIBLE" -> dataContext.cache(teamMember.getPUUID(), name);
                 }
             } catch (IOException e) {
                 Logger.error("Failed to retrieve name for {}", teamMember.getPUUID());
             }
+        } else {
+            this.name = resolver.get(puuid);
         }
         this.repaint();
-    }
-
-    private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
-        private static final Debouncer debouncer = new Debouncer();
-
-        @Override
-        public void componentResized(ComponentEvent e) {
-            if (sprite == null) return;
-            debouncer.debounce(
-                    String.valueOf(member.getCellId()),
-                    ChampSelectMemberElement.this::adjust,
-                    200, TimeUnit.MILLISECONDS
-            );
-        }
     }
 
     private void adjust() {
@@ -107,18 +108,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         clearChampion = Scalr.resize(sprite, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_TO_WIDTH, dimension.width);
         repaint();
     }
-
-
-    public ChampSelectMemberElement(ChampSelectTeamType teamType, ChampSelectTeam team, ChampSelectMember member) {
-        this.addComponentListener(new ChampSelectSelectMemberResizeAdapter());
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.teamType = teamType;
-        this.member = member;
-        this.team = team;
-        this.drawables();
-    }
-
-    private GraphicalDrawableManager drawables;
 
     private void drawables() {
         this.drawables = new GraphicalDrawableManager(this);
@@ -260,9 +249,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         }
     }
 
-    private final ScheduledExecutorService service = ExecutorManager.getScheduledService("trade-blocker");
-    private ScheduledFuture<?> future;
-
     public void update(ChampSelectMember member) {
         this.member = member;
         this.updateChamp(member);
@@ -324,9 +310,6 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
         this.repaint();
     }
 
-    private static final Color HIGHLIGHT_NOT_LOCKED = new Color(0xFF, 0xFF, 0xFF, 0x4F);
-    private static final Color HIGHLIGHT_PICKING = new Color(155, 224, 155, 179);
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -381,7 +364,7 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
                     case "UNHIDDEN" -> guidelineY - metrics.getAscent() - 7;
                     default -> guidelineY;
                 };
-                String resolved = dataContext.getPUUIDResolver().getOrDefault(teamMember.getPUUID(), getHiddenName());
+                String resolved = name == null ? getHiddenName() : name;
                 String name = switch (member.getNameVisibilityType()) {
                     case "HIDDEN", "UNHIDDEN" -> getHiddenName();
                     default -> String.valueOf(resolved);
@@ -442,26 +425,30 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     private void drawTextWithShadow(Graphics2D graphics2D, String text, int x, int y) {
         graphics2D.setColor(Color.BLACK);
         graphics2D.drawString(text, x + 1, y + 1);
-        graphics2D.setColor(Color.WHITE);
+        graphics2D.setColor(ColorPalette.textColor);
         graphics2D.drawString(text, x, y);
     }
 
     private void paintSummonerSpells(Graphics g) {
         Dimension dimension = getSize();
-        g.setColor(Color.BLACK);
+        //g.setColor(Color.BLACK);
         switch (team) {
             case BLUE -> {
                 int baseX = dimension.width - 5 - SUMMONER_SPELL_DIMENSION.width;
                 g.drawImage(spellTwo, baseX, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX, 5, null);
                 g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
                 g.drawImage(spellOne, baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, null);
                 g.drawRect(baseX - 5 - SUMMONER_SPELL_DIMENSION.width, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
             }
             case PURPLE -> {
                 int baseX = 5;
                 g.drawImage(spellOne, baseX, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellOne, ColorPalette.CARD_ROUNDING), baseX, 5, null);
                 g.drawRect(baseX, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
                 g.drawImage(spellTwo, baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, null);
+                //g.drawImage(PaintHelper.circleize(spellTwo, ColorPalette.CARD_ROUNDING), baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, null);
                 g.drawRect(baseX + SUMMONER_SPELL_DIMENSION.width + 5, 5, SUMMONER_SPELL_DIMENSION.width, SUMMONER_SPELL_DIMENSION.height);
             }
         }
@@ -474,5 +461,19 @@ public class ChampSelectMemberElement extends ChampSelectUIComponent implements 
     @Override
     public BufferedImage apply(byte[] b) throws Exception {
         return ImageIO.read(new ByteArrayInputStream(b));
+    }
+
+    private class ChampSelectSelectMemberResizeAdapter extends ComponentAdapter {
+        private static final Debouncer debouncer = new Debouncer();
+
+        @Override
+        public void componentResized(ComponentEvent e) {
+            if (sprite == null) return;
+            debouncer.debounce(
+                    String.valueOf(member.getCellId()),
+                    ChampSelectMemberElement.this::adjust,
+                    200, TimeUnit.MILLISECONDS
+            );
+        }
     }
 }

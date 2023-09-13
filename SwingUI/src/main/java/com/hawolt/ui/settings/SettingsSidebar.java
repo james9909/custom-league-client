@@ -1,5 +1,12 @@
 package com.hawolt.ui.settings;
 
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.LFlatButton;
+import com.hawolt.util.ui.LHighlightType;
+import com.hawolt.util.ui.LLabel;
+import com.hawolt.util.ui.LTextAlign;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -7,18 +14,18 @@ import java.awt.*;
 
 public class SettingsSidebar extends JPanel {
     private static final Font headerFont = new Font("Arial", Font.BOLD, 20);
-    private static final Font sectionFont = new Font("Arial", Font.ITALIC, 20);
     private static final Dimension sidebarDimension = new Dimension(200, 0);
     private static final Dimension headerDimension = new Dimension(190, 40);
     private static final Dimension sectionDimension = new Dimension(190, 40);
-    JPanel panel;
+    ChildUIComponent panel;
 
     public SettingsSidebar() {
         super();
         this.setLayout(new BorderLayout());
         this.setPreferredSize(sidebarDimension);
 
-        panel = new JPanel();
+        panel = new ChildUIComponent();
+        panel.setBackground(ColorPalette.accentColor);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -29,33 +36,35 @@ public class SettingsSidebar extends JPanel {
         this.add(panel);
     }
 
-    protected static JButton newSectionButton(String name, CardLayout cl, JPanel main) {
-        JButton button = new JButton(name);
+    protected static LFlatButton newSectionButton(String name, CardLayout cl, JPanel main) {
+        LFlatButton button = new LFlatButton(name, LTextAlign.CENTER, LHighlightType.LEFT);
         button.setActionCommand(name);
-        button.setFont(sectionFont);
+        button.setBackground(ColorPalette.accentColor);
         button.setMaximumSize(sectionDimension);
 
         button.addActionListener(listener -> {
             cl.show(main, listener.getActionCommand());
         });
-        
+
         return button;
     }
 
     protected GroupTab addGroupTab(String name) {
         GroupTab result = new GroupTab(name);
+        result.setBackground(ColorPalette.accentColor);
         panel.add(result);
         return result;
     }
 
-    protected class GroupTab extends JPanel {
+    protected class GroupTab extends ChildUIComponent {
         private JPanel container;
 
         private GroupTab(String name) {
             super();
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-            container = new JPanel();
+            container = new ChildUIComponent();
+            container.setBackground(ColorPalette.accentColor);
             container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
             container.setPreferredSize(sectionDimension);
             container.setBorder(
@@ -64,7 +73,7 @@ public class SettingsSidebar extends JPanel {
                     )
             );
 
-            JLabel header = new JLabel(name);
+            LLabel header = new LLabel(name, LTextAlign.LEFT);
             header.setFont(headerFont);
             header.setMaximumSize(headerDimension);
 

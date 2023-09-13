@@ -23,12 +23,13 @@ public abstract class ChampSelectHeaderUI extends ChampSelectUIComponent {
     protected ChampSelectPhase phase;
 
     public ChampSelectHeaderUI() {
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
+        ColorPalette.addThemeListener(this);
+        this.setBackground(ColorPalette.backgroundColor);
         this.setPreferredSize(new Dimension(0, 60));
         this.scheduler.scheduleAtFixedRate(this::repaint, 0, 20, TimeUnit.MILLISECONDS);
         this.setBorder(
                 BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK),
+                        BorderFactory.createMatteBorder(0, 1, 0, 1, Color.DARK_GRAY),
                         new EmptyBorder(5, 5, 5, 5)
                 )
         );
@@ -59,7 +60,7 @@ public abstract class ChampSelectHeaderUI extends ChampSelectUIComponent {
         Graphics2D graphics2D = (Graphics2D) g;
         graphics2D.setColor(Color.WHITE);
         graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        graphics2D.setFont(new Font("Arial", Font.BOLD, 28));
+        graphics2D.setFont(new Font("Dialog", Font.BOLD, 28));
         FontMetrics metrics = graphics2D.getFontMetrics();
         int width = metrics.stringWidth(status);
         graphics2D.drawString(status, (dimension.width >> 1) - (width >> 1), (dimension.height >> 1) + (metrics.getAscent() >> 1));

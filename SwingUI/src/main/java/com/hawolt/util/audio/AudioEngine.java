@@ -26,6 +26,10 @@ public class AudioEngine {
     );
     private static final DataLine.Info BASE_DATA_LINE = new DataLine.Info(Clip.class, BASE_AUDIO_FORMAT);
     private static final List<Mixer> SUPPORTED = new LinkedList<>();
+    private static final Map<String, byte[]> CACHE = new HashMap<>();
+    public static Mixer SELECTED_MIXER;
+
+    private static Float gain;
 
     public static void install() {
         for (Mixer.Info mixerInfo : AudioSystem.getMixerInfo()) {
@@ -37,12 +41,12 @@ public class AudioEngine {
         SELECTED_MIXER = getDefaultMixer();
     }
 
-    public static Mixer SELECTED_MIXER;
-
-    private static Float gain;
-
     public static void setGain(Float gain) {
         AudioEngine.gain = gain;
+    }
+
+    public static void setMasterOutput(float volume) {
+        AudioEngineMasterOutput.setMasterOutputVolume(volume);
     }
 
     public static Mixer getDefaultMixer() {
@@ -67,8 +71,6 @@ public class AudioEngine {
         if (file.delete()) Logger.debug("[audio-engine] deleted temporary conversion file:{}", file.getName());
         return outputStream;
     }
-
-    private static final Map<String, byte[]> CACHE = new HashMap<>();
 
     private static void cache(Sound sound) throws UnsupportedAudioFileException, IOException {
         try (InputStream inputStream = RunLevel.get(String.join("/", "audio", sound.filename))) {

@@ -35,10 +35,11 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
     private String filter = "";
 
     public ChampSelectSelectionUI(ChampSelectType type, ChampSelectChoice callback) {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         LScrollPane scrollPane = new LScrollPane(component);
-        component.setBackground(ColorPalette.BACKGROUND_COLOR);
+        component.setBackground(ColorPalette.backgroundColor);
         component.setLayout(new GridLayout(0, 5, 5, 5));
         component.setBorder(new EmptyBorder(5, 0, 0, 0));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -63,7 +64,7 @@ public class ChampSelectSelectionUI extends ChampSelectUIComponent {
                 if (!champion.getName().toLowerCase().contains(filter)) continue;
                 if (!map.containsKey(championId)) {
                     ChampSelectSelectionElement element = new ChampSelectSelectionElement(callback, type, championId, champion.getName());
-                    ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), false, element);
+                    ResourceLoader.loadResource(String.format(IMAGE_ICON_BASE, championId), element);
                     map.put(championId, element);
                 }
                 ChampSelectSelectionElement element = map.get(championId);

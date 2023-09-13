@@ -6,11 +6,13 @@ package com.hawolt.ui.chat.profile;
  **/
 
 public enum ChatStatus {
+    DEFAULT("default"),
     ONLINE("chat"),
     DO_NOT_DISTURB("away"),
     INGAME("dnd"),
     MOBILE("mobile"),
     OFFLINE("offline");
+
     private final String status;
 
     ChatStatus(String status) {

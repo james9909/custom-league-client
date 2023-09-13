@@ -1,7 +1,6 @@
 package com.hawolt.util.ui;
 
-public enum LTextAlign
-{
+public enum LTextAlign {
     LEFT,
     CENTER,
     RIGHT

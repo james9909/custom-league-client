@@ -1,8 +1,11 @@
 package com.hawolt.ui.chat.profile;
 
+import com.hawolt.client.LeagueClient;
+import com.hawolt.client.cache.CacheType;
 import com.hawolt.util.ColorPalette;
 import com.hawolt.util.ui.LComboBox;
 import com.hawolt.xmpp.core.VirtualRiotXMPPClient;
+import com.hawolt.xmpp.event.objects.presence.Presence;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,22 +16,38 @@ import java.awt.*;
  **/
 
 public class ChatSidebarStatus extends JComponent {
+    LComboBox<ChatStatus> box;
     private VirtualRiotXMPPClient xmppClient;
+    private LeagueClient leagueClient;
 
     public ChatSidebarStatus() {
         this.setLayout(new BorderLayout());
-        LComboBox<ChatStatus> box = new LComboBox<>(ChatStatus.values());
-        box.setBackground(ColorPalette.ACCENT_COLOR);
-        box.setOptionBackground(ColorPalette.BACKGROUND_COLOR);
-        box.setSelectedItem(ChatStatus.OFFLINE);
+        box = new LComboBox<>(ChatStatus.values());
+        box.setBackground(ColorPalette.accentColor);
+        box.setSelectedItem(ChatStatus.DEFAULT);
         box.addItemListener(listener -> {
             if (xmppClient == null) return;
-            xmppClient.setPresence(box.getItemAt(box.getSelectedIndex()).getStatus(), "", 501);
+            Presence.Builder builder = leagueClient.getCachedValue(CacheType.PRESENCE_BUILDER);
+            String status = box.getItemAt(box.getSelectedIndex()).getStatus();
+            xmppClient.setCustomPresence(
+                    "default".equals(status) ? "chat" : status,
+                    leagueClient.getCachedValue(CacheType.CHAT_STATUS),
+                    builder.build()
+            );
         });
         this.add(box, BorderLayout.CENTER);
+    }
+
+    public String getBoxStatus() {
+        return box.getItemAt(box.getSelectedIndex()).getStatus();
     }
 
     public void setXMPPClient(VirtualRiotXMPPClient xmppClient) {
         this.xmppClient = xmppClient;
     }
+
+    public void setLeagueClient(LeagueClient leagueClient) {
+        this.leagueClient = leagueClient;
+    }
+
 }

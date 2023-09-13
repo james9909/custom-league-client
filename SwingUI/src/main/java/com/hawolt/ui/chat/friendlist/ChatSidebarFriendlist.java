@@ -2,6 +2,7 @@ package com.hawolt.ui.chat.friendlist;
 
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.misc.SortOrder;
+import com.hawolt.settings.SettingListener;
 import com.hawolt.ui.champselect.context.ChampSelectDataContext;
 import com.hawolt.ui.champselect.context.impl.ChampSelect;
 import com.hawolt.ui.chat.window.IChatWindow;
@@ -34,13 +35,14 @@ import java.util.*;
  * Author: Twitter @hawolt
  **/
 
-public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendListener, IPresenceListener, IFriendListComponent, EventListener<FriendList> {
-
+public class ChatSidebarFriendlist extends ChildUIComponent implements SettingListener<String>, IFriendListener, IPresenceListener, IFriendListComponent, EventListener<FriendList> {
     private final ChatListComparator alphabeticalComparator = new ChatListComparator(ChatListComparatorType.NAME, SortOrder.ASCENDING);
     private final ChatListComparator statusComparator = new ChatListComparator(ChatListComparatorType.STATUS, SortOrder.DESCENDING);
     private final Map<String, ChatSidebarFriend> map = new HashMap<>();
     private final IChatWindow window;
-    private String name;
+    private final Object lock = new Object();
+    private final List<GenericPresence> buffer = new LinkedList<>();
+    private String name, friendHandling = "User choice";
     private JComponent component;
     private LeagueClientUI leagueClientUI;
     private Map<GenericFriend, ChildUIComponent> tmp = new HashMap<>();
@@ -50,7 +52,8 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         this.window = window;
         this.window.setIFriendListComponent(this);
         this.leagueClientUI = leagueClientUI;
-        setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.leagueClientUI.getSettingService().addSettingListener("autoFriends", this);
+        setBackground(ColorPalette.accentColor);
     }
 
     @Override
@@ -58,8 +61,6 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         this.name = name;
         this.filter(name);
     }
-
-    private final Object lock = new Object();
 
     private void filter(String name) {
         List<ChatSidebarFriend> list = new ArrayList<>(map.values());
@@ -139,8 +140,6 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
         revalidate();
     }
 
-    private final List<GenericPresence> buffer = new LinkedList<>();
-
     private void handle(GenericPresence presence) {
         if (!map.containsKey(presence.getBareFromJID())) {
             buffer.add(presence);
@@ -153,6 +152,7 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
 
     private void addFriendComponent(GenericFriend friend) {
         ChatSidebarFriend button = new ChatSidebarFriend(window.getXMPPClient(), friend, leagueClientUI);
+        button.setRoundingCorners(false, true, false, true);
         button.executeOnClick(() -> window.showChat(friend));
         addFriendComponent(button);
     }
@@ -160,43 +160,59 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     //TODO ah no no no
     private void addPendingFriendRequest(GenericFriend genericFriend, boolean incoming) {
         ChildUIComponent request = new ChildUIComponent(new BorderLayout(5, 0));
-        request.setBackground(ColorPalette.BACKGROUND_COLOR);
+        request.setBackground(ColorPalette.accentColor);
         LLabel name = new LLabel(genericFriend.getName().toString(), LTextAlign.LEFT, true);
         request.add(name, BorderLayout.CENTER);
         request.setPreferredSize(new Dimension(0, 30));
         ChildUIComponent actions = new ChildUIComponent(new GridLayout(0, incoming ? 2 : 1, 5, 0));
-        actions.setBackground(ColorPalette.BACKGROUND_COLOR);
-        if (incoming) {
-            LFlatButton accept = new LFlatButton("+", LTextAlign.CENTER, LHighlightType.COMPONENT);
-            accept.addActionListener(listener -> {
+        actions.setBackground(ColorPalette.accentColor);
+        switch (friendHandling) {
+            case "User choice" -> {
+                if (incoming) {
+                    LFlatButton accept = new LFlatButton("+", LTextAlign.CENTER, LHighlightType.COMPONENT);
+                    accept.addActionListener(listener -> {
+                        VirtualRiotXMPPClient client = window.getXMPPClient();
+                        List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                        if (list.isEmpty()) return;
+                        client.addFriendByTag(list.get(0).getName().toString(), list.get(0).getTagline().toString());
+                        synchronized (lock) {
+                            component.remove(request);
+                        }
+                        component.revalidate();
+                    });
+                    accept.setPreferredSize(new Dimension(30, 0));
+                    actions.add(accept);
+                }
+                LFlatButton remove = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
+                remove.addActionListener(listener -> {
+                    VirtualRiotXMPPClient client = window.getXMPPClient();
+                    List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                    if (list.isEmpty()) return;
+                    client.removeFriend(list.get(0).getJID());
+                    synchronized (lock) {
+                        component.remove(request);
+                    }
+                });
+                remove.setPreferredSize(new Dimension(30, 0));
+                actions.add(remove);
+                tmp.put(genericFriend, request);
+                request.add(actions, BorderLayout.EAST);
+                synchronized (lock) {
+                    this.component.add(request);
+                }
+            }
+            case "Auto accept" -> {
                 VirtualRiotXMPPClient client = window.getXMPPClient();
                 List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
                 if (list.isEmpty()) return;
                 client.addFriendByTag(list.get(0).getName().toString(), list.get(0).getTagline().toString());
-                synchronized (lock) {
-                    component.remove(request);
-                }
-                component.revalidate();
-            });
-            accept.setPreferredSize(new Dimension(30, 0));
-            actions.add(accept);
-        }
-        LFlatButton remove = new LFlatButton("×", LTextAlign.CENTER, LHighlightType.COMPONENT);
-        remove.addActionListener(listener -> {
-            VirtualRiotXMPPClient client = window.getXMPPClient();
-            List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
-            if (list.isEmpty()) return;
-            client.removeFriend(list.get(0).getJID());
-            synchronized (lock) {
-                component.remove(request);
             }
-        });
-        remove.setPreferredSize(new Dimension(30, 0));
-        actions.add(remove);
-        tmp.put(genericFriend, request);
-        request.add(actions, BorderLayout.EAST);
-        synchronized (lock) {
-            this.component.add(request);
+            case "Auto reject" -> {
+                VirtualRiotXMPPClient client = window.getXMPPClient();
+                List<GenericFriend> list = client.getFriendList().find(friend -> genericFriend.getName().equals(friend.getName()));
+                if (list.isEmpty()) return;
+                client.removeFriend(list.get(0).getJID());
+            }
         }
     }
 
@@ -316,5 +332,10 @@ public class ChatSidebarFriendlist extends ChildUIComponent implements IFriendLi
     @Override
     public void onLeaveMucPresence(LeaveMucPresence presence) {
         handle(presence);
+    }
+
+    @Override
+    public void onSettingWrite(String name, String value) {
+        this.friendHandling = value;
     }
 }

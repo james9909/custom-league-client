@@ -34,6 +34,21 @@ public class GameServiceMessageLedge extends AbstractLedgeEndpoint {
         return new JSONObject(response.asString());
     }
 
+    public JSONObject getGameInfoByGameId(String gameId) throws IOException {
+        String uri = String.format("%s/%s/v%s/ledge/games/shardId/%s/gameId/%s",
+                base,
+                name(),
+                version(),
+                platform.name(),
+                gameId
+        );
+        Request request = jsonRequest(uri)
+                .get()
+                .build();
+        IResponse response = OkHttp3Client.execute(request);
+        return new JSONObject(response.asString());
+    }
+
     @Override
     public int version() {
         return 1;

@@ -14,7 +14,7 @@ public class Party {
     protected final int partyVersion;
 
     public Party(JSONObject object) {
-        Logger.error(object);
+        //Logger.error(object);
         this.puuid = object.getString("puuid");
         this.platformId = object.getString("platformId");
         this.accountId = object.getLong("accountId");

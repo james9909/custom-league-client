@@ -3,11 +3,16 @@ package com.hawolt.ui.queue;
 import com.hawolt.LeagueClientUI;
 import com.hawolt.client.resources.ledge.parties.PartiesLedge;
 import com.hawolt.client.resources.ledge.parties.objects.data.PositionPreference;
+import com.hawolt.client.resources.ledge.preferences.PlayerPreferencesLedge;
+import com.hawolt.client.resources.ledge.preferences.objects.PreferenceType;
 import com.hawolt.logger.Logger;
+import com.hawolt.settings.SettingType;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LComboBox;
+import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -18,43 +23,33 @@ import java.io.IOException;
  **/
 
 public class DraftQueueLobby extends QueueLobby {
-    JComboBox<PositionPreference> main, other;
-    public DraftQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
-        super(leagueClientUI, parent, layout);
+    private LComboBox<PositionPreference> main, other;
+    private boolean initialized = false;
 
+    public DraftQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout, QueueWindow queueWindow) {
+        super(leagueClientUI, parent, layout, queueWindow);
     }
-
 
     @Override
     protected void createSpecificComponents(ChildUIComponent component) {
-
         ChildUIComponent roles = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
+        roles.setBorder(new EmptyBorder(5, 5, 5, 5));
         main = new LComboBox<>(PositionPreference.values());
         main.addActionListener(this);
         roles.add(main);
         other = new LComboBox<>(PositionPreference.values());
         other.addActionListener(this);
-        //TODO revisit
-      /*  try {
-            JSONObject partiesPositionPreferences = PlayerPreferencesService.get().getSettings().getPartiesPositionPreferences();
-            JSONObject data = partiesPositionPreferences.getJSONObject("data");
-            main.setSelectedItem(PositionPreference.valueOf(data.getString("firstPreference")));
-            other.setSelectedItem(PositionPreference.valueOf(data.getString("secondPreference")));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
         roles.add(other);
         component.add(roles, BorderLayout.SOUTH);
     }
 
     @Override
     protected void createGrid(ChildUIComponent component) {
-        grid = new ChildUIComponent(new GridLayout(1,5));
+        grid = new ChildUIComponent(new GridLayout(1, 5));
         for (int i = 0; i < 5; i++) grid.add(new DraftSummonerComponent());
         grid.setBackground(Color.YELLOW);
         component.add(grid, BorderLayout.CENTER);
     }
-
 
 
     @Override
@@ -71,40 +66,29 @@ public class DraftQueueLobby extends QueueLobby {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e != null){
+        if (e != null && initialized) {
             try {
-            PositionPreference primary = main.getItemAt(main.getSelectedIndex());
-            PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
-            PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
-            partiesLedge.metadata(primary, secondary);
-            //TODO revisit
-            /*PlayerPreferencesLedge playerPreferencesLedge = leagueClientUI.getLeagueClient().getLedge().getPlayerPreferences();
-            JSONObject playerPrefs = playerPreferencesLedge.getPlayerPreferences();
-            JSONObject partiesPosPref;
-            JSONObject data;
-            try {
-                partiesPosPref = playerPrefs.getJSONObject("partiesPositionPreferences");
-                data = partiesPosPref.getJSONObject("data");
-                data.remove("firstPreference");
-                data.remove("secondPreference");
-            } catch (Exception e2) {
-                partiesPosPref = new JSONObject();
-                data = new JSONObject();
-                partiesPosPref.put("data", data);
-                playerPrefs.put("partiesPositionPreferences", partiesPosPref);
+                PositionPreference primary = main.getItemAt(main.getSelectedIndex());
+                PositionPreference secondary = other.getItemAt(other.getSelectedIndex());
+                PartiesLedge partiesLedge = leagueClientUI.getLeagueClient().getLedge().getParties();
+                partiesLedge.metadata(primary, secondary);
+                PlayerPreferencesLedge playerPreferencesLedge = leagueClientUI.getLeagueClient().getLedge().getPlayerPreferences();
+                JSONObject preference = leagueClientUI.getSettingService().getUserSettings().setPartyPositionPreference(
+                        new JSONObject()
+                                .put("firstPreference", main.getItemAt(main.getSelectedIndex()).toString())
+                                .put("secondPreference", other.getItemAt(other.getSelectedIndex()).toString())
+                );
+                playerPreferencesLedge.setPreferences(PreferenceType.LCU_PREFERENCES, preference.toString());
+                leagueClientUI.getSettingService().write(SettingType.PLAYER, "preferences", preference);
+            } catch (IOException ex) {
+                Logger.error(ex);
             }
-            data.put("firstPreference", main.getItemAt(main.getSelectedIndex()).toString());
-            data.put("secondPreference", other.getItemAt(other.getSelectedIndex()).toString());
-            playerPreferencesLedge.setPlayerPreferences(playerPrefs.toString());
-            PlayerPreferencesService.get().getSettings().setPartiesPositionPreferences(partiesPosPref);
-            PlayerPreferencesService.get().writeSettingsFile();*/
-
-        } catch (IOException ex) {
-            Logger.error(ex);
+        } else {
+            initialized = false;
         }
-        }
+        JSONObject data = leagueClientUI.getSettingService().getUserSettings().getPartyPositionPreference();
+        main.setSelectedItem(PositionPreference.valueOf(data.getString("firstPreference")));
+        other.setSelectedItem(PositionPreference.valueOf(data.getString("secondPreference")));
+        initialized = true;
     }
-
-
-
 }

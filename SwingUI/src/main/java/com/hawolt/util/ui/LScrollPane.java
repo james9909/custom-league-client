@@ -1,24 +1,35 @@
 package com.hawolt.util.ui;
 
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
-public class LScrollPane extends JScrollPane {
+public class LScrollPane extends JScrollPane implements PropertyChangeListener {
     public LScrollPane(Component view) {
+        ColorPalette.addThemeListener(this);
         getVerticalScrollBar().setUI(new LScrollBarUI());
         getHorizontalScrollBar().setUI(new LScrollBarUI());
         setBorder(new EmptyBorder(0, 0, 0, 0));
         setViewportView(view);
-        setBackground(ColorPalette.BACKGROUND_COLOR);
+        setBackground(ColorPalette.backgroundColor);
+        setForeground(ColorPalette.accentColor);
     }
 
     @Override
     public boolean isOptimizedDrawingEnabled() {
         return false;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        setBackground(ColorPalette.getNewColor(getBackground(), (LThemeChoice) evt.getOldValue()));
+        setForeground(ColorPalette.getNewColor(getForeground(), (LThemeChoice) evt.getOldValue()));
     }
 
     @Override

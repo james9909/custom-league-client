@@ -3,10 +3,12 @@ package com.hawolt.async;
 import com.hawolt.async.loader.ResourceConsumer;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
+import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -16,7 +18,7 @@ import java.io.ByteArrayInputStream;
  * Author: Twitter @hawolt
  **/
 
-public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer<BufferedImage, byte[]> {
+public class LazyLoadedImageComponent extends ChildUIComponent implements ResourceConsumer<BufferedImage, byte[]> {
     protected final Dimension dimension;
 
     protected BufferedImage image;
@@ -27,8 +29,17 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
         this(null, dimension);
     }
 
+    public LazyLoadedImageComponent(Dimension dimension, int border) {
+        this(null, dimension, border);
+    }
+
     public LazyLoadedImageComponent(String uri, Dimension dimension) {
-        this.setPreferredSize(dimension);
+        this(uri, dimension, 0);
+        ColorPalette.addThemeListener(this);
+    }
+
+    public LazyLoadedImageComponent(String uri, Dimension dimension, int border) {
+        this.setPreferredSize(new Dimension(dimension.width + (border << 1), dimension.height + (border << 1)));
         this.dimension = dimension;
         if (uri == null) return;
         ResourceLoader.loadResource(uri, this);
@@ -58,6 +69,6 @@ public class LazyLoadedImageComponent extends JPanel implements ResourceConsumer
         Dimension bounds = getSize();
         this.x = (bounds.width >> 1) - (image.getWidth() >> 1);
         this.y = (bounds.height >> 1) - (image.getHeight() >> 1);
-        g.drawImage(image, x, y, null);
+        g.drawImage(PaintHelper.circleize(image, ColorPalette.CARD_ROUNDING), x, y, null);
     }
 }

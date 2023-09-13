@@ -1,6 +1,11 @@
 package com.hawolt.util.ui;
 
+import com.hawolt.util.ColorPalette;
+
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 
 /**
@@ -64,5 +69,150 @@ public class PaintHelper {
 
     public static int getFontHeight(FontMetrics metrics) {
         return metrics.getAscent() - metrics.getDescent() - metrics.getLeading();
+    }
+
+    //https://stackoverflow.com/questions/7603400/how-to-make-a-rounded-corner-image-in-java
+    public static BufferedImage circleize(BufferedImage image, int rounding) {
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = output.createGraphics();
+
+        // This is what we want, but it only does hard-clipping, i.e. aliasing
+        // g2.setClip(new RoundRectangle2D ...)
+
+        // so instead fake soft-clipping by first drawing the desired clip shape
+        // in fully opaque white with antialiasing enabled...
+        g2.setComposite(AlphaComposite.Src);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        g2.fill(new RoundRectangle2D.Float(0, 0, w, h,
+                ColorPalette.useRoundedCorners ? rounding : 0, ColorPalette.useRoundedCorners ? rounding : 0));
+
+        // ... then compositing the image on top,
+        // using the white shape from above as alpha source
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(image, 0, 0, null);
+
+        g2.dispose();
+
+        return output;
+    }
+
+    public static BufferedImage circleize(BufferedImage image, int rounding, boolean tr, boolean tl, boolean br, boolean bl) {
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = output.createGraphics();
+
+        // This is what we want, but it only does hard-clipping, i.e. aliasing
+        // g2.setClip(new RoundRectangle2D ...)
+
+        // so instead fake soft-clipping by first drawing the desired clip shape
+        // in fully opaque white with antialiasing enabled...
+        g2.setComposite(AlphaComposite.Src);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        /*g2.fill(new RoundRectangle2D.Float(0, 0, w, h,
+                ColorPalette.useRoundedCorners ? rounding : 0, ColorPalette.useRoundedCorners ? rounding: 0));*/
+        roundedSquare(g2, 0, 0, w, h, rounding, tr, tl, br, bl);
+
+        // ... then compositing the image on top,
+        // using the white shape from above as alpha source
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(image, 0, 0, null);
+
+        g2.dispose();
+
+        return output;
+    }
+
+    public static BufferedImage circleize(BufferedImage image, int rounding, int imageX, int imageY) {
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = output.createGraphics();
+
+        // This is what we want, but it only does hard-clipping, i.e. aliasing
+        // g2.setClip(new RoundRectangle2D ...)
+
+        // so instead fake soft-clipping by first drawing the desired clip shape
+        // in fully opaque white with antialiasing enabled...
+        g2.setComposite(AlphaComposite.Src);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        g2.fill(new RoundRectangle2D.Float(0, 0, w, h,
+                ColorPalette.useRoundedCorners ? rounding : 0, ColorPalette.useRoundedCorners ? rounding : 0));
+
+        // ... then compositing the image on top,
+        // using the white shape from above as alpha source
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(image, imageX, imageY, null);
+
+        g2.dispose();
+
+        return output;
+    }
+
+    public static BufferedImage circleize(BufferedImage image, int rounding, int imageX, int imageY, int imageWidth, int imageHeight) {
+        BufferedImage output = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2 = output.createGraphics();
+
+        // This is what we want, but it only does hard-clipping, i.e. aliasing
+        // g2.setClip(new RoundRectangle2D ...)
+
+        // so instead fake soft-clipping by first drawing the desired clip shape
+        // in fully opaque white with antialiasing enabled...
+        g2.setComposite(AlphaComposite.Src);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        g2.fill(new RoundRectangle2D.Float(0, 0, imageWidth, imageHeight,
+                ColorPalette.useRoundedCorners ? rounding : 0, ColorPalette.useRoundedCorners ? rounding : 0));
+
+        // ... then compositing the image on top,
+        // using the white shape from above as alpha source
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(image, imageX, imageY, null);
+
+        g2.dispose();
+
+        return output;
+    }
+
+    public static void roundedSquare(Graphics2D g, int x, int y, int width, int height, int rounding, boolean roundTopRight, boolean roundTopLeft, boolean roundBotRight, boolean roundBotLeft) {
+        rounding = ColorPalette.useRoundedCorners ? rounding : 0;
+        int roundX = Math.min(width, rounding);
+        int roundY = Math.min(height, rounding);
+
+        Area topLeftArea = new Area(new RoundRectangle2D.Double(x, y, width, height, roundX, roundY));
+        topLeftArea.add(new Area(new Rectangle2D.Double(x + roundX / 2, y, width - roundX / 2, height)));
+        topLeftArea.add(new Area(new Rectangle2D.Double(x, y + roundY / 2, width, height - roundY / 2)));
+
+        Area topRightArea = new Area(new RoundRectangle2D.Double(x, y, width, height, roundX, roundY));
+        topRightArea.add(new Area(new Rectangle2D.Double(x, y, width - roundX / 2, height)));
+        topRightArea.add(new Area(new Rectangle2D.Double(x, y + roundY / 2, width, height - roundY / 2)));
+
+        Area botLeftArea = new Area(new RoundRectangle2D.Double(x, y, width, height, roundX, roundY));
+        botLeftArea.add(new Area(new Rectangle2D.Double(x + roundX / 2, y, width - roundX / 2, height)));
+        botLeftArea.add(new Area(new Rectangle2D.Double(x, y, width, height - roundY / 2)));
+
+        Area botRightArea = new Area(new RoundRectangle2D.Double(x, y, width, height, roundX, roundY));
+        botRightArea.add(new Area(new Rectangle2D.Double(x, y, width - roundX / 2, height)));
+        botRightArea.add(new Area(new Rectangle2D.Double(x, y, width, height - roundY / 2)));
+
+        Area paintArea = new Area(new Rectangle2D.Double(x, y, width, height));
+        if (roundTopLeft)
+            paintArea.intersect(topLeftArea);
+        if (roundTopRight)
+            paintArea.intersect(topRightArea);
+        if (roundBotLeft)
+            paintArea.intersect(botLeftArea);
+        if (roundBotRight)
+            paintArea.intersect(botRightArea);
+        g.fill(paintArea);
     }
 }

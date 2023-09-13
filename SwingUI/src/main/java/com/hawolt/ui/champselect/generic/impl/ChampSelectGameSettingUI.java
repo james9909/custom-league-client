@@ -35,8 +35,8 @@ public class ChampSelectGameSettingUI extends ChampSelectUIComponent {
 
     public ChampSelectGameSettingUI(Integer... allowedSpellIds) {
         this.setLayout(new BorderLayout());
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.BLACK));
+        this.setBackground(ColorPalette.backgroundColor);
+        this.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, Color.DARK_GRAY));
         //TODO find a data source for this
         List<Integer> temporaryWhiteList = Arrays.asList(allowedSpellIds);
         SpellIndex spellIndex = SpellSource.SPELL_SOURCE_INSTANCE.get();
@@ -47,6 +47,8 @@ public class ChampSelectGameSettingUI extends ChampSelectUIComponent {
             list.add(spell);
         }
         Spell[] allowed = list.toArray(Spell[]::new);
+        this.setLayout(new BorderLayout());
+        this.setBackground(ColorPalette.backgroundColor);
         ChildUIComponent spellUI = new ChildUIComponent(new GridLayout(0, 2, 5, 0));
         spellUI.add(spellOne = new LComboBox<>(allowed));
         spellUI.add(spellTwo = new LComboBox<>(allowed));
@@ -56,6 +58,9 @@ public class ChampSelectGameSettingUI extends ChampSelectUIComponent {
         buttonUI.add(dodge = new LFlatButton("Dodge", LTextAlign.CENTER, LHighlightType.COMPONENT));
         buttonUI.add(submit = new LFlatButton("Submit Choice", LTextAlign.CENTER, LHighlightType.COMPONENT));
         buttonUI.add(runes = new LFlatButton("Rune Page", LTextAlign.CENTER, LHighlightType.COMPONENT));
+        dodge.setRounding(ColorPalette.CARD_ROUNDING);
+        submit.setRounding(ColorPalette.CARD_ROUNDING);
+        runes.setRounding(ColorPalette.CARD_ROUNDING);
         LHintTextField filter = new LHintTextField("Search...");
         filter.getDocument().addDocumentListener(new DocumentListener() {
             private void forward(String text) {

@@ -7,13 +7,11 @@ import com.hawolt.client.resources.ledge.store.objects.InventoryType;
 import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
-import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LTabbedPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
@@ -33,27 +31,30 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
     public StoreWindow(LeagueClient client) {
         super(new BorderLayout());
         this.client = client;
-        this.setBackground(ColorPalette.BACKGROUND_COLOR);
-        pane = new LTabbedPane();
+        this.pane = new LTabbedPane();
         try {
             String jwt = client.getLedge().getInventoryService().getInventoryToken();
             JSONObject object = new JSONObject(new String(Base64.getDecoder().decode(jwt.split("\\.")[1])));
             JSONObject items = object.getJSONObject("items");
-            JSONArray champions = items.getJSONArray("CHAMPION");
-            List<Long> list = champions.toList()
-                    .stream()
-                    .map(Object::toString)
-                    .map(Long::parseLong)
-                    .toList();
             pane.addTab(
                     InventoryType.CHAMPION.name(),
-                    new StorePage(
+                    createStorePage(
                             client,
-                            list,
-                            StoreSortProperty.values()
+                            InventoryType.CHAMPION.name(),
+                            items
                     )
             );
-            //  pane.addTab(InventoryType.CHAMPION_SKIN.name(), new StorePage(client));
+            //TODO get better at handling lots of images - I'm too stupid ~Lett4s
+            //no you are not, I fixed this for you :) ~hawolt
+            //kneel and bow down to King hawolt ~Lett4s
+            pane.addTab(
+                    InventoryType.CHAMPION_SKIN.name(),
+                    createStorePage(
+                            client,
+                            InventoryType.CHAMPION_SKIN.name(),
+                            items
+                    )
+            );
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -69,6 +70,21 @@ public class StoreWindow extends ChildUIComponent implements Runnable {
             }
         }
         return null;
+    }
+
+    public StorePage createStorePage(LeagueClient client, String type, JSONObject items) {
+        JSONArray itemTypeArray = items.getJSONArray(type);
+        List<Long> itemTypeList = itemTypeArray.toList()
+                .stream()
+                .map(Object::toString)
+                .map(Long::parseLong)
+                .toList();
+        return new StorePage(
+                client,
+                type,
+                itemTypeList,
+                StoreSortProperty.values()
+        );
     }
 
     @Override

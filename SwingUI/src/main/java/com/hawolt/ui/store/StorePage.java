@@ -1,8 +1,9 @@
 package com.hawolt.ui.store;
 
 import com.hawolt.client.LeagueClient;
-import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.misc.SortOrder;
+import com.hawolt.client.resources.ledge.store.objects.InventoryType;
+import com.hawolt.client.resources.ledge.store.objects.StoreItem;
 import com.hawolt.client.resources.ledge.store.objects.StoreSortProperty;
 import com.hawolt.logger.Logger;
 import com.hawolt.ui.custom.LHintTextField;
@@ -16,13 +17,13 @@ import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,54 +37,70 @@ public class StorePage extends ChildUIComponent implements IStorePage {
     private final LeagueClient client;
     private final ChildUIComponent grid;
     private final List<Long> owned;
+    private final String name;
+    private final String[] options = {"SKINS", "CHROMAS"};
     private final StoreElementComparator alphabeticalComparator = new StoreElementComparator(StoreSortProperty.NAME, SortOrder.ASCENDING);
     private final StoreElementComparator comparator;
     private final Debouncer debouncer = new Debouncer();
+    private final ChildUIComponent inputPanel;
     private String filter = "";
+    private boolean chromaFilter = false;
 
-    public StorePage(LeagueClient client, List<Long> owned, StoreSortProperty... properties) {
+    public StorePage(LeagueClient client, String name, List<Long> owned, StoreSortProperty... properties) {
         super(new BorderLayout(0, 5));
         this.client = client;
         this.owned = owned;
+        this.name = name;
         ChildUIComponent component = new ChildUIComponent(new BorderLayout());
-        grid = new ChildUIComponent(new GridLayout(0, 5, 5, 5));
+        grid = new ChildUIComponent(new GridLayout(0, 5, 15, 15));
         add(component, BorderLayout.NORTH);
         component.add(grid, BorderLayout.NORTH);
         LScrollPane scrollPane = new LScrollPane(component);
-        //TODO revisit this is good
-        /*scrollPane.getViewport().addChangeListener(new ChangeListener() {
+        scrollPane.setBackground(ColorPalette.backgroundColor);
+        scrollPane.getViewport().addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                Rectangle visibleRect = grid.getVisibleRect();
+                Rectangle visible = grid.getVisibleRect();
                 for (Component child : grid.getComponents()) {
-                    Rectangle childBounds = child.getBounds();
-                    if (childBounds.intersects(visibleRect)) {
-                        System.out.println("INTERSECT");
-                    } else {
-                        System.out.println("NO INTERSECT");
+                    if (child instanceof StoreElement element) {
+                        Rectangle bounds = element.getBounds();
+                        debouncer.debounce(String.valueOf(element.getItem().getItemId()), () -> {
+                            if (bounds.intersects(visible)) {
+                                element.getImage().load();
+                            } else {
+                                element.getImage().unload();
+                            }
+                        }, 100L, TimeUnit.MILLISECONDS);
                     }
                 }
             }
         });
-        */
         scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         add(scrollPane, BorderLayout.CENTER);
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
         comparator = new StoreElementComparator(properties.length > 0 ? properties[0] : null, SortOrder.DESCENDING);
-        JPanel inputPanel = createInputPanel(properties);
+        inputPanel = createInputPanel(properties);
         this.add(inputPanel, BorderLayout.NORTH);
     }
 
     @NotNull
-    private JPanel createInputPanel(StoreSortProperty[] properties) {
+    private ChildUIComponent createInputPanel(StoreSortProperty[] properties) {
         LComboBox<StoreSortOption> sortBox = createStoreSortOptionJComboBox(properties);
 
-        JPanel inputPanel = new JPanel();
-        inputPanel.setBackground(ColorPalette.BACKGROUND_COLOR);
+        ChildUIComponent inputPanel = new ChildUIComponent();
+        inputPanel.setBackground(ColorPalette.backgroundColor);
         inputPanel.setLayout(new GridLayout(1, 2, 5, 0));
         inputPanel.add(sortBox);
+        if (this.name.equals(InventoryType.CHAMPION_SKIN.name())) {
+            LComboBox<String> options = new LComboBox<>(this.options);
+            options.addItemListener(listener -> {
+                chromaFilter = !Objects.equals(options.getSelectedItem(), this.options[0]);
+                updateElements();
+            });
+            inputPanel.add(options);
+        }
         LHintTextField search = new LHintTextField("Search...");
 
         search.addKeyListener(new KeyAdapter() {
@@ -100,8 +117,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
 
     @NotNull
     private LComboBox<StoreSortOption> createStoreSortOptionJComboBox(StoreSortProperty[] properties) {
-        LComboBox<StoreSortOption> sortBox = new LComboBox<StoreSortOption>();
-        //sortBox.setLabelText("Sort By");
+        LComboBox<StoreSortOption> sortBox = new LComboBox<>();
         for (StoreSortProperty property : properties) {
             sortBox.addItem(new StoreSortOption(property, SortOrder.DESCENDING));
             sortBox.addItem(new StoreSortOption(property, SortOrder.ASCENDING));
@@ -127,6 +143,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
         try {
             for (StoreItem item : items) {
                 if (owned.contains(item.getItemId())) continue;
+                if (item.getRiotPointCost() == 0 && !item.isBlueEssencePurchaseAvailable()) continue;
                 JSONObject object = item.asJSON();
                 long itemId = object.getLong("itemId");
                 StoreElement element = new StoreElement(client, this, item);
@@ -153,6 +170,7 @@ public class StorePage extends ChildUIComponent implements IStorePage {
                 .sorted(this.alphabeticalComparator)
                 .sorted(this.comparator)
                 .filter(champion -> champion.getItem().getName().toLowerCase().contains(filter))
+                .filter(skin -> skin.getItem().hasSubInventoryType() == chromaFilter)
                 .forEach(this.grid::add);
         revalidate();
         repaint();

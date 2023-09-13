@@ -45,12 +45,12 @@ public class GameInvite extends ChildUIComponent implements ActionListener {
         try {
             int queueId = ((AvailableParty) party).getPartyGameMode().getQueueId();
             client.getLedge().getParties().role(party.getPartyId(), PartyRole.MEMBER);
+            leagueClientUI.getLayoutManager().showClientComponent("play");
             if (queueId == 1100 || queueId == 1090 || queueId == 1130 || queueId == 1160) {
                 leagueClientUI.getLayoutManager().getQueue().getTftLobby().actionPerformed(null);
             } else {
                 leagueClientUI.getLayoutManager().getQueue().getDraftLobby().actionPerformed(null);
             }
-            leagueClientUI.getLayoutManager().showClientComponent("play");
         } catch (IOException ex) {
             Logger.error(ex);
         }

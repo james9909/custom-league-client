@@ -25,6 +25,8 @@ public class MainUI extends MainUIComponent {
 
     public MainUI(JFrame frame) {
         super(frame);
+        //Setting default theme
+        //ColorPalette.setTheme(LThemeChoice.DARK);
         this.setLayout(new BorderLayout());
         this.setPreferredSize(new Dimension(1600, 900));
         this.layeredPane = new JLayeredPane();

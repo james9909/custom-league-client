@@ -1,6 +1,7 @@
 package com.hawolt.util.ui;
 
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,15 +11,23 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class LFlatButton extends JButton {
+public class LFlatButton extends JButton implements PropertyChangeListener {
     private int selectedIndicatorSize = 5;
-    private Color selectedColor;
 
     private boolean showSelectionIndicator;
     private LHighlightType highlightType;
 
     private LTextAlign textAlign;
+
+    private Color highlightColor = ColorPalette.buttonSelectionColor;
+
+    private int rounding = 0;
+
+    private boolean roundTL, roundTR, roundBL, roundBR, customRoundArea;
 
     public LFlatButton() {
         init();
@@ -40,14 +49,15 @@ public class LFlatButton extends JButton {
     }
 
     protected void init() {
+        ColorPalette.addThemeListener(this);
         setContentAreaFilled(false);
         setFocusPainted(false); //Disable text border on focus
         setBorder(new EmptyBorder(8, 8, 8, 8));
-        setForeground(Color.WHITE); //Set text to white
+        setForeground(ColorPalette.textColor); //Set text to white
+
+        setBackground(new Color(0, 0, 0, 0)); //Set default background color
 
         setFont(new Font("Dialog", Font.BOLD, 18));
-
-        selectedColor = ColorPalette.BUTTON_SELECTION_COLOR;
 
         //Change color on mouse press
         addMouseListener(new MouseAdapter() {
@@ -56,6 +66,8 @@ public class LFlatButton extends JButton {
             }
 
             public void mouseEntered(MouseEvent evt) {
+                if (highlightType == LHighlightType.TEXT)
+                    setForeground(highlightColor);
                 showSelectionIndicator = true;
                 repaint();
             }
@@ -63,8 +75,10 @@ public class LFlatButton extends JButton {
             public void mouseExited(MouseEvent evt) {
                 if (isSelected())
                     showSelectionIndicator = true;
-                else
+                else {
+                    setForeground(ColorPalette.textColor);
                     showSelectionIndicator = false;
+                }
                 repaint();
             }
         });
@@ -73,26 +87,50 @@ public class LFlatButton extends JButton {
         addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                if (isSelected())
+                if (isSelected()) {
+                    if (highlightType == LHighlightType.TEXT)
+                        setForeground(highlightColor);
                     showSelectionIndicator = true;
-                else
+                } else {
+                    setForeground(ColorPalette.textColor);
                     showSelectionIndicator = false;
+                }
             }
         });
+    }
 
-        setBackground(new Color(0, 0, 0, 0)); //Set default background color
+    public void setRounding(int rounding) {
+        this.rounding = rounding;
+    }
+
+    public void setRoundingCorners(boolean tl, boolean tr, boolean bl, boolean br) {
+        roundTL = tl;
+        roundTR = tr;
+        roundBL = bl;
+        roundBR = br;
+        customRoundArea = tl || tr || bl || br;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        LThemeChoice old = (LThemeChoice) evt.getOldValue();
+        setBackground(ColorPalette.getNewColor(getBackground(), old));
+
+        highlightColor = ColorPalette.getNewColor(highlightColor, old);
+
+        setForeground(ColorPalette.getNewColor(getForeground(), old));
     }
 
     public void setHighlightType(LHighlightType direction) {
         highlightType = direction;
     }
 
-    public void setSelectionIndicatorSize(int size) {
-        selectedIndicatorSize = size;
+    public void setHighlightColor(Color color) {
+        highlightColor = color;
     }
 
-    public void setSelectionIndicatorColor(Color col) {
-        selectedColor = col;
+    public void setSelectionIndicatorSize(int size) {
+        selectedIndicatorSize = size;
     }
 
     public void setTextAlign(LTextAlign align) {
@@ -103,43 +141,42 @@ public class LFlatButton extends JButton {
     protected void paintComponent(Graphics graphics) {
         Graphics2D g2d = (Graphics2D) graphics.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        int x = 0, y = 0, width = 0, height = 0;
+        g2d.setColor(getBackground());
+        int x = 0, y = 0, width = getWidth(), height = getHeight();
+        if (!customRoundArea)
+            g2d.fillRoundRect(0, 0, width, height, ColorPalette.useRoundedCorners ? rounding : 0, ColorPalette.useRoundedCorners ? rounding : 0);
+        else
+            PaintHelper.roundedSquare(g2d, 0, 0, getWidth(), getHeight(), rounding, roundTR, roundTL, roundBR, roundBL);
+
         switch (highlightType) {
             case LEFT:
-                x = 0;
-                y = 0;
                 width = selectedIndicatorSize;
-                height = getHeight();
                 break;
             case TOP:
-                x = 0;
-                y = 0;
-                width = getWidth();
                 height = selectedIndicatorSize;
                 break;
             case RIGHT:
-                x = getWidth() - selectedIndicatorSize;
-                y = 0;
+                x = width - selectedIndicatorSize;
                 width = selectedIndicatorSize;
-                height = getHeight();
                 break;
             case BOTTOM:
-                x = 0;
-                y = getHeight() - selectedIndicatorSize;
-                width = getWidth();
+                y = height - selectedIndicatorSize;
                 height = selectedIndicatorSize;
                 break;
-            case COMPONENT:
-                x = 0;
-                y = 0;
-                width = getWidth();
-                height = getHeight();
-                break;
+            case TEXT:
+                width = 0;
+                height = 0;
         }
-        Area buttonArea = new Area(new Rectangle(x, y, width, height));
-        g2d.setColor(selectedColor);
-        if (showSelectionIndicator)
-            g2d.fill(buttonArea);
+        Area buttonArea = new Area(new RoundRectangle2D.Double(x, y, width, height,
+                ColorPalette.useRoundedCorners && highlightType == LHighlightType.COMPONENT ? rounding : 0,
+                ColorPalette.useRoundedCorners && highlightType == LHighlightType.COMPONENT ? rounding : 0));
+        g2d.setColor(highlightColor);
+        if (showSelectionIndicator && isEnabled()) {
+            if (!customRoundArea)
+                g2d.fill(buttonArea);
+            else
+                PaintHelper.roundedSquare(g2d, 0, 0, getWidth(), getHeight(), rounding, roundTR, roundTL, roundBR, roundBL);
+        }
 
         g2d.setFont(getFont());
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -163,9 +200,9 @@ public class LFlatButton extends JButton {
                 break;
         }
         y = getHeight() / 2 + (metrics.getAscent() - metrics.getDescent() - metrics.getLeading()) / 2;
-        PaintHelper.drawShadowText(g2d, text, x, y, getForeground());
+        PaintHelper.drawShadowText(g2d, text, x, y, isEnabled() ? getForeground() : getForeground().darker());
 
-        g2d.dispose();
+
         //  super.paintComponent(graphics);
     }
 }

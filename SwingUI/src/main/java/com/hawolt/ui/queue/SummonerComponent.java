@@ -5,7 +5,10 @@ import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.resources.ledge.parties.objects.PartyParticipant;
 import com.hawolt.client.resources.ledge.summoner.objects.Summoner;
 import com.hawolt.logger.Logger;
+import com.hawolt.util.ColorPalette;
 import com.hawolt.util.panel.ChildUIComponent;
+import com.hawolt.util.themes.LThemeChoice;
+import com.hawolt.util.ui.PaintHelper;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -27,9 +30,14 @@ public class SummonerComponent extends ChildUIComponent implements ResourceConsu
     public BufferedImage image;
     public Summoner summoner;
 
+    private Color accent = ColorPalette.accentColor;
 
     public SummonerComponent() {
         super(null);
+        ColorPalette.addThemeListener(evt -> {
+            LThemeChoice old = (LThemeChoice) evt.getOldValue();
+            accent = ColorPalette.getNewColor(accent, old);
+        });
     }
 
     public void update(PartyParticipant participant, Summoner summoner) {
@@ -47,10 +55,13 @@ public class SummonerComponent extends ChildUIComponent implements ResourceConsu
         String role = participant.getRole();
         if (!role.equals("MEMBER") && !role.equals("LEADER")) return;
         Dimension dimension = getSize();
-        g.setColor(Color.GRAY);
-        g.fillRect(3, 3, dimension.width - 7, dimension.height - 7);
-        g.setColor(Color.BLACK);
-        g.drawRect(3, 3, dimension.width - 7, dimension.height - 7);
+        Graphics2D graphics2D = (Graphics2D) g;
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        graphics2D.setColor(Color.BLACK);
+        PaintHelper.roundedSquare(graphics2D, 2, 2, dimension.width - 5, dimension.height - 5, 25, true, true, true, true);
+        graphics2D.setColor(accent);
+        PaintHelper.roundedSquare(graphics2D, 3, 3, dimension.width - 7, dimension.height - 7, 25, true, true, true, true);
         int centeredX = dimension.width >> 1;
         int centeredY = dimension.height >> 1;
         if (image != null) {
@@ -67,8 +78,6 @@ public class SummonerComponent extends ChildUIComponent implements ResourceConsu
             g.drawImage(image, imageX, imageY, null);
         }
         FontMetrics metrics;
-        Graphics2D graphics2D = (Graphics2D) g;
-        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         graphics2D.setFont(NAME_FONT);
         metrics = graphics2D.getFontMetrics();
         String name = summoner.getName().trim();

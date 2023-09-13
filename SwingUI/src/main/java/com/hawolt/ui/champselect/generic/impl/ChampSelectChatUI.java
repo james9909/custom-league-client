@@ -9,6 +9,7 @@ import com.hawolt.ui.champselect.data.TeamMemberFunction;
 import com.hawolt.ui.champselect.generic.ChampSelectUIComponent;
 import com.hawolt.ui.custom.LHintTextField;
 import com.hawolt.util.ColorPalette;
+import com.hawolt.util.themes.LThemeChoice;
 import com.hawolt.util.ui.LScrollPane;
 import com.hawolt.util.ui.SmartScroller;
 import com.hawolt.xmpp.event.objects.conversation.history.impl.IncomingMessage;
@@ -17,6 +18,7 @@ import com.hawolt.xmpp.event.objects.presence.impl.JoinMucPresence;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,21 +31,23 @@ import java.util.Map;
 
 public class ChampSelectChatUI extends ChampSelectUIComponent {
     private final JTextArea document;
-    private final JTextField input;
-
+    private final LHintTextField input;
+    private final List<String> cache = new ArrayList<>();
     private MatchContext matchContext;
 
     public ChampSelectChatUI() {
+        ColorPalette.addThemeListener(this);
         this.setLayout(new BorderLayout());
-        this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        this.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        //TODO make custon JTextArea
         LScrollPane scrollPane = new LScrollPane(document = new JTextArea());
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         SmartScroller.configure(scrollPane);
-        this.document.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.document.setBackground(ColorPalette.backgroundColor);
         this.document.setFont(new Font("Dialog", Font.PLAIN, 19));
         this.document.setEditable(false);
         this.document.setLineWrap(true);
-        this.document.setForeground(Color.WHITE);
+        this.document.setForeground(ColorPalette.textColor);
         this.add(scrollPane, BorderLayout.CENTER);
         this.document.setBorder(new EmptyBorder(5, 5, 5, 5));
         this.add(input = new LHintTextField("Send a message..."), BorderLayout.SOUTH);
@@ -88,8 +92,6 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
         }
     }
 
-    private final List<String> cache = new ArrayList<>();
-
     private void handle(ChampSelectTeamMember member, IncomingMessage incomingMessage) {
         Map<String, String> resolver = context.getChampSelectDataContext().getPUUIDResolver();
         if (!cache.isEmpty()) forward(resolver);
@@ -125,5 +127,11 @@ public class ChampSelectChatUI extends ChampSelectUIComponent {
     public void setMatchContext(MatchContext context) {
         this.document.setText("");
         this.matchContext = context;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        super.propertyChange(evt);
+        document.setBackground(ColorPalette.getNewColor(document.getBackground(), (LThemeChoice) evt.getOldValue()));
     }
 }

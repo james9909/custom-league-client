@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TFTQueueLobby extends QueueLobby {
 
 
-    public TFTQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout) {
-        super(leagueClientUI, parent, layout);
+    public TFTQueueLobby(LeagueClientUI leagueClientUI, Container parent, CardLayout layout, QueueWindow queueWindow) {
+        super(leagueClientUI, parent, layout, queueWindow);
     }
 
 

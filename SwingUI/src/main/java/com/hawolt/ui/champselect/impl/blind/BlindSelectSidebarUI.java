@@ -3,11 +3,9 @@ package com.hawolt.ui.champselect.impl.blind;
 import com.hawolt.async.ExecutorManager;
 import com.hawolt.ui.champselect.data.ChampSelectMember;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
-import com.hawolt.ui.champselect.generic.impl.ChampSelectBanElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectMemberElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.panel.ChildUIComponent;
 
 import java.awt.*;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +28,7 @@ public class BlindSelectSidebarUI extends ChampSelectSidebarUI {
         this.display.removeAll();
         this.type = getChampSelectTeamType();
         ChampSelectMember[] members = get(type);
-        this.display.setBackground(ColorPalette.BACKGROUND_COLOR);
+        this.display.setBackground(ColorPalette.backgroundColor);
         if (members.length != 0) {
             populate(members);
         } else {

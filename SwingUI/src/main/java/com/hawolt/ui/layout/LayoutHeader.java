@@ -1,26 +1,25 @@
 package com.hawolt.ui.layout;
 
-import com.hawolt.LeagueClientUI;
 import com.hawolt.async.LazyLoadedImageComponent;
 import com.hawolt.async.loader.ResourceLoader;
 import com.hawolt.client.LeagueClient;
 import com.hawolt.ui.chat.profile.ChatSidebarProfile;
 import com.hawolt.ui.layout.wallet.HeaderWallet;
 import com.hawolt.util.ColorPalette;
-import com.hawolt.util.audio.AudioEngine;
-import com.hawolt.util.audio.Sound;
 import com.hawolt.util.panel.ChildUIComponent;
 import com.hawolt.util.ui.LFlatButton;
 import com.hawolt.util.ui.LHighlightType;
 import com.hawolt.util.ui.LTextAlign;
 import com.hawolt.virtual.leagueclient.userinfo.UserInformation;
 
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created: 09/08/2023 15:52
@@ -28,16 +27,19 @@ import java.util.function.Consumer;
  **/
 
 public class LayoutHeader extends ChildUIComponent {
+    private final Map<LayoutComponent, LFlatButton> map = new HashMap<>();
     private final ChatSidebarProfile profile;
+    private final ILayoutManager manager;
     private final HeaderWallet wallet;
+    LazyLoadedImageComponent logo;
 
     private Point initialClick;
 
     public LayoutHeader(ILayoutManager manager, LeagueClient client) {
         super(new BorderLayout());
-        this.setBackground(ColorPalette.ACCENT_COLOR);
+        this.manager = manager;
+        this.setBackground(ColorPalette.backgroundColor);
         this.setPreferredSize(new Dimension(0, 90));
-
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(final MouseEvent e) {
@@ -60,62 +62,46 @@ public class LayoutHeader extends ChildUIComponent {
 
         ChildUIComponent main = new ChildUIComponent(new BorderLayout());
         main.setBorder(new EmptyBorder(5, 5, 5, 5));
-        main.setBackground(ColorPalette.ACCENT_COLOR);
+        main.setBackground(ColorPalette.backgroundColor);
         add(main, BorderLayout.CENTER);
 
-        LazyLoadedImageComponent component = new LazyLoadedImageComponent(new Dimension(90, 90));
-        component.setBackground(ColorPalette.ACCENT_COLOR);
+        LazyLoadedImageComponent component = new LazyLoadedImageComponent(new Dimension(80, 80), 5);
+        component.setBackground(ColorPalette.backgroundColor);
         ResourceLoader.loadLocalResource("fullsize-logo.png", component);
         add(component, BorderLayout.WEST);
 
-        ChildUIComponent buttons = new ChildUIComponent(new GridLayout(0, 5, 3, 0));
-        buttons.setBackground(ColorPalette.ACCENT_COLOR);
-        main.add(buttons, BorderLayout.WEST);
+        ChildUIComponent verticalButtonAlignment = new ChildUIComponent();
+        verticalButtonAlignment.setBackground(ColorPalette.backgroundColor);
+        verticalButtonAlignment.setLayout(new BoxLayout(verticalButtonAlignment, BoxLayout.X_AXIS));
+        main.add(verticalButtonAlignment, BorderLayout.WEST);
 
-        LFlatButton button3 = new LFlatButton("HOME", LTextAlign.CENTER, LHighlightType.BOTTOM);
-        LFlatButton button = new LFlatButton("STORE", LTextAlign.CENTER, LHighlightType.BOTTOM);
-        LFlatButton button1 = new LFlatButton("PLAY", LTextAlign.CENTER, LHighlightType.BOTTOM);
-        LFlatButton button2 = new LFlatButton("CHAMPSELECT", LTextAlign.CENTER, LHighlightType.BOTTOM);
-
-
-        final Consumer<LFlatButton> selectButton = (b) -> {
-            button.setSelected(false);
-            button1.setSelected(false);
-            button2.setSelected(false);
-            button3.setSelected(false);
-            b.setSelected(true);
-        };
-
-        button3.addActionListener(o -> {
-            selectButton.accept(button3);
-            manager.showComponent("github");
-        });
-        button3.setSelected(true);
-        buttons.add(button3);
-        button.addActionListener(o -> {
-            selectButton.accept(button);
-            AudioEngine.play(Sound.OPEN_STORE);
-            manager.showComponent("store");
-        });
-        buttons.add(button);
-        button1.addActionListener(o -> {
-            selectButton.accept(button1);
-            manager.showComponent("play");
-        });
-        buttons.add(button1);
-        button2.addActionListener(o -> {
-            selectButton.accept(button2);
-            manager.showComponent("select");
-        });
-        buttons.add(button2);
+        for (LayoutComponent layoutComponent : LayoutComponent.values()) {
+            if (layoutComponent == LayoutComponent.PROFILE) continue;
+            verticalButtonAlignment.add(Box.createRigidArea(new Dimension(10, 0)));
+            verticalButtonAlignment.add(createHeaderComponent(layoutComponent));
+        }
+        selectAndShowComponent(LayoutComponent.HOME);
 
         main.add(wallet = new HeaderWallet(client), BorderLayout.EAST);
-
         UserInformation userInformation = client.getVirtualLeagueClient()
                 .getVirtualLeagueClientInstance()
                 .getUserInformation();
         add(profile = new ChatSidebarProfile(userInformation, new BorderLayout()), BorderLayout.EAST);
         configure(userInformation);
+    }
+
+    public LFlatButton createHeaderComponent(LayoutComponent component) {
+        LFlatButton button = new LFlatButton(component.name().replace("_", " "), LTextAlign.CENTER, LHighlightType.TEXT);
+        button.addActionListener(listener -> selectAndShowComponent(component));
+        map.put(component, button);
+        return button;
+    }
+
+    public void selectAndShowComponent(LayoutComponent component) {
+        map.values().forEach(button -> button.setSelected(false));
+        manager.showComponent(component.toString());
+        LFlatButton button = map.get(component);
+        button.setSelected(true);
     }
 
     public void configure(UserInformation userInformation) {
@@ -134,7 +120,12 @@ public class LayoutHeader extends ChildUIComponent {
         return profile;
     }
 
+
     public HeaderWallet getWallet() {
         return wallet;
+    }
+
+    public String getChatStatus() {
+        return profile.getSummoner().getStatus().getBoxStatus();
     }
 }

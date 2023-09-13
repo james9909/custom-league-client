@@ -3,7 +3,6 @@ package com.hawolt.ui.champselect.impl.aram;
 import com.hawolt.ui.champselect.AbstractRenderInstance;
 import com.hawolt.ui.champselect.data.ChampSelectTeam;
 import com.hawolt.ui.champselect.data.ChampSelectType;
-import com.hawolt.ui.champselect.generic.impl.ChampSelectBenchElement;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectCenterUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectHeaderUI;
 import com.hawolt.ui.champselect.generic.impl.ChampSelectSidebarUI;
